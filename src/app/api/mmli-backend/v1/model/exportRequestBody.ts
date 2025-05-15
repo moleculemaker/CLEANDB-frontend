@@ -13,6 +13,7 @@
 
 export interface ExportRequestBody { 
     jobId: string;
+    input_filename: string;
     cdxml: boolean;
     cdxml_filter: string;
     cdxml_selected_pages: Array<number>;

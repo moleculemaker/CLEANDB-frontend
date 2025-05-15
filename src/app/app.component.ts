@@ -18,7 +18,7 @@ import { RouterOutlet } from "@angular/router";
 })
 export class AppComponent {
   emailstring: string =
-    "mailto:test-feedback@moleculemaker.org?Subject=User feedback for Test";
+    "mailto:cleandb-feedback@moleculemaker.org?Subject=User feedback for CleanDb";
   showCite: boolean = false;
 
   showComingSoonPopup: boolean = false;

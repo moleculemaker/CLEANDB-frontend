@@ -6,12 +6,12 @@ on:
 
 jobs:
   cron:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         env:
-          - aceretro.frontend.staging.mmli1.ncsa.illinois.edu
-          - aceretro.platform.moleculemaker.org
+          - cleandb.frontend.staging.mmli1.ncsa.illinois.edu
+          - cleandb.platform.moleculemaker.org
     name: E2E on ${{ matrix.env }} (Cron)
     steps:
       - uses: actions/setup-node@v4

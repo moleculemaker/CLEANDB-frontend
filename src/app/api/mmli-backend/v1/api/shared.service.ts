@@ -93,16 +93,23 @@ export class SharedService {
 
     /**
      * Draw Smiles
+     * @param smiles 
      * @param requestBody 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public drawSmilesSmilesDrawGet(requestBody: Array<string>, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<any>;
-    public drawSmilesSmilesDrawGet(requestBody: Array<string>, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpResponse<any>>;
-    public drawSmilesSmilesDrawGet(requestBody: Array<string>, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpEvent<any>>;
-    public drawSmilesSmilesDrawGet(requestBody: Array<string>, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<any> {
-        if (requestBody === null || requestBody === undefined) {
-            throw new Error('Required parameter requestBody was null or undefined when calling drawSmilesSmilesDrawGet.');
+    public drawSmilesSmilesDrawGet(smiles: string, requestBody?: Array<number>, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<any>;
+    public drawSmilesSmilesDrawGet(smiles: string, requestBody?: Array<number>, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpResponse<any>>;
+    public drawSmilesSmilesDrawGet(smiles: string, requestBody?: Array<number>, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpEvent<any>>;
+    public drawSmilesSmilesDrawGet(smiles: string, requestBody?: Array<number>, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<any> {
+        if (smiles === null || smiles === undefined) {
+            throw new Error('Required parameter smiles was null or undefined when calling drawSmilesSmilesDrawGet.');
+        }
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        if (smiles !== undefined && smiles !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>smiles, 'smiles');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -150,6 +157,7 @@ export class SharedService {
             {
                 context: localVarHttpContext,
                 body: requestBody,
+                params: localVarQueryParameters,
                 responseType: <any>responseType_,
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,

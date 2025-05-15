@@ -4,7 +4,7 @@ metadata:
   name: {{ .Release.Name }}
 spec:
   selector:
-    app: test-frontend
+    app: cleandb-frontend
   type: ClusterIP
   ports:
     - protocol: "TCP"

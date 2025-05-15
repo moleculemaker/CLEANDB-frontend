@@ -1,0 +1,53 @@
+<!-- Request Configuration -->
+<div class="flex flex-col h-full">
+  <form class="flex flex-col justify-between h-full" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div>
+      @if (showJobTab) {
+      <app-job-tab [tab]="currentPage"></app-job-tab>
+      }
+
+      <div>
+        <div class="my-6 flex items-center justify-between">
+          <div>
+            <h5 class="mb-2 font-bold opacity-100 leading-lg">Title Here</h5>
+            <h6 class="leading-lg">
+              Description Here
+            </h6>
+          </div>
+        </div>
+
+        <!-- TODO: Add content here -->
+      </div>
+    </div>
+
+    <!-- Subscription Email Input -->
+    <div class="sticky bottom-0 flex justify-between rounded-t-md bg-[#F3F5FB] px-10 pt-8">
+      <div class="flex flex-col">
+        <div class="flex items-end justify-center mb-2">
+          <span class="pr-12 mb-1">
+            <h5 class="inline m-0 mr-2 font-semibold opacity-100 leading-lg">Email</h5>
+            <h6 class="inline-block leading-lg">Leave an email to get an notification when your
+              results are ready.</h6>
+          </span>
+        </div>
+        <div class="w-full">
+          <input id="subscriber-email" type="email" aria-describedby="subscriber-email-help" [class]="'h-12 w-full'
+                    + ((form.controls['email'].invalid
+                        && form.controls['email'].dirty) ? ' ng-invalid ng-dirty' : '')" pInputText
+            placeholder="Enter email here" formControlName="email" />
+          <small *ngIf="form.controls['email'].invalid
+                        && form.controls['email'].dirty" id="subscriber-email-help" class="block mt-2 p-error">Email is
+            invalid.</small>
+        </div>
+        <div class="py-4">
+          <p-checkbox name="subscription" styleClass="subscription-checkbox"
+            label="Agree to receive email notifications and updates about EffectPrediction."
+            [binary]="true" [formControl]="form.controls['agreeToSubscription']"></p-checkbox>
+        </div>
+      </div>
+      <!-- TODO: update button -->
+      <p-button label="Generating routes using ACERetro" type="submit" styleClass="bg-[#224063]"
+        [disabled]="form.invalid" iconPos="right" icon="pi pi-arrow-right"></p-button>
+    </div>
+  </form>
+</div>

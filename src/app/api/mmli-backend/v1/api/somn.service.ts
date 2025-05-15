@@ -19,7 +19,11 @@ import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
 // @ts-ignore
+import { CheckReactionSiteRequest } from '../model/checkReactionSiteRequest';
+// @ts-ignore
 import { CheckReactionSiteResponse } from '../model/checkReactionSiteResponse';
+// @ts-ignore
+import { CheckReactionSiteResponseInvalid } from '../model/checkReactionSiteResponseInvalid';
 // @ts-ignore
 import { HTTPValidationError } from '../model/hTTPValidationError';
 
@@ -95,30 +99,16 @@ export class SomnService {
 
     /**
      * Check Reaction Sites
-     * @param smiles 
-     * @param role 
+     * @param checkReactionSiteRequest 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public checkReactionSitesSomnAllReactionSitesGet(smiles: string, role: 'el' | 'nuc', observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<CheckReactionSiteResponse>;
-    public checkReactionSitesSomnAllReactionSitesGet(smiles: string, role: 'el' | 'nuc', observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpResponse<CheckReactionSiteResponse>>;
-    public checkReactionSitesSomnAllReactionSitesGet(smiles: string, role: 'el' | 'nuc', observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpEvent<CheckReactionSiteResponse>>;
-    public checkReactionSitesSomnAllReactionSitesGet(smiles: string, role: 'el' | 'nuc', observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<any> {
-        if (smiles === null || smiles === undefined) {
-            throw new Error('Required parameter smiles was null or undefined when calling checkReactionSitesSomnAllReactionSitesGet.');
-        }
-        if (role === null || role === undefined) {
-            throw new Error('Required parameter role was null or undefined when calling checkReactionSitesSomnAllReactionSitesGet.');
-        }
-
-        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
-        if (smiles !== undefined && smiles !== null) {
-          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
-            <any>smiles, 'smiles');
-        }
-        if (role !== undefined && role !== null) {
-          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
-            <any>role, 'role');
+    public checkReactionSitesSomnAllReactionSitesPost(checkReactionSiteRequest: CheckReactionSiteRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<CheckReactionSiteResponse>;
+    public checkReactionSitesSomnAllReactionSitesPost(checkReactionSiteRequest: CheckReactionSiteRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpResponse<CheckReactionSiteResponse>>;
+    public checkReactionSitesSomnAllReactionSitesPost(checkReactionSiteRequest: CheckReactionSiteRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpEvent<CheckReactionSiteResponse>>;
+    public checkReactionSitesSomnAllReactionSitesPost(checkReactionSiteRequest: CheckReactionSiteRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<any> {
+        if (checkReactionSiteRequest === null || checkReactionSiteRequest === undefined) {
+            throw new Error('Required parameter checkReactionSiteRequest was null or undefined when calling checkReactionSitesSomnAllReactionSitesPost.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -141,6 +131,15 @@ export class SomnService {
         }
 
 
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
         let responseType_: 'text' | 'json' | 'blob' = 'json';
         if (localVarHttpHeaderAcceptSelected) {
             if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
@@ -153,10 +152,10 @@ export class SomnService {
         }
 
         let localVarPath = `/somn/all-reaction-sites`;
-        return this.httpClient.request<CheckReactionSiteResponse>('get', `${this.configuration.basePath}${localVarPath}`,
+        return this.httpClient.request<CheckReactionSiteResponse>('post', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
-                params: localVarQueryParameters,
+                body: checkReactionSiteRequest,
                 responseType: <any>responseType_,
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,

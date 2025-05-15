@@ -1,0 +1,70 @@
+import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
+import { FormGroup, FormControl, Validators, ReactiveFormsModule } from "@angular/forms";
+import { Router } from "@angular/router";
+import { CheckboxModule } from "primeng/checkbox";
+import { ButtonModule } from "primeng/button";
+import { CommonModule } from "@angular/common";
+
+import { JobType } from "~/app/api/mmli-backend/v1";
+import { JobTabComponent } from "~/app/components/job-tab/job-tab.component";
+import { CleanDbService } from '~/app/services/clean-db.service';
+
+@Component({
+  selector: 'app-effect-prediction',
+  templateUrl: './effect-prediction.component.html',
+  styleUrls: ['./effect-prediction.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    CheckboxModule,
+    ButtonModule,
+
+    JobTabComponent,
+  ],
+  host: {
+    class: "flex flex-col h-full"
+  }
+})
+export class EffectPredictionComponent implements OnChanges {
+  @Input() formValue!: any; // TODO: update type
+  @Input() showJobTab = true;
+  
+  form = new FormGroup({
+    email: new FormControl("", [Validators.email]),
+    agreeToSubscription: new FormControl(false),
+  });
+
+  currentPage = 'input';
+ 
+  constructor(
+    private service: CleanDbService,
+    private router: Router,
+  ) { }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['formValue'] && changes['formValue'].currentValue) {
+      this.form.patchValue(this.formValue);
+    }
+  }
+
+  onSubmit() {
+    if (!this.form.valid) {
+      return;
+    }
+
+    console.log(this.form.value);
+
+    this.service.createAndRunJob(
+      JobType.Somn, //TODO: use the correct job type
+      { 
+        job_info: JSON.stringify({
+          // TODO: add job info here
+        }),
+        email: this.form.controls["email"].value || '',
+      }
+    ).subscribe((response) => {
+      this.router.navigate(['effect-prediction', 'result', response.job_id]);
+    })
+  }
+}

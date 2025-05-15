@@ -4,19 +4,19 @@ kind: Deployment
 metadata:
   name: {{ .Release.Name }}
   labels:
-    app: test-frontend
+    app: cleandb-frontend
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: test-frontend
+      app: cleandb-frontend
   template:
     metadata:
       labels:
-        app: test-frontend
+        app: cleandb-frontend
     spec:
       containers:
-        - name: test-frontend
+        - name: cleandb-frontend
           image: {{ .Values.controller.image }}
 
           env:

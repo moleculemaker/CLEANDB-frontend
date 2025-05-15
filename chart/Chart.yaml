@@ -1,6 +1,6 @@
 apiVersion: v2
-description: "Test Frontend"
-name: test-frontend
+description: "CleanDb Frontend"
+name: cleandb-frontend
 version: 1.0.0
 dependencies:
 - name: common

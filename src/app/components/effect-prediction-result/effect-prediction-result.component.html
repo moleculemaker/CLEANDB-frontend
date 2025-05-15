@@ -1,0 +1,47 @@
+<app-job-tab [tab]="currentPage" (onTabChange)="currentPage = $event"></app-job-tab>
+
+@if (currentPage === 'input') {
+<app-effect-prediction [formValue]="jobInfo" [showJobTab]="false"></app-effect-prediction>
+
+} @else {
+<!-- Model Results -->
+<div class="flex flex-col h-full gap-8">
+  <div class="flex items-center justify-between">
+    @let status = statusResponse$ | async;
+    @if (status) {
+      <div>
+        <h5 class="flex items-center gap-2 mb-2 font-bold opacity-100 leading-xl">
+          Job ID: {{ status.job_id || "loading" }}
+          <button type="button" title="copy job id" class="border-none cursor-pointer">
+            <i class="pi pi-copy" (click)="copyAndPasteURL()"></i>
+          </button>
+        </h5>
+        <h6 class="text-text-secondary leading-lg">
+          Submission Time:
+          {{ (status.time_created || 0) * 1000 | date : "short" }}
+        </h6>
+      </div>
+    }
+    <div class="flex items-center gap-2">
+
+      <!-- TODO: add button here -->
+
+    </div>
+  </div>
+
+  @if (isLoading$ | async) {
+    <app-loading [jobType]="jobType"></app-loading>
+  }
+
+  <div class="flex flex-col gap-8" [class.hidden]="isLoading$ | async">
+    @let response = response$ | async;
+    @if (response) {
+
+
+      <!-- TODO: display result here -->
+
+
+    }
+  </div>
+</div>
+}

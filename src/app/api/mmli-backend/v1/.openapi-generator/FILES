@@ -16,7 +16,9 @@ git_push.sh
 index.ts
 model/analyzeRequestBody.ts
 model/bodyCreateJobJobTypeJobsPost.ts
+model/checkReactionSiteRequest.ts
 model/checkReactionSiteResponse.ts
+model/checkReactionSiteResponseInvalid.ts
 model/chemicalAutoCompleteResponse.ts
 model/exportRequestBody.ts
 model/flaggedMolecule.ts
@@ -28,6 +30,7 @@ model/jobType.ts
 model/jobUpdate.ts
 model/locationInner.ts
 model/models.ts
+model/molecule.ts
 model/savedMolecule.ts
 model/savedMoleculeDelete.ts
 model/validationError.ts

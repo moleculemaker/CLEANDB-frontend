@@ -10,9 +10,9 @@ networks:
 
 
 services:
-  test:
-    image: moleculemaker/test-frontend:localdev
-    container_name: test-frontend
+  cleandb:
+    image: moleculemaker/cleandb-frontend:localdev
+    container_name: cleandb-frontend
     build:
       context: .
       secrets:
