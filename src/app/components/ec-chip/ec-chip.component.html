@@ -1,0 +1,13 @@
+<div class="px-2 py-1 rounded-sm text-[#495057] inline-flex items-center justify-center gap-2"
+  [class.bg-[#2400EF1A]]="ec.score > 0.8" [class.bg-[#00C4EF1A]]="ec.score >= 0.5 && ec.score < 0.8"
+  [class.bg-[#EFAC001A]]="ec.score >= 0.2 && ec.score < 0.5">
+  <i class="pi"
+    [class.pi-arrow-down]="ec.score >= 0.2 && ec.score < 0.5"
+    [class.pi-arrow-right]="ec.score >= 0.5 && ec.score < 0.8"
+    [class.pi-arrow-up]="ec.score >= 0.8"
+    [class.text-[#2400EF]]="ec.score > 0.8"
+    [class.text-[#00C4EF]]="ec.score >= 0.5 && ec.score < 0.8"
+    [class.text-[#EFAC00]]="ec.score >= 0.2 && ec.score < 0.5"
+  ></i>
+  <span class="underline">{{ ec.ec_number }}</span> ({{ ec.score | number:'1.1-3' }})
+</div>

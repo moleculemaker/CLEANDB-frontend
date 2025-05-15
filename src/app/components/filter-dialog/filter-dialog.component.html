@@ -1,0 +1,54 @@
+<p-dialog 
+    [(visible)]="visible" 
+    [modal]="true" 
+    styleClass="w-[800px] h-[800px]"
+    (onHide)="visibleChange.emit(false)"
+>
+    <ng-template pTemplate="header">
+        <div class="flex items-center gap-2 font-semibold">
+            <i class="px-2 pi pi-filter"></i>
+            Filter
+        </div>
+    </ng-template>
+    <div class="mx-4 h-full">
+        <div class="flex w-full h-full grow gap-4">
+            <div class="w-1/2 flex flex-col gap-4 p-3">
+                <div class="font-bold">Experimental Parameters</div>
+                @for (filter of filterRecordsByCategory['parameter']; track filter.label) {
+                <div class="flex flex-col gap-2">
+                    <div [innerHTML]="filter.label.value"></div>
+                    <app-filter [filter]="filter" (filterChange)="filterChange.emit(filter)"></app-filter>
+                </div>
+                }
+            </div>
+            <div class="w-1/2 border-l border-solid border-[--surface-d] p-3 pl-7 flex flex-col gap-4">
+                <div class="font-bold">Enzyme Kinetics</div>
+                @for (filter of filterRecordsByCategory['enzyme']; track filter.label) {
+                <div class="flex flex-col gap-2">
+                    <div [innerHTML]="filter.label.value"></div>
+                    <app-filter [filter]="filter" (filterChange)="filterChange.emit(filter)"></app-filter>
+                </div>
+                }
+                <hr class="-mx-7" />
+                <div class="font-bold">Literature</div>
+                @for (filter of filterRecordsByCategory['literature']; track filter.label) {
+                <div class="flex flex-col gap-2">
+                    <div [innerHTML]="filter.label.value"></div>
+                    <app-filter [filter]="filter" (filterChange)="filterChange.emit(filter)"></app-filter>
+                </div>
+                }
+                <hr class="-mx-7" />
+            </div>
+        </div>
+    </div>
+    <ng-template pTemplate="footer">
+        <div class="flex items-center justify-between pt-4">
+            <button class="rounded-lg border border-solid border-[--primary-color] py-3 px-5 bg-white text-[--primary-color] text-[1rem]" (click)="clearAllFilters.emit()">
+                Reset Filters
+            </button>
+            <button class="rounded-lg border border-solid border-[--primary-color] py-3 px-5 bg-[--primary-color] text-white text-[1rem]" (click)="applyFilters.emit()">
+                Show {{ numberResults }} Result{{ numberResults !== 1 ? 's' : '' }}
+            </button>
+        </div>
+    </ng-template>
+</p-dialog>

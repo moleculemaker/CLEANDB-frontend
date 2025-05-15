@@ -6,10 +6,11 @@ import { EnvironmentService } from "./environment.service";
 
 // import { CleanDbService as CleanDbApiService } from "../api/mmli-backend/v1"; // TODO: use the correct service
 // import exampleStatus from '../../assets/example_status.json';
-// import example from '../../assets/example.json';
+import example from '../../assets/example.db.json';
+import { CleanDbRecord } from "../models/CleanDbRecord";
 
 const exampleStatus: any = "WARNING: please provide your own example_status.json";
-const example: any = "WARNING: please provide your own example.json";
+// const example: any = "WARNING: please provide your own example.json";
 
 @Injectable({
   providedIn: "root",
@@ -47,6 +48,14 @@ export class CleanDbService {
       return of(example as any);
     }
     return this.filesService.getResultsBucketNameResultsJobIdGet(jobType, jobID);
+  }
+
+  getData(): Observable<CleanDbRecord[]> {
+    if (this.frontendOnly) {
+      return of(example);
+    }
+    // TODO: get data from backend
+    return of([]);
   }
 
   getError(jobType: JobType, jobID: string): Observable<string> {

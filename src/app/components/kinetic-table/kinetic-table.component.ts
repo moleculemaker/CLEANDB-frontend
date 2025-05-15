@@ -13,6 +13,8 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { ScrollPanelModule } from 'primeng/scrollpanel';
 import { CleanDbService } from '~/app/services/clean-db.service';
 import { LoadingStatus } from '~/app/models/Loadable';
+import { EcChipComponent } from '../ec-chip/ec-chip.component';
+import { FilterDialogComponent } from '../filter-dialog/filter-dialog.component';
 
 @Component({
   selector: 'app-kinetic-table',
@@ -39,6 +41,8 @@ import { LoadingStatus } from '~/app/models/Loadable';
     RouterLink,
     SkeletonModule,
     ScrollPanelModule, 
+    EcChipComponent,
+    FilterDialogComponent,
   ],
   templateUrl: './kinetic-table.component.html',
   styleUrl: './kinetic-table.component.scss'

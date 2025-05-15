@@ -1,0 +1,25 @@
+::ng-deep .p-dialog-mask {
+    z-index: 9000 !important;
+}
+
+::ng-deep .p-dialog {
+    .p-dialog-header,
+    .p-dialog-footer {
+        @apply bg-gray-50;
+        @apply border-solid;
+        @apply border-[--surface-d];
+    }
+
+    .p-dialog-header {
+        @apply border-b;
+        @apply py-3;
+    }
+
+    .p-dialog-footer {
+        @apply border-t;
+    }
+
+    .p-dialog-content {
+        @apply p-0;
+    }
+}

@@ -27,6 +27,7 @@ import { FilterConfig, MultiselectFilterConfig, RangeFilterConfig } from "~/app/
 import { Subscription, map } from "rxjs";
 import { KineticTableComponent } from "~/app/components/kinetic-table/kinetic-table.component";
 import { CactusService } from "~/app/services/cactus.service";
+import { CleanDbRecord } from "~/app/models/CleanDbRecord";
 
 @Component({
   selector: 'app-database-search',
@@ -108,125 +109,59 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
   showFilter = false;
   hasFilter = false;
   filters: Map<string, FilterConfig> = new Map([
-    ['compounds', new MultiselectFilterConfig({
+    ['protein', new MultiselectFilterConfig({
       category: 'parameter',
       label: {
-        value: 'Compounds',
-        rawValue: 'Compounds',
+        value: 'Proteins',
+        rawValue: 'Proteins',
       },
-      placeholder: 'Select compound',
-      field: 'compound.name',
-      options: [],
-      value: [],
-    })],
-    ['organism', new MultiselectFilterConfig({
-      category: 'parameter',
-      label: {
-        value: 'Organisms',
-        rawValue: 'Organisms',
-      },
-      placeholder: 'Select organism',
-      field: 'organism',
+      placeholder: 'Select protein',
+      field: 'protein',
       options: [],
       value: [],
     })],
     ['uniprot_ids', new MultiselectFilterConfig({
       category: 'parameter',
       label: {
-        value: 'Uniprot IDs',
-        rawValue: 'Uniprot IDs',
+        value: 'Uniprot',
+        rawValue: 'Uniprot',
       },
-      placeholder: 'Select uniprot ID',
-      field: 'uniprot_id',
+      placeholder: 'Select Uniprot ID',
+      field: 'uniprot',
       options: [],
       value: [],
       matchMode: 'subset',
     })],
-    ['ec_numbers', new MultiselectFilterConfig({
+    ['organism', new MultiselectFilterConfig({
       category: 'parameter',
       label: {
-        value: 'EC Numbers',
-        rawValue: 'EC Numbers',
+        value: 'Organism',
+        rawValue: 'Organism',
       },
-      placeholder: 'Select EC number',
-      field: 'ec_number',
+      placeholder: 'Select organism',
+      field: 'organism',
       options: [],
       value: [],
     })],
-    ['enzyme_types', new MultiselectFilterConfig({
+    ['curation status', new MultiselectFilterConfig({
       category: 'parameter',
       label: {
-        value: 'Enzyme Types',
-        rawValue: 'Enzyme Types',
+        value: 'Curation Status',
+        rawValue: 'Curation Status',
       },
-      placeholder: 'Select enzyme type',
-      field: 'enzyme_type',
+      placeholder: 'Select curation status',
+      field: 'curation_status',
       options: [],
       value: [],
     })],
-    ['ph', new RangeFilterConfig({
+    ['predicted_ec', new MultiselectFilterConfig({
       category: 'parameter',
       label: {
-        value: 'pH',
-        rawValue: 'pH',
+        value: 'Predicted EC Number (Score)',
+        rawValue: 'Predicted EC Number (Score)',
       },
-      placeholder: 'Enter pH range',
-      field: 'ph',
-      min: 0,
-      max: 14,
-    })],
-    ['temperature', new RangeFilterConfig({
-      category: 'parameter',
-      label: {
-        value: 'Temperature (°C)',
-        rawValue: 'Temperature (°C)',
-      },
-      placeholder: 'Enter temperature range',
-      field: 'temperature',
-      min: 0,
-      max: 100,
-    })],
-    ['kcat', new RangeFilterConfig({
-      category: 'enzyme',
-      label: {
-        value: '<span class="italic">k</span><sub>cat</sub> (s<sup class="text-xs"> -1</sup>)',
-        rawValue: 'kcat',
-      },
-      placeholder: 'Enter kcat range',
-      field: 'kcat',
-      min: 0,
-      max: 100
-    })],
-    ['km', new RangeFilterConfig({
-      category: 'enzyme',
-      label: {
-        value: '<span class="italic">K</span><sub>m</sub> (mM)',
-        rawValue: 'km',
-      },
-      placeholder: 'Enter KM range',
-      field: 'km',
-      min: 0,
-      max: 100
-    })],
-    ['kcat_km', new RangeFilterConfig({
-      category: 'enzyme',
-      label: {
-        value: '<span class="italic">k</span><sub>cat</sub>/<span class="italic">K</span><sub>m</sub> (mM<sup class="text-xs"> -1</sup>s<sup class="text-xs"> -1</sup>)',
-        rawValue: 'kcat_km',
-      },
-      placeholder: 'Enter kcat/KM range',
-      field: 'kcat_km',
-      min: 0,
-      max: 100
-    })],
-    ['pubmed_id', new MultiselectFilterConfig({
-      category: 'literature',
-      label: {
-        value: 'PubMed',
-        rawValue: 'PubMed',
-      },
-      placeholder: 'Select PubMed ID',
-      field: 'pubmed_id',
+      placeholder: 'Enter predicted EC number (score) range',
+      field: 'predicted_ec',
       options: [],
       value: [],
       matchMode: 'subset',
@@ -385,31 +320,14 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       
       // Build query for this criteria
       switch (search.selectedOption) {
-        case 'compound':
-          criteriaQuery = {
-            'compound.name': search.value,
-            searchType: search.inputType || 'name',
-          };
-          break;
         case 'ec_number':
           criteriaQuery = {
             ec_number: search.value,
           };
           break;
-        case 'uniprot_id':
+        case 'protein_name':
           criteriaQuery = {
-            uniprot_id: search.value,
-          };
-          break;
-        case 'organism':
-          criteriaQuery = {
-            organism: search.value,
-          };
-          break;
-        case 'ph':
-        case 'temperature':
-          criteriaQuery = {
-            [search.selectedOption]: search.value,
+            protein: search.value,
           };
           break;
         default:
@@ -449,55 +367,38 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     // In a real implementation, this would send the query to the backend first
 
     // TODO: implement this
-    // this.service.getData()
-    //   .pipe(
-    //     map((response: OEDRecord[]) => 
-    //       response
-    //         .map((row: OEDRecord, index: number) => ({
-    //           iid: index,
-    //           ec_number: row.EC,
-    //           compound: {
-    //             name: row.SUBSTRATE,
-    //             smiles: row.SMILES,
-    //           },
-    //           enzyme_type: row.EnzymeType,
-    //           organism: row.ORGANISM,
-    //           uniprot_id: row.UNIPROT.split(','),
-    //           ph: row.PH,
-    //           temperature: row.Temperature,
-    //           kcat: row['KCAT VALUE'],
-    //           km: row['KM VALUE'],
-    //           kcat_km: row['KCAT/KM VALUE'],
-    //           pubmed_id: `${row.PubMedID}`,
-    //         }))
-    //         .filter((row) => {
-    //           // Process multi-criteria filtering client-side
-    //           return this.matchesSearchCriteria(row, criteriaArray);
-    //         })
-    //     )
-    //   )
-    //   .subscribe({
-    //     next: (response: any) => {
-    //       // Update options for filters
-    //       this.updateFilterOptions(response);
+    this.service.getData()
+      .pipe(
+        map((response: CleanDbRecord[]) => 
+          response
+            .filter((row) => {
+              // Process multi-criteria filtering client-side
+              return this.matchesSearchCriteria(row, criteriaArray);
+            })
+        )
+      )
+      .subscribe({
+        next: (response: CleanDbRecord[]) => {
+          // Update options for filters
+          this.updateFilterOptions(response);
           
-    //       this.result = {
-    //         status: 'loaded',
-    //         data: response,
-    //         total: response.length,
-    //       };
-    //       this.cdr.detectChanges();
-    //     },
-    //     error: (err: any) => {
-    //       console.error(err);
-    //       this.result = {
-    //         status: 'error',
-    //         data: [],
-    //         total: 0,
-    //       };
-    //       this.cdr.detectChanges();
-    //     }
-    //   });
+          this.result = {
+            status: 'loaded',
+            data: response,
+            total: response.length,
+          };
+          this.cdr.detectChanges();
+        },
+        error: (err: any) => {
+          console.error(err);
+          this.result = {
+            status: 'error',
+            data: [],
+            total: 0,
+          };
+          this.cdr.detectChanges();
+        }
+      });
   }
 
   // Helper method to match a row against all criteria
@@ -515,24 +416,11 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       
       // Check if this criteria matches
       switch (search.selectedOption) {
-        case 'compound':
-          const searchType = search.inputType || 'name';
-          currentMatch = row.compound[searchType]?.toLowerCase() === search.value.toLowerCase();
-          break;
-        case 'organism':
-          currentMatch = row.organism.toLowerCase() === search.value.toLowerCase();
-          break;
-        case 'uniprot_id':
-          currentMatch = row.uniprot_id.some((id: string) => id.toLowerCase() === search.value.toLowerCase());
-          break;
-        case 'ph':
-          currentMatch = row.ph >= search.value[0] && row.ph <= search.value[1];
-          break;
-        case 'temperature':
-          currentMatch = row.temperature >= search.value[0] && row.temperature <= search.value[1];
+        case 'protein_name':
+          currentMatch = row.protein.toLowerCase() === search.value.toLowerCase();
           break;
         case 'ec_number':
-          currentMatch = row.ec_number === search.value;
+          currentMatch = row.predicted_ec.some((ec: string) => ec.toLowerCase() === search.value.toLowerCase());
           break;
         default:
           currentMatch = true;

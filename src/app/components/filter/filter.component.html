@@ -1,0 +1,45 @@
+@switch (filter.type) {
+
+@case ('multiselect') {
+<p-multiSelect 
+    styleClass="w-full" 
+    [placeholder]="filter.placeholder" 
+    [options]="$any(filter).options" 
+    [baseZIndex]="9999"
+    [(ngModel)]="filter.value" 
+    [virtualScroll]="true" 
+    [virtualScrollItemSize]="48"
+    [disabled]="filter.disabled"
+    (onChange)="onFilterChange($event)"></p-multiSelect>
+}
+
+@case ('range') {
+<input pInputText 
+    title="{{ filter.placeholder }}" 
+    type="text" 
+    [placeholder]="filter.placeholder"
+    (blur)="onFilterChange($event)" 
+    [value]="filter.formattedValue"
+    [disabled]="filter.disabled"
+    class="w-full p-3 border border-[#ced4da] rounded-md !text-base"/>
+}
+
+@case ('singleselect') {
+<p-dropdown 
+    styleClass="w-full h-[42.5px]"
+    [options]="$any(filter).options" 
+    [placeholder]="filter.placeholder" 
+    [(ngModel)]="filter.value" 
+    [disabled]="filter.disabled"
+    (onChange)="onFilterChange($event)"
+    [filter]="true"
+    [virtualScroll]="true"
+    [virtualScrollItemSize]="48"
+></p-dropdown>
+}
+
+@default {
+<span>{{ filter.value }}</span>
+}
+
+}
