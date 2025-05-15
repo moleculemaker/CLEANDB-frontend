@@ -1,0 +1,15 @@
+{
+    "email": "",
+    "job_id": "example-job",
+    "phase": "queued",
+    "image": "test/image",
+    "time_created": 1728313369,
+    "time_end": 0,
+    "user_agent": "",
+    "job_info": "{\"smiles\":\"O=C(COP(=O)(O)O)[C@H](O)[C@H](O)CO\"}",
+    "run_id": "example-run",
+    "type": "test",
+    "command": "command",
+    "time_start": 0,
+    "deleted": 0
+}

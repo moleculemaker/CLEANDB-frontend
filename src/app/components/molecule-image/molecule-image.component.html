@@ -1,0 +1,10 @@
+<div *ngIf="!image" 
+    [class]="placeholderClassName"
+    [style.width.px]="width"
+    [style.height.px]="height"
+    class="flex items-center justify-center"
+>
+    No Image Available
+</div>
+
+<div [innerHTML]="image | safe:'html'"></div>

@@ -1,0 +1,62 @@
+name: End-to-end Tests
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+  release:
+    types: [published, edited, created]
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+
+    name: E2E on Chrome
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate with private NPM packages
+        run: |
+          echo "@chemaxon:registry=https://hub.chemaxon.com/artifactory/api/npm/npm/" > $HOME/.npmrc
+          echo "//hub.chemaxon.com/artifactory/api/npm/npm/:_auth=${{ secrets.NPM_TOKEN }}" >> $HOME/.npmrc
+          echo "@moleculemaker:registry=https://npm.pkg.github.com" >> $HOME/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}" >> $HOME/.npmrc
+          echo "npmrc_path=$HOME/.npmrc" >> "$GITHUB_ENV"
+
+      - name: Install dependencies
+        run: |
+          npm ci
+
+      - name: Start application and run tests
+        run: |
+          # check if WEBDRIVER has right permission
+          ls -l $WEBDRIVER
+          
+          npm run start & # Runs in background
+          APP_PID=$!
+          
+          echo "Waiting for application to be ready on port 4200..."
+          COUNTER=0
+          until curl -s http://localhost:4200 > /dev/null || [ $COUNTER -eq 24 ]; do
+            # Check if the process is still running
+            if ! kill -0 "$APP_PID" 2>/dev/null; then
+              echo "❌ Application failed to start"
+              exit 1
+            fi
+            
+            echo "⏳ Attempting to connect to http://localhost:4200 (Attempt $((COUNTER + 1)) of 24)"
+            sleep 5
+            COUNTER=$((COUNTER + 1))
+          done
+          
+          if [ $COUNTER -eq 24 ]; then
+            echo "❌ Timeout: Application failed to start within 120 seconds"
+            exit 1
+          fi
+          
+          echo "✅ Application is ready!"
+          xvfb-run --auto-servernum npx nightwatch ./nightwatch --env chrome

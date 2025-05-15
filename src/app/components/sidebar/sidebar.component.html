@@ -1,0 +1,47 @@
+<nav
+    [class]="'h-full bg-[--surface-b] pt-4' + 
+    (collapsed ? ' border-r-2 border-solid border-[--surface-d] w-sidebar-sm' : ' w-sidebar')"
+>
+    <div [class]="'flex' + (collapsed ? ' justify-center pb-4' : ' justify-end p-2 pr-4')">
+        <button (click)="toggleCollapsed()" aria-label="Toggle sidebar">
+            <i
+                class="text-xs pi pi-chevron-left"
+                [style.transform]="collapsed ? 'rotate(180deg)' : ''"
+            ></i>
+        </button>
+    </div>
+    <ng-container *ngIf="fillColorsMap$ | async as colorMap">
+        <ng-container *ngFor="let group of groupedTools | keyvalue">
+            <div *ngIf="!collapsed" class="pl-8 mb-2 text-gray-400 text-[.85rem]">
+                {{ group.key }}
+            </div>
+            <ul>
+                <li
+                    *ngFor="let tool of group.value"
+                    [pTooltip]="collapsed ? tool.name : ''"
+                    [class]="'p-2' + 
+                        (collapsed ? ' px-4' : ' pl-8') + 
+                        (tool.status !== ToolStatus.DISABLED ? ' hover:bg-gray-100' : '') + 
+                        (selectedTool$.value === tool.id ? ' bg-white' : '')"
+                >
+                    <a
+                        class="flex items-center gap-2"
+                        [class.text-gray-600]="tool.status !== ToolStatus.DISABLED"
+                        [class.text-gray-400]="tool.status !== ToolStatus.RUNNING"
+                        [class.pointer-events-none]="tool.status !== ToolStatus.RUNNING"
+                        [target]="openInNewPage ? '_blank' : ''"
+                        [href]="tool.route"
+                    >
+                        <div [innerHTML]="tool.svgGenerator(colorMap[tool.id]) | safe:'html'"></div>
+                        <h6 class="opacity-100 leading-lg" *ngIf="!collapsed" 
+                            [class.text-text-primary]="selectedTool$.value === tool.id"
+                            [class.font-semibold]="selectedTool$.value === tool.id">
+                            {{ tool.name }}
+                            <span *ngIf="tool.status === ToolStatus.COMING_SOON" class="italic">(coming soon)</span>
+                        </h6>
+                    </a>
+                </li>
+            </ul>
+        </ng-container>
+    </ng-container>
+</nav>

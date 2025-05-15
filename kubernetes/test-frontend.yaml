@@ -1,0 +1,54 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: test-frontend
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: test.localhost
+    http:
+      paths:
+      - backend:
+          service:
+            name: test-frontend
+            port:
+              number: 80
+        path: /
+        pathType: ImplementationSpecific
+---
+# Enables the pods in a deployment to be accessible from outside the cluster
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-frontend
+spec:
+  selector:
+    app: test-frontend
+  type: LoadBalancer
+  ports:
+    - protocol: "TCP"
+      port: 80
+---
+# Defines the deployment of the app running in a pod on any worker node
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-frontend
+  labels:
+    app: test-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: test-frontend
+  template:
+    metadata:
+      labels:
+        app: test-frontend
+    spec:
+      containers:
+        - name: test-frontend
+          image: moleculemaker/test-frontend
+          ports:
+            - containerPort: 80
+          imagePullPolicy: Always
