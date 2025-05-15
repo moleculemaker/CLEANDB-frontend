@@ -1,5 +1,5 @@
 apiVersion: v2
-description: "CleanDb Frontend"
+description: "CLEANdb Frontend"
 name: cleandb-frontend
 version: 1.0.0
 dependencies:

@@ -1,0 +1,69 @@
+<div class="flex flex-col gap-2">
+  @if (selectedSearchOption; as option) {
+  <span class="flex justify-between mt-2 text-sm mx-2">
+    <div class="flex gap-4 items-center">
+      <small class="font-semibold leading-xl">
+        {{ option.label }}
+      </small>
+    </div>
+    <small class="leading-xl text-text-secondary">
+      Example:
+      <small class="font-semibold underline cursor-pointer" (click)="useExample(option.key)">
+        {{ option.example['label'] }}
+      </small>
+    </small>
+  </span>
+  }
+  <div class="flex p-[5px] border rounded-lg border-solid gap-2 border-[--surface-d]">
+    <button type="button" class="flex items-center btn-outline !bg-[--surface-b] !px-4 !py-0 !text-[--surface-700]"
+      (click)="multiple ? searchMenu.toggle($event) : null">
+      <span class="font-semibold leading-lg">{{
+        selectedSearchOption ? selectedSearchOption.label : "Select Search Type"
+        }}</span>
+      @if (multiple) {
+      <i class="ml-2 pi pi-chevron-down"></i>
+      }
+    </button>
+    <p-menu #searchMenu [model]="searchOptions" [popup]="true"></p-menu>
+    @if (selectedSearchOption) {
+    <div class="grow h-8" [formGroup]="selectedSearchOption.formGroup">
+      @switch (selectedSearchOption.key) {
+      @case ('ec_number') {
+      <input pInputText type="text" title="{{selectedSearchOption.placeholder}}"
+        [placeholder]="selectedSearchOption.placeholder" formControlName="value" class="w-full border-none h-8" />
+      }
+      @case ('protein_name') {
+      <input pInputText type="text" title="{{selectedSearchOption.placeholder}}"
+        [placeholder]="selectedSearchOption.placeholder" formControlName="value" class="w-full border-none h-8" />
+      }
+      @default {
+      <input pInputText type="text" placeholder="(Select a search type using the menu to the left to get started)"
+        disabled class="grow border-none h-8" />
+      }
+      }
+    </div>
+    } @else {
+    <input pInputText type="text" placeholder="(Select a search type using the menu to the left to get started)"
+      disabled class="grow border-none h-8" />
+    }
+  </div>
+
+  @if (selectedSearchOption 
+    && selectedSearchOption.formGroup.invalid
+    && selectedSearchOption.formGroup.dirty
+  ) {
+  <div class="flex flex-col gap-1">
+    @if (selectedSearchOption.formGroup.hasError('invalidName', 'inputValue')) {
+    <div class="text-red-500">invalid <span class="lowercase" [innerHTML]="selectedSearchOption.label"></span> name
+    </div>
+    }
+    @if (selectedSearchOption.formGroup.hasError('invalidSmiles', 'inputValue')) {
+    <div class="text-red-500">invalid <span class="lowercase" [innerHTML]="selectedSearchOption.label"></span>
+      SMILES</div>
+    }
+    @if (selectedSearchOption.formGroup.hasError('required', 'inputValue')) {
+    <div class="text-red-500">field is required</div>
+    }
+  </div>
+  }
+</div>

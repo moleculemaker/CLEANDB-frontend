@@ -1,0 +1,101 @@
+<!-- Request Configuration -->
+<div class="flex flex-col h-full">
+    <form [formGroup]="form" (ngSubmit)="submit()">
+        <div>
+            <div class="my-6 flex items-center justify-between">
+                <div>
+                    <h5 class="mb-2 font-bold opacity-100 leading-lg">Search</h5>
+                    <h6 class="leading-lg text-text-secondary">
+                        Please select a search type and input an entity name or range to search the Open Enzyme
+                        Database.
+                    </h6>
+                </div>
+
+                @if (result.status === 'loaded') {
+                <div class="flex flex-col justify-center">
+                    <button class="p-3 px-4 text-white border rounded-md bg-primary" title="Export" type="button"
+                        (click)="kineticTable.export()">
+                        <i class="mr-2 pi pi-download"></i>
+                        <span class="font-semibold">Export</span>
+                    </button>
+                </div>
+                }
+            </div>
+
+            <div class="flex flex-col gap-6">
+                <p-panel>
+                    <ng-template pTemplate="header">
+                        <h6 class="grow">Input</h6>
+                        <div class="flex gap-2 -my-1">
+                            <button type="button" class="flex items-center btn-outline"
+                                (click)="useExampleMenu.toggle($event)">
+                                <i class="mr-2 pi pi-box"></i>
+                                Use an Example
+                                <p-menu #useExampleMenu styleClass="w-[300px]" [model]="exampleRecords"
+                                    [popup]="true" />
+                            </button>
+                            <button type="button" class="rounded-lg border border-[--surface-d] p-2"
+                                (click)="viewAllData()">
+                                <i class="mr-2 pi pi-table"></i>
+                                View All Data
+                            </button>
+                            <button type="button" class="rounded-lg border border-[--surface-d] p-2 disabled:opacity-50"
+                                [disabled]="!form.value.searchCriteria?.length" (click)="clearAll()">
+                                Reset Search
+                            </button>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="content">
+                        <div class="p-4 flex flex-col gap-4">
+                            <div formArrayName="searchCriteria" class="flex flex-col gap-3 w-full">
+                                @for (criteria of searchCriteriaControls; let i = $index; track i) {
+                                <div [formGroupName]="i" class="flex flex-col gap-2 w-full">
+                                    @if (i > 0) {
+                                    <p-divider align="center" type="solid">
+                                        <p-dropdown formControlName="operator" styleClass="mmli-dropdown" size="small"
+                                            [options]="logicalOperators" appendTo="body">
+                                        </p-dropdown>
+                                    </p-divider>
+                                    }
+                                    <div class="flex items-center gap-4 w-full">
+                                        @if (i > 0) {
+                                        <button type="button" title="Remove Criteria" (click)="removeCriteria(i)">
+                                            <i class="pi pi-times"></i>
+                                        </button>
+                                        }
+                                        <app-query-input 
+                                            class="w-full"
+                                            formControlName="search" 
+                                            [searchConfigs]="searchConfigs"
+                                        />
+                                    </div>
+                                </div>
+                                }
+                                <p-divider type="solid" class="pt-2"></p-divider>
+                            </div>
+
+                            <div class="flex items-center justify-end">
+                                <!-- <button type="button"
+                                    class="rounded-lg border border-[--surface-d] p-2 bg-[--surface-b] flex items-center px-3"
+                                    (click)="addCriteria()">
+                                    <i class="mr-2 pi pi-plus"></i>
+                                    Add Search Criteria
+                                </button> -->
+                                <button type="submit" [disabled]="form.invalid" class="rounded-lg 
+                                        border border-[--surface-d] p-3 px-8 bg-[--primary-color] text-white font-semibold
+                                        disabled:opacity-50
+                                    ">
+                                    Search CLEANdb
+                                </button>
+                            </div>
+                        </div>
+                    </ng-template>
+                </p-panel>
+            </div>
+        </div>
+    </form>
+
+    @if (result.status === 'loaded') {
+    <app-kinetic-table #kineticTable [result]="result" [filters]="filters"></app-kinetic-table>
+    }
+</div>

@@ -8,7 +8,7 @@ import { LoadingComponent } from '~/app/components/loading/loading.component';
 import { JobTabComponent } from "~/app/components/job-tab/job-tab.component";
 
 import { CleanDbService } from '~/app/services/clean-db.service';
-import { EffectPredictionComponent } from '~/app/components/effect-prediction/effect-prediction.component';
+import { EffectPredictionComponent } from '~/app/pages/effect-prediction/effect-prediction.component';
 
 @Component({
   selector: 'app-effect-prediction-result',

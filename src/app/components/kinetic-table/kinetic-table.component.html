@@ -1,0 +1,244 @@
+<div class="flex flex-col h-full">
+  <div class="my-4">
+    <p-panel>
+      <ng-template pTemplate="header">
+        <span class="grow">Experimental Data</span>
+        <div class="flex items-center gap-2">
+          <button class="btn-outline !flex items-center gap-2" (click)="showFilter = !showFilter">
+            <i class="pi pi-filter"></i>
+            <h6 class="inline leading-lg">Filter</h6>
+          </button>
+          <button class="btn-outline" (click)="clearAllFilters()">
+            Clear All
+          </button>
+        </div>
+      </ng-template>
+
+      <div class="flex flex-col">
+        @if (hasFilter) {
+        <div id="container-filters" class="flex flex-col gap-2 w-full gap-4 p-2 px-4 bg-white">
+          <div class="font-semibold">Current Filters</div>
+          <div class="flex gap-2">
+            @for (filter of filterRecords; track filter.label) {
+            @if (filter.hasFilter()) {
+            <span class="rounded-sm bg-[--surface-d] p-1 flex items-center gap-1">
+              <div [innerHTML]="filter.label.value" class="font-semibold"></div>: {{
+              filter.formattedValue }}
+              <i class="pi pi-times-circle cursor-pointer" (click)="
+                                                filter.value = filter.defaultValue;
+                                                applyFilters();
+                                            "></i>
+            </span>
+            }
+            }
+          </div>
+        </div>
+
+        <hr />
+        }
+
+        <div class="flex w-full">
+          <p-table #resultsTable [value]="result.data" [rows]="10" [rowsPerPageOptions]="[10, 20, 50]"
+            [paginator]="true" dataKey="iid" class="w-full h-full" tableStyleClass="w-full" styleClass="w-full"
+            [columns]="columns" (onRowExpand)="onRowExpand($event)">
+            <ng-template pTemplate="header">
+              <tr>
+                @for (filter of filters.entries(); track filter[0]) {
+                @let value = filter[1];
+                <th class="align-middle relative group" pSortableColumn="{{ value.field }}">
+                  <div [innerHTML]="value.label.value"></div>
+                  <p-sortIcon
+                    class="absolute top-0 right-0 p-2 text-[#6C757D] [.p-highlight_&]:!visible invisible group-hover:visible"
+                    [field]="value.field" />
+                </th>
+                }
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-row let-expanded="expanded">
+              <tr class="table-row">
+                @for (filter of filters.entries(); track filter[0]) {
+                @let value = filter[1];
+                @switch (value.field) {
+                @case ('compound.name') {
+                <td class="align-middle">
+                  <div class="flex items-start gap-2">
+                    <button title="Expand" type="button" [pRowToggler]="row">
+                      <i [class]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"></i>
+                    </button>
+                    <a [routerLink]="['/query/compound', row.compound.name]" class="text-blue-500 cursor-pointer">{{
+                      row.compound.name }}</a>
+                  </div>
+                </td>
+                }
+                @case ('organism') {
+                <td class="align-middle italic">
+                  {{ row[value.field] }}
+                </td>
+                }
+                @case ('uniprot_id') {
+                <td class="align-middle">
+                  <div class="flex flex-col gap-1">
+                    @for (id of row.uniprot_id; track id) {
+                    <a class="block" [routerLink]="['/query/uniprot', id]" class="text-blue-500 cursor-pointer">{{ id
+                      }}</a>
+                    }
+                  </div>
+                </td>
+                }
+                @case ('ec_number') {
+                <td class="align-middle">
+                  <a [routerLink]="['/query/ec', row.ec_number]" class="text-blue-500 cursor-pointer">{{ row.ec_number
+                    }}</a>
+                </td>
+                }
+                @case ('kcat') {
+                <td class="align-middle">
+                  @if (row.kcat) {
+                  {{ row.kcat | number: '1.1-4' }}
+                  } @else {
+                  <span class="opacity-25">N/A</span>
+                  }
+                </td>
+                }
+                @case ('km') {
+                <td class="align-middle">
+                  @if (row.km) {
+                  {{ row.km | number: '1.1-4' }}
+                  } @else {
+                  <span class="opacity-25">N/A</span>
+                  }
+                </td>
+                }
+                @case ('kcat_km') {
+                <td class="align-middle">
+                  @if (row.kcat_km) {
+                  {{ row.kcat_km | number: '1.1-4' }}
+                  } @else {
+                  <span class="opacity-25">N/A</span>
+                  }
+                </td>
+                }
+                @case ('pubmed_id') {
+                <td class="text-end align-middle">
+                  <!-- <app-external-link class="justify-end" [linkItem]="{
+                              url: 'https://pubmed.ncbi.nlm.nih.gov/' + row.pubmed_id,
+                              label: row.pubmed_id
+                            }"></app-external-link> -->
+                </td>
+                }
+                @default {
+                <td class="align-middle">
+                  {{ row[value.field] }}
+                </td>
+                }
+                }
+                }
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="rowexpansion" let-row let-expanded="expanded">
+              <tr>
+                <td colspan="11" class="relative overflow-hidden no-scrollbar bg-[#F7FAFF] !p-2">
+                  <div [@slideIn]
+                    class="rounded-md border border-[--surface-d] border-solid bg-white p-2 flex gap-2 w-full">
+                    <div class="flex flex-col gap-2 w-1/2">
+                      <div class="font-bold">Experiment Information</div>
+                      <div class="flex justify-between">
+                        <div>Organism</div>
+                        <div class="text-end italic">{{ row.organism }}</div>
+                      </div>
+                      <!-- <div class="flex justify-between">
+                        <div>Uniprot ID</div>
+                        <div>
+                          @for (id of row.uniprot_id; track id) {
+                          <app-external-link [linkItem]="{
+                                                        url: 'https://www.uniprot.org/uniprotkb/' + id + '/entry',
+                                                        label: id
+                                                    }"></app-external-link>
+                          }
+                        </div>
+                      </div>
+                      <div class="flex justify-between">
+                        <div>EC Number</div>
+                        <div class="text-end">
+                          <app-external-link [linkItem]="{
+                                                        url: 'https://www.brenda-enzymes.org/enzyme.php?ecno=' + row.ec_number,
+                                                        label: row.ec_number
+                                                    }"></app-external-link>
+                        </div>
+                      </div>
+                      <div class="flex justify-between">
+                        <div>PubMed ID</div>
+                        <div class="text-end">
+                          <app-external-link [linkItem]="{
+                                                        url: 'https://pubmed.ncbi.nlm.nih.gov/' + row.pubmed_id,
+                                                        label: row.pubmed_id
+                                                    }"></app-external-link>
+                        </div>
+                      </div> -->
+                    </div>
+                    <div class="w-[1px] bg-[--surface-d]"></div>
+                    <div class="w-1/2 flex flex-col gap-1">
+                      @let schemas = reactionSchemaCache[row.ec_number + '|' + row.compound.name + '|' + row.organism];
+                      <div class="flex items-center justify-between w-full">
+                        <span class="font-bold">Reaction Schema</span>
+                        <small class="italic text-[#6C757D]/75">Found: {{ schemas.data ? schemas.data.length : 'N/A'
+                          }}</small>
+                      </div>
+                      @switch (schemas.status) {
+                      @case ('loaded') {
+                      <div
+                        class="w-full grow rounded-md border border-[--surface-d] border-solid bg-white flex-col items-center justify-center text-[#6C757D]">
+                        <p-scrollPanel [style]="{ height: '100px', width: '100%' }">
+                          @for (schema of schemas.data; track schema) {
+                          <!-- <app-reaction-schema [reactionSchema]="schema" /> -->
+                          <hr class="mb-2" />
+                          }
+                        </p-scrollPanel>
+                      </div>
+                      }
+                      @case ('loading') {
+                      <div
+                        class="w-full grow rounded-md border border-[--surface-d] border-solid bg-white p-2 flex items-center justify-center text-[#6C757D]">
+                        <p-skeleton height="100%" width="100%"></p-skeleton>
+                      </div>
+                      }
+                      @case ('error') {
+                      <div
+                        class="w-full grow rounded-md border border-[--surface-d] border-solid bg-white p-2 flex items-center justify-center text-[#6C757D]">
+                        Error loading reaction schema
+                      </div>
+                      }
+                      @case ('na') {
+                      <div
+                        class="w-full grow rounded-md border border-[--surface-d] border-solid bg-white p-2 flex items-center justify-center text-[#6C757D]">
+                        No reaction schema found
+                      </div>
+                      }
+                      }
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="11" class="text-center">
+                  <div class="flex flex-col items-center justify-center h-full gap-4 p-8">
+                    <h5 class="font-semibold text-center">Empty</h5>
+                    <p class="text-center">No kinetic data found. Please try a new search.</p>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+    </p-panel>
+  </div>
+</div>
+
+<!-- <app-filter-dialog [(visible)]="showFilter" [filters]="filters"
+  [numberResults]="$any(resultsTable)?.filteredValue?.length ?? result.total" (filterChange)="searchTable($event)"
+  (clearAllFilters)="clearAllFilters()" (applyFilters)="applyFilters()">
+</app-filter-dialog> -->
