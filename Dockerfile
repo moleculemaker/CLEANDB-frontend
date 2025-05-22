@@ -21,7 +21,7 @@ COPY package.json package-lock.json ./
 RUN npm install
 
 # Add the source code to app
-COPY angular.json entrypoint.sh tsconfig*.json package*.json proxy.conf.json tailwind.config.js .
+COPY angular.json entrypoint.sh tsconfig*.json package*.json proxy.conf.json tailwind.config.js ./
 COPY src ./src
 
 # Generate the build of the application
