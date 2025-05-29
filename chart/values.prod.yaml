@@ -7,7 +7,7 @@ ingress:
     cert-manager.io/cluster-issuer: letsencrypt-production
     kubernetes.io/tls-acme: "true"
     traefik.ingress.kubernetes.io/router.tls: "true"
-    traefik.ingress.kubernetes.io/router.middlewares: "alphasynthesis-cleandb-prod-domain-redirect@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "openenzymedb-oed-cors-header@kubernetescrd,openenzymedb-oed-redirect-to-login@kubernetescrd,openenzymedb-oed-private-auth@kubernetescrd,alphasynthesis-cleandb-prod-domain-redirect@kubernetescrd"
 
 controller:
   image: moleculemaker/cleandb-frontend:main
