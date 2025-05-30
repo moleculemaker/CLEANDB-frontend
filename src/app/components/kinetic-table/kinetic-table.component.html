@@ -96,6 +96,19 @@
                   </div>
                 </td>
                 }
+                @case('curation_status') {
+                  <td>
+                    <div class="flex gap-1 items-center justify-center">
+                      <i class="pi"
+                      [class.pi-star-fill]="row.curation_status === 'Reviewed (Swiss-Prot)'"
+                      [class.text-yellow-500]="row.curation_status === 'Reviewed (Swiss-Prot)'"
+                      [class.pi-star]="row.curation_status !== 'Reviewed (Swiss-Prot)'"
+                      [class.text-gray-400]="row.curation_status !== 'Reviewed (Swiss-Prot)'"
+                      ></i>
+                      {{ row.curation_status }}
+                    </div>
+                  </td>
+                  }
                 @default {
                 <td class="align-middle">
                   {{ row[value.field] }}
@@ -139,7 +152,7 @@
                               </span>
                           </div>
                         </ng-template>
-                        @let reactionSchema = reactionSchemaCache[ec.ec_number].data;
+                        @let reactionSchema = $any(reactionSchemaCache[ec.ec_number])?.data;
                         @if (reactionSchema) {
                         <app-reaction-schema [reactionSchema]="reactionSchema"></app-reaction-schema>
                         }
