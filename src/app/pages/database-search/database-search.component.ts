@@ -27,7 +27,7 @@ import { FilterConfig, MultiselectFilterConfig, RangeFilterConfig } from "~/app/
 import { Subscription, map } from "rxjs";
 import { KineticTableComponent } from "~/app/components/kinetic-table/kinetic-table.component";
 import { CactusService } from "~/app/services/cactus.service";
-import { CleanDbRecord } from "~/app/models/CleanDbRecord";
+import { CleanDbPredictedEC, CleanDbRecord } from "~/app/models/CleanDbRecord";
 
 @Component({
   selector: 'app-database-search',
@@ -462,7 +462,9 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
           currentMatch = row.protein.toLowerCase() === search.value.toLowerCase();
           break;
         case 'ec_number':
-          currentMatch = row.predicted_ec.some((ec: string) => ec.toLowerCase() === search.value.toLowerCase());
+          currentMatch = row.predicted_ec.some((ec: CleanDbPredictedEC) =>
+            ec.ec_number.toLowerCase() === search.value.toLowerCase()
+          );
           break;
         case 'organism':
           currentMatch = row.organism.toLowerCase() === search.value.toLowerCase();

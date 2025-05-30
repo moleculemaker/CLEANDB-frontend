@@ -88,7 +88,7 @@
                 </td>
                 }
                 @case('predicted_ec') {
-                <td>
+                <td class="align-middle">
                   <div class="flex flex-col gap-2">
                     @for (ec of row.predicted_ec; track ec) {
                     <app-ec-chip [ec]="ec"></app-ec-chip>
@@ -97,7 +97,7 @@
                 </td>
                 }
                 @case('curation_status') {
-                  <td>
+                  <td class="align-middle">
                     <div class="flex gap-1 items-center justify-center">
                       <i class="pi"
                       [class.pi-star-fill]="row.curation_status === 'Reviewed (Swiss-Prot)'"

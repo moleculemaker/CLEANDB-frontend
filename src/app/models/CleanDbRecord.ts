@@ -44,23 +44,23 @@ export function cleanDbRecordRawToCleanDbRecord(raw: CleanDbRecordRaw): CleanDbR
     const cleanEcEntries = raw['CLEAN_EC']?.split(',').map(ec => {
         const [ec_number, score] = ec.split('/');
         return {
-            ec_number: ec_number.split(':')[1],
+            ec_number: ec_number.split(':')[1].trim(),
             score: parseFloat(score),
         }
     }) || [];
     return {
-        protein: raw['Protein Name'],
-        uniprot: raw.Accession,
-        organism: raw.Organism,
-        curation_status: raw['Curation Status'],
+        protein: raw['Protein Name'].trim(),
+        uniprot: raw.Accession.trim(),
+        organism: raw.Organism.trim(),
+        curation_status: raw['Curation Status'].trim(),
         predicted_ec: cleanEcEntries,
-        ec_uniprot: raw['EC Number'] || [],
-        id: raw.ID,
-        gene_id: raw['Gene Name'] || '',
-        ncbi_tax_id: raw['NCBI TaxID'],
-        amino_acids: raw['Amino Acids'],
-        sequence: raw.Sequence,
-        function: raw.Function || '',
+        ec_uniprot: raw['EC Number']?.map(ec => ec.trim()) || [],
+        id: raw.ID.trim(),
+        gene_id: raw['Gene Name']?.trim() || '',
+        ncbi_tax_id: raw['NCBI TaxID'].trim(),
+        amino_acids: raw['Amino Acids'].trim(),
+        sequence: raw.Sequence.trim(),
+        function: raw.Function?.trim() || '',
         generic_names: cleanEcEntries?.map((ec: CleanDbPredictedEC) => 
             ({
                 name: ecJson[ec.ec_number as keyof typeof ecJson]?.ec_name,
