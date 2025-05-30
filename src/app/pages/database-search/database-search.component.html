@@ -31,7 +31,7 @@
                                 (click)="useExampleMenu.toggle($event)">
                                 <i class="mr-2 pi pi-box"></i>
                                 Use an Example
-                                <p-menu #useExampleMenu styleClass="w-[300px]" [model]="exampleRecords"
+                                <p-menu #useExampleMenu styleClass="w-[300px]" [model]="exampleRecords" appendTo="body"
                                     [popup]="true" />
                             </button>
                             <button type="button" class="rounded-lg border border-[--surface-d] p-2"

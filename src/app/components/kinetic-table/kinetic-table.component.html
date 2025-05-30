@@ -109,83 +109,44 @@
               <tr>
                 <td colspan="11" class="relative overflow-hidden no-scrollbar bg-[#F7FAFF] !p-2">
                   <div [@slideIn]
-                    class="rounded-md border border-[--surface-d] border-solid bg-white p-2 flex gap-2 w-full">
-                    <div class="flex flex-col gap-2 w-1/2">
-                      <div class="font-bold">Experiment Information</div>
-                      <div class="flex justify-between">
-                        <div>Organism</div>
-                        <div class="text-end italic">{{ row.organism }}</div>
+                    class="rounded-md border border-[--surface-d] border-solid bg-white p-2 flex flex-col gap-2 w-full">
+                    <div class="flex gap-16 flex-wrap">
+                      <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'ID', value: row.id }"></ng-container>
+                      <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Gene', value: row.gene_id }"></ng-container>
+                      <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'NCBI Tax ID', value: row.ncbi_tax_id }"></ng-container>
+                      <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'EC Number (Uniprot)', value: row.ec_uniprot.join(', ') }"></ng-container>
+                      <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Amino Acids', value: row.amino_acids }"></ng-container>
+                      <div class="flex flex-col gap-2">
+                        <div class="text-[--text-secondary-color]">Enzyme Sequence</div>
+                        <button class="flex items-center gap-1 text-[#64748B] font-semibold" title="Download Sequence" (click)="copySequence(row.sequence)">
+                          <i class="pi pi-copy"></i>
+                          <h6>Copy to Clipboard</h6>
+                        </button>
                       </div>
-                      <!-- <div class="flex justify-between">
-                        <div>Uniprot ID</div>
-                        <div>
-                          @for (id of row.uniprot_id; track id) {
-                          <app-external-link [linkItem]="{
-                                                        url: 'https://www.uniprot.org/uniprotkb/' + id + '/entry',
-                                                        label: id
-                                                    }"></app-external-link>
-                          }
-                        </div>
-                      </div>
-                      <div class="flex justify-between">
-                        <div>EC Number</div>
-                        <div class="text-end">
-                          <app-external-link [linkItem]="{
-                                                        url: 'https://www.brenda-enzymes.org/enzyme.php?ecno=' + row.ec_number,
-                                                        label: row.ec_number
-                                                    }"></app-external-link>
-                        </div>
-                      </div>
-                      <div class="flex justify-between">
-                        <div>PubMed ID</div>
-                        <div class="text-end">
-                          <app-external-link [linkItem]="{
-                                                        url: 'https://pubmed.ncbi.nlm.nih.gov/' + row.pubmed_id,
-                                                        label: row.pubmed_id
-                                                    }"></app-external-link>
-                        </div>
-                      </div> -->
                     </div>
-                    <div class="w-[1px] bg-[--surface-d]"></div>
-                    <div class="w-1/2 flex flex-col gap-1">
-                      @let schemas = reactionSchemaCache[row.ec_number + '|' + row.compound.name + '|' + row.organism];
-                      <div class="flex items-center justify-between w-full">
-                        <span class="font-bold">Reaction Schema</span>
-                        <small class="italic text-[#6C757D]/75">Found: {{ schemas.data ? schemas.data.length : 'N/A'
-                          }}</small>
-                      </div>
-                      @switch (schemas.status) {
-                      @case ('loaded') {
-                      <div
-                        class="w-full grow rounded-md border border-[--surface-d] border-solid bg-white flex-col items-center justify-center text-[#6C757D]">
-                        <p-scrollPanel [style]="{ height: '100px', width: '100%' }">
-                          @for (schema of schemas.data; track schema) {
-                          <!-- <app-reaction-schema [reactionSchema]="schema" /> -->
-                          <hr class="mb-2" />
-                          }
-                        </p-scrollPanel>
-                      </div>
+                    
+                    <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Enzyme Function', value: row.function }"></ng-container>
+                    <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Generic Name', value: row.generic_name }"></ng-container>
+
+                    <p-tabView (activeIndexChange)="onReactionSchemaTagClicked(row.predicted_ec[$event]?.ec_number)">
+                      @for (ec of row.predicted_ec; track ec) {
+                      <p-tabPanel>
+                        <ng-template pTemplate="header">
+                          <div class="flex align-items-center gap-2">
+                              <app-ec-arrow [score]="ec.score" />
+                              <span class="font-bold white-space-nowrap m-0">
+                                  EC:{{ ec.ec_number }}
+                              </span>
+                          </div>
+                        </ng-template>
+                        @let reactionSchema = reactionSchemaCache[ec.ec_number].data;
+                        @if (reactionSchema) {
+                        <app-reaction-schema [reactionSchema]="reactionSchema"></app-reaction-schema>
+                        }
+                      </p-tabPanel>
                       }
-                      @case ('loading') {
-                      <div
-                        class="w-full grow rounded-md border border-[--surface-d] border-solid bg-white p-2 flex items-center justify-center text-[#6C757D]">
-                        <p-skeleton height="100%" width="100%"></p-skeleton>
-                      </div>
-                      }
-                      @case ('error') {
-                      <div
-                        class="w-full grow rounded-md border border-[--surface-d] border-solid bg-white p-2 flex items-center justify-center text-[#6C757D]">
-                        Error loading reaction schema
-                      </div>
-                      }
-                      @case ('na') {
-                      <div
-                        class="w-full grow rounded-md border border-[--surface-d] border-solid bg-white p-2 flex items-center justify-center text-[#6C757D]">
-                        No reaction schema found
-                      </div>
-                      }
-                      }
-                    </div>
+                    </p-tabView>
+
                   </div>
                 </td>
               </tr>
@@ -212,3 +173,14 @@
   [numberResults]="$any(resultsTable)?.filteredValue?.length ?? result.total" (filterChange)="searchTable($event)"
   (clearAllFilters)="clearAllFilters()" (applyFilters)="applyFilters()">
 </app-filter-dialog>
+
+<ng-template #rowInfo let-label="label" let-value="value">
+@if (value) {
+  <div class="flex flex-col gap-1">
+    <div class="text-[--text-secondary-color]">{{ label }}</div>
+    <div class="font-semibold" [class.opacity-25]="!value">{{ value || 'N/A' }}</div>
+  </div>
+}
+</ng-template>
+
+<p-toast />

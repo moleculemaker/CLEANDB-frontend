@@ -4,17 +4,25 @@ import { CommonModule } from '@angular/common';
 import { PanelModule } from 'primeng/panel';
 import { ExportCSVOptions, Table, TableModule, TableRowExpandEvent } from 'primeng/table';
 import { FilterConfig, MultiselectFilterConfig, RangeFilterConfig } from '~/app/models/filters';
-import { FilterService } from 'primeng/api';
+import { FilterService, MessageService } from 'primeng/api';
 import { animate } from '@angular/animations';
 import { style, transition } from '@angular/animations';
 import { trigger } from '@angular/animations';
 import { RouterLink } from '@angular/router';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ScrollPanelModule } from 'primeng/scrollpanel';
+import { ToastModule } from 'primeng/toast';
+import { TabViewModule } from 'primeng/tabview';
+
 import { CleanDbService } from '~/app/services/clean-db.service';
 import { LoadingStatus } from '~/app/models/Loadable';
 import { EcChipComponent } from '../ec-chip/ec-chip.component';
 import { FilterDialogComponent } from '../filter-dialog/filter-dialog.component';
+import { EcArrowComponent } from '../ec-arrow/ec-arrow.component';
+import { ReactionSchemaComponent } from '../reaction-schema/reaction-schema.component';
+import { catchError, of } from 'rxjs';
+import { map } from 'rxjs';
+import { ReactionSchemaRecord } from '~/app/models/ReactionSchemaRecord';
 
 @Component({
   selector: 'app-kinetic-table',
@@ -41,9 +49,15 @@ import { FilterDialogComponent } from '../filter-dialog/filter-dialog.component'
     RouterLink,
     SkeletonModule,
     ScrollPanelModule, 
+    ToastModule,
+    TabViewModule,
+
+    EcArrowComponent,
     EcChipComponent,
     FilterDialogComponent,
+    ReactionSchemaComponent,
   ],
+  providers: [MessageService],
   templateUrl: './kinetic-table.component.html',
   styleUrl: './kinetic-table.component.scss'
 })
@@ -64,7 +78,7 @@ export class KineticTableComponent implements OnChanges {
   columns: any[] = [];
   reactionSchemaCache: Record<string, {
     status: LoadingStatus;
-    data: any[]; // TODO: fix this
+    data: ReactionSchemaRecord | null;
   }> = {};
 
   showFilter = false;
@@ -77,6 +91,7 @@ export class KineticTableComponent implements OnChanges {
   constructor(
     private filterService: FilterService,
     private service: CleanDbService,
+    private messageService: MessageService,
   ) {
     this.filterService.register(
       "range",
@@ -136,34 +151,54 @@ export class KineticTableComponent implements OnChanges {
 
   onRowExpand($event: TableRowExpandEvent) {
     const { data } = $event;
-    const { ec_number, compound, organism } = data;
-    const key = `${ec_number}|${compound.name}|${organism}`;
-    if (this.reactionSchemaCache[key]) {
+    const key = data.predicted_ec[0].ec_number;
+    this.onReactionSchemaTagClicked(key);
+  }
+
+  onReactionSchemaTagClicked(ec_number: string | undefined) {
+    if (!ec_number) {
       return;
     }
-    this.reactionSchemaCache[key] = {
+
+    if (this.reactionSchemaCache[ec_number]) {
+      return;
+    }
+
+    this.reactionSchemaCache[ec_number] = {
       status: 'loading',
-      data: [],
+      data: null,
     };
-    // this.service.getReactionSchemasFor(ec_number, compound.name, organism)
-    //   .pipe(
-    //     map(schemas => ({
-    //       status: (schemas && schemas.length > 0 
-    //         ? ('loaded' as const) 
-    //         : ('na' as const)),
-    //       data: schemas
-    //     })),
-    //     catchError(error => {
-    //       console.error('Failed to fetch reaction schemas:', error);
-    //       return of({
-    //         status: 'error' as const,
-    //         data: []
-    //       });
-    //     })
-    //   )
-    //   .subscribe((result) => {
-    //     this.reactionSchemaCache[key] = result;
-    //   });
+
+    this.service.getReactionSchemaForEc(ec_number)
+      .pipe(
+        map(schema => ({
+          status: (schema
+            ? ('loaded' as const) 
+            : ('na' as const)),
+          data: schema
+        })),
+        catchError(error => {
+          console.error('Failed to fetch reaction schemas:', error);
+          return of({
+            status: 'error' as const,
+            data: null
+          });
+        })
+      )
+      .subscribe((result) => {
+        this.reactionSchemaCache[ec_number] = result;
+      });
+  }
+
+  copySequence(sequence: string) {
+    if (sequence) {
+      navigator.clipboard.writeText(sequence);
+    }
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Success',
+      detail: 'Sequence copied to clipboard',
+    });
   }
 
   private updateFilterOptions(response: any[]) {

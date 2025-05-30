@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { Observable, map, of } from "rxjs";
+import { Observable, from, map, of } from "rxjs";
 
 import { BodyCreateJobJobTypeJobsPost, FilesService, Job, JobType, JobsService } from "../api/mmli-backend/v1";
 import { EnvironmentService } from "./environment.service";
@@ -7,10 +7,14 @@ import { EnvironmentService } from "./environment.service";
 // import { CleanDbService as CleanDbApiService } from "../api/mmli-backend/v1"; // TODO: use the correct service
 // import exampleStatus from '../../assets/example_status.json';
 import example from '../../assets/example.db.json';
-import { CleanDbRecord } from "../models/CleanDbRecord";
+import { CleanDbRecord, cleanDbRecordRawToCleanDbRecord } from "../models/CleanDbRecord";
+import { loadGzippedJson } from "../utils/loadGzippedJson";
+import { ReactionSchemaRecord, ReactionSchemaRecordRaw, reactionSchemaRecordRawToReactionSchemaRecord } from "../models/ReactionSchemaRecord";
 
 const exampleStatus: any = "WARNING: please provide your own example_status.json";
 // const example: any = "WARNING: please provide your own example.json";
+
+const reactionSchemaJson = loadGzippedJson<ReactionSchemaRecordRaw[]>('../../assets/rhea_reactions_ec.json.gz');
 
 @Injectable({
   providedIn: "root",
@@ -45,17 +49,27 @@ export class CleanDbService {
 
   getResult(jobType: JobType, jobID: string): Observable<any> {
     if (this.frontendOnly) {
-      return of(example as any);
+      return of(example.map(cleanDbRecordRawToCleanDbRecord));
     }
     return this.filesService.getResultsBucketNameResultsJobIdGet(jobType, jobID);
   }
 
   getData(): Observable<CleanDbRecord[]> {
     if (this.frontendOnly) {
-      return of(example);
+      return of(example.map(cleanDbRecordRawToCleanDbRecord));
     }
     // TODO: get data from backend
     return of([]);
+  }
+
+  getReactionSchemaForEc(ec: string): Observable<ReactionSchemaRecord | null> {
+    return from(reactionSchemaJson).pipe(
+      map(data => data.find(r => r.ec_numbers.includes(ec))),
+      map(data => data 
+        ? reactionSchemaRecordRawToReactionSchemaRecord(data) 
+        : null
+      )
+    );
   }
 
   getError(jobType: JobType, jobID: string): Observable<string> {

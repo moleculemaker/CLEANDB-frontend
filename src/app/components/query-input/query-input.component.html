@@ -24,7 +24,7 @@
       <i class="ml-2 pi pi-chevron-down"></i>
       }
     </button>
-    <p-menu #searchMenu [model]="searchOptions" [popup]="true"></p-menu>
+    <p-menu #searchMenu [model]="searchOptions" [popup]="true" appendTo="body"></p-menu>
     @if (selectedSearchOption) {
     <div class="grow h-8" [formGroup]="selectedSearchOption.formGroup">
       @switch (selectedSearchOption.key) {
