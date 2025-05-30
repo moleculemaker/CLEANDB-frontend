@@ -139,7 +139,17 @@
                     </div>
                     
                     <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Enzyme Function', value: row.function }"></ng-container>
-                    <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Generic Name', value: row.generic_name }"></ng-container>
+                    <div class="flex flex-col gap-2">
+                      <div class="text-[--text-secondary-color]">Generic Names</div>
+                      <div>
+                        @for (value of row.generic_names; track value) {
+                            <span class="font-semibold">{{ value.name }}</span> (EC: {{ value.ec }})
+                            @if ($index !== row.generic_names.length - 1) {
+                              <span>,&nbsp;</span>
+                            }
+                        }
+                      </div>
+                    </div>
 
                     <p-tabView (activeIndexChange)="onReactionSchemaTagClicked(row.predicted_ec[$event]?.ec_number)">
                       @for (ec of row.predicted_ec; track ec) {

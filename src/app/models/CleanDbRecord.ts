@@ -16,7 +16,10 @@ export interface CleanDbRecord {
     amino_acids: string;
     sequence: string;
     function: string;
-    generic_name: string;
+    generic_names: {
+        name: string;
+        ec: string;
+    }[];
 }
 
 export interface CleanDbRecordRaw {
@@ -38,18 +41,19 @@ export interface CleanDbRecordRaw {
 import ecJson from '~/assets/ec_class_name_mapping.json';
 
 export function cleanDbRecordRawToCleanDbRecord(raw: CleanDbRecordRaw): CleanDbRecord {
+    const cleanEcEntries = raw['CLEAN_EC']?.split(',').map(ec => {
+        const [ec_number, score] = ec.split('/');
+        return {
+            ec_number: ec_number.split(':')[1],
+            score: parseFloat(score),
+        }
+    }) || [];
     return {
         protein: raw['Protein Name'],
         uniprot: raw.Accession,
         organism: raw.Organism,
         curation_status: raw['Curation Status'],
-        predicted_ec: raw['CLEAN_EC']?.split(',').map(ec => {
-            const [ec_number, score] = ec.split('/');
-            return {
-                ec_number: ec_number.split(':')[1],
-                score: parseFloat(score),
-            }
-        }) || [],
+        predicted_ec: cleanEcEntries,
         ec_uniprot: raw['EC Number'] || [],
         id: raw.ID,
         gene_id: raw['Gene Name'] || '',
@@ -57,7 +61,10 @@ export function cleanDbRecordRawToCleanDbRecord(raw: CleanDbRecordRaw): CleanDbR
         amino_acids: raw['Amino Acids'],
         sequence: raw.Sequence,
         function: raw.Function || '',
-        generic_name: raw['EC Number']?.map((ec: string) => 
-            ecJson[ec as keyof typeof ecJson]?.ec_name).join(', ') || '',
+        generic_names: cleanEcEntries?.map((ec: CleanDbPredictedEC) => 
+            ({
+                name: ecJson[ec.ec_number as keyof typeof ecJson]?.ec_name,
+                ec: ec.ec_number,
+            })),
     }
 }

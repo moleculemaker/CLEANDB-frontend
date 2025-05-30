@@ -179,13 +179,40 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       }
     }),
     new StringSearchOption({
+      key: 'gene_id',
+      label: 'Gene',
+      placeholder: 'Enter Gene Name',
+      example: {
+        label: 'FAR2',
+        value: 'FAR2'
+      }
+    }),
+    new StringSearchOption({
+      key: 'uniprot',
+      label: 'Uniprot ID',
+      placeholder: 'Enter Uniprot ID',
+      example: {
+        label: 'P05655',
+        value: 'P05655'
+      }
+    }),
+    new StringSearchOption({
+      key: 'organism',
+      label: 'Organism',
+      placeholder: 'Enter organism name',
+      example: {
+        label: 'Lentzea aerocolonigenes',
+        value: 'Lentzea aerocolonigenes'
+      }
+    }),
+    new StringSearchOption({
       key: 'ec_number',
       label: 'EC Number',
       placeholder: 'Enter EC Number',
       example: {
         label: '5.1.1.1',
         value: '5.1.1.1'
-      }
+      },
     }),
   ];
 
@@ -330,6 +357,21 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
             protein: search.value,
           };
           break;
+        case 'uniprot':
+          criteriaQuery = {
+            uniprot: search.value,
+          };
+          break;
+        case 'organism':
+          criteriaQuery = {
+            organism: search.value,
+          };
+          break;
+        case 'gene_id':
+          criteriaQuery = {
+            gene_id: search.value,
+          };
+          break;
         default:
           break;
       }
@@ -421,6 +463,15 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
           break;
         case 'ec_number':
           currentMatch = row.predicted_ec.some((ec: string) => ec.toLowerCase() === search.value.toLowerCase());
+          break;
+        case 'organism':
+          currentMatch = row.organism.toLowerCase() === search.value.toLowerCase();
+          break;
+        case 'uniprot':
+          currentMatch = row.uniprot.toLowerCase() === search.value.toLowerCase();
+          break;
+        case 'gene_id':
+          currentMatch = row.gene_id.toLowerCase() === search.value.toLowerCase();
           break;
         default:
           currentMatch = true;

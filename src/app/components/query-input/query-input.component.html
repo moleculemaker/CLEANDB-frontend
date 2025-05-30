@@ -36,6 +36,18 @@
       <input pInputText type="text" title="{{selectedSearchOption.placeholder}}"
         [placeholder]="selectedSearchOption.placeholder" formControlName="value" class="w-full border-none h-8" />
       }
+      @case ('organism') {
+      <input pInputText type="text" title="{{selectedSearchOption.placeholder}}"
+        [placeholder]="selectedSearchOption.placeholder" formControlName="value" class="w-full border-none h-8" />
+      }
+      @case ('uniprot') {
+      <input pInputText type="text" title="{{selectedSearchOption.placeholder}}"
+        [placeholder]="selectedSearchOption.placeholder" formControlName="value" class="w-full border-none h-8" />
+      }
+      @case ('gene_id') {
+      <input pInputText type="text" title="{{selectedSearchOption.placeholder}}"
+        [placeholder]="selectedSearchOption.placeholder" formControlName="value" class="w-full border-none h-8" />
+      }
       @default {
       <input pInputText type="text" placeholder="(Select a search type using the menu to the left to get started)"
         disabled class="grow border-none h-8" />
@@ -48,9 +60,9 @@
     }
   </div>
 
-  @if (selectedSearchOption 
-    && selectedSearchOption.formGroup.invalid
-    && selectedSearchOption.formGroup.dirty
+  @if (selectedSearchOption
+  && selectedSearchOption.formGroup.invalid
+  && selectedSearchOption.formGroup.dirty
   ) {
   <div class="flex flex-col gap-1">
     @if (selectedSearchOption.formGroup.hasError('invalidName', 'inputValue')) {
