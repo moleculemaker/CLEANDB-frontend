@@ -5,9 +5,8 @@ name: Docker
 #   latest and develop
 # - when a pull request is created and updated  to make sure the
 #   Dockerfile is still valid.
-# To be able to push to dockerhub, this execpts the following
+# To be able to push to dockerhub, this expects the following
 # secrets to be set in the project:
-# - NPM_TOKEN : NPM auth token for accessing private chemaxon NPM registry
 # - DOCKERHUB_USERNAME : username that can push to the org
 # - DOCKERHUB_PASSWORD : password asscoaited with the username
 on:
@@ -74,8 +73,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args:
             configuration=production
-          secret-files: |
-            NPMRC=${{env.npmrc_path}}
 
 
       - name: Build and push Docker image (staging)
