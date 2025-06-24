@@ -32,6 +32,7 @@
     "@chemaxon/marvinjs": "^23.11.0",
     "@ngrx/store": "^1.0.0",
     "chart.js": "^3",
+    "d3": "^7.9.0",
     "ngx-matomo-client": "^6.3.1",
     "nightwatch": "^3.8.1",
     "pako": "^2.1.0",
