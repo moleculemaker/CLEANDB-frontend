@@ -44,6 +44,7 @@
           <!-- Enzyme Sequence -->
           <div class="flex flex-col gap-4">
               <p class="font-semibold underline decoration-dotted">Enzyme Sequence</p>
+              debug - selected positions: {{ selectedPositions | json }}
               <div class="p-2 pt-5 bg-[#F8F9FA] rounded-md">
                 <app-sequence-position-selector
                   [sequence]="sequence"
@@ -54,11 +55,15 @@
 
           <!-- Mutation Effect and Structure -->
           <div class="flex gap-4">
-              <div class="flex flex-col gap-4">
+              <div class="flex flex-col gap-4 w-1/2">
                 <p class="font-semibold underline decoration-dotted">Mutation Effect Heatmap</p>
-                <app-heatmap></app-heatmap>
+                <div class="h-full overflow-x-scroll">
+                  <app-heatmap
+                    [data]="(result$ | async)!"
+                  ></app-heatmap>
+                </div>
               </div>
-              <div class="flex flex-col gap-4">
+              <div class="flex flex-col gap-4 w-1/2">
                 <p class="font-semibold underline decoration-dotted">Structure</p>
                 <!-- <app-molecule3d></app-molecule3d> -->
               </div>
