@@ -8,6 +8,10 @@ import { CommonModule } from "@angular/common";
 import { JobType } from "~/app/api/mmli-backend/v1";
 import { JobTabComponent } from "~/app/components/job-tab/job-tab.component";
 import { CleanDbService } from '~/app/services/clean-db.service';
+import { PanelModule } from "primeng/panel";
+import { QueryInputComponent } from "~/app/components/query-input/query-input.component";
+import { QueryValue, RangeSearchOption, SearchOption } from "~/app/models/search-options";
+import { InputTextareaModule } from "primeng/inputtextarea";
 
 @Component({
   selector: 'app-effect-prediction',
@@ -19,8 +23,11 @@ import { CleanDbService } from '~/app/services/clean-db.service';
     ReactiveFormsModule,
     CheckboxModule,
     ButtonModule,
+    PanelModule,
+    InputTextareaModule,
 
     JobTabComponent,
+    QueryInputComponent,
   ],
   host: {
     class: "flex flex-col h-full"
@@ -32,8 +39,24 @@ export class EffectPredictionComponent implements OnChanges {
   
   form = new FormGroup({
     email: new FormControl("", [Validators.email]),
+    sequence: new FormControl(""),
+    positions: new FormControl<QueryValue | null>(null),
     agreeToSubscription: new FormControl(false),
   });
+
+  searchConfigs: SearchOption[] = [
+    new RangeSearchOption({
+      key: 'positions',
+      label: 'Positions (Optional)',
+      placeholder: 'Enter an amino acid position or range',
+      example: {
+        label: '138-145',
+        value: [138, 145],
+        valueLabel: '138-145',
+      },
+      min: 0,
+    })
+  ]
 
   currentPage = 'input';
  
@@ -46,6 +69,14 @@ export class EffectPredictionComponent implements OnChanges {
     if (changes['formValue'] && changes['formValue'].currentValue) {
       this.form.patchValue(this.formValue);
     }
+  }
+
+  useExample() {
+
+  }
+
+  clearAll() {
+    this.form.reset();
   }
 
   onSubmit() {
