@@ -93,3 +93,5 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args:
             configuration=staging
+          secret-files: |
+            NPMRC=${{env.npmrc_path}}
