@@ -9,18 +9,18 @@
   <div class="flex items-center justify-between">
     @let status = statusResponse$ | async;
     @if (status) {
-      <div>
-        <h5 class="flex items-center gap-2 mb-2 font-bold opacity-100 leading-xl">
-          Job ID: {{ status.job_id || "loading" }}
-          <button type="button" title="copy job id" class="border-none cursor-pointer">
-            <i class="pi pi-copy" (click)="copyAndPasteURL()"></i>
-          </button>
-        </h5>
-        <h6 class="text-text-secondary leading-lg">
-          Submission Time:
-          {{ (status.time_created || 0) * 1000 | date : "short" }}
-        </h6>
-      </div>
+    <div>
+      <h5 class="flex items-center gap-2 mb-2 font-bold opacity-100 leading-xl">
+        Job ID: {{ status.job_id || "loading" }}
+        <button type="button" title="copy job id" class="border-none cursor-pointer">
+          <i class="pi pi-copy" (click)="copyAndPasteURL()"></i>
+        </button>
+      </h5>
+      <h6 class="text-text-secondary leading-lg">
+        Submission Time:
+        {{ (status.time_created || 0) * 1000 | date : "short" }}
+      </h6>
+    </div>
     }
     <div class="flex items-center gap-2">
 
@@ -30,44 +30,83 @@
   </div>
 
   @if (!showResults) {
-    <app-loading 
-      [statusQuery$]="statusResponse$" 
-      (progressChange)="onProgressChange($event)"
-      [estimatedTime]="1 * 60"
-    >
-    </app-loading>
-    }
+  <app-loading [statusQuery$]="statusResponse$" (progressChange)="onProgressChange($event)" [estimatedTime]="1 * 60">
+  </app-loading>
+  }
 
-    <div class="flex flex-col gap-8" [class.hidden]="!showResults">
-      <p-panel>
-        <ng-template pTemplate="header">
-          <h6 class="grow">Results</h6>
-        </ng-template>
-        <ng-template pTemplate="content">
-          <div class="flex flex-col gap-6 p-6">
-            <!-- Enzyme Sequence -->
-            <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-8" [class.hidden]="!showResults">
+    <p-panel>
+      <ng-template pTemplate="header">
+        <h6 class="grow">Results</h6>
+      </ng-template>
+      <ng-template pTemplate="content">
+        <div class="flex flex-col gap-6 p-6">
+          <!-- Enzyme Sequence -->
+          <div class="flex flex-col gap-4">
               <p class="font-semibold underline decoration-dotted">Enzyme Sequence</p>
-              <app-sequence-position-selector></app-sequence-position-selector>
+              <div class="p-2 pt-5 bg-[#F8F9FA] rounded-md">
+                <app-sequence-position-selector
+                  [sequence]="sequence"
+                  [(selectedPositions)]="selectedPositions"
+                ></app-sequence-position-selector>
+              </div>
             </div>
 
-            <!-- Mutation Effect and Structure -->
-            <div class="flex gap-4">
+          <!-- Mutation Effect and Structure -->
+          <div class="flex gap-4">
               <div class="flex flex-col gap-4">
                 <p class="font-semibold underline decoration-dotted">Mutation Effect Heatmap</p>
                 <app-heatmap></app-heatmap>
               </div>
               <div class="flex flex-col gap-4">
                 <p class="font-semibold underline decoration-dotted">Structure</p>
-                <app-molecule3d></app-molecule3d>
+                <!-- <app-molecule3d></app-molecule3d> -->
               </div>
             </div>
+        </div>
 
-            <!-- Table -->
-             
-          </div>
-        </ng-template>
-      </p-panel>
-    </div>
+        <!-- Table -->
+        <hr> <!-- hr for border styling -->
+        <p-table [columns]="columns" [value]="tableValues" styleClass="w-full" tableStyleClass="w-full border-b-0">
+          <ng-template pTemplate="header">
+            <tr>
+              <th class="align-middle relative group w-1/3" pSortableColumn="position">
+                <span>Position</span>
+                <p-sortIcon
+                  class="absolute top-0 right-0 p-2 text-[#6C757D] [.p-highlight_&]:!visible invisible group-hover:visible"
+                  field="position" />
+              </th>
+              <th class="align-middle relative group w-1/3" pSortableColumn="mutationLabel">
+                <span>Detailed Mutation</span>
+                <p-sortIcon
+                  class="absolute top-0 right-0 p-2 text-[#6C757D] [.p-highlight_&]:!visible invisible group-hover:visible"
+                  field="mutationLabel" />
+              </th>
+              <th class="align-middle relative group w-1/3" pSortableColumn="score">
+                <span>Predicted Effect (Score)</span>
+                <p-sortIcon
+                  class="absolute top-0 right-0 p-2 text-[#6C757D] [.p-highlight_&]:!visible invisible group-hover:visible"
+                  field="score" />
+              </th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row let-expanded="expanded">
+            <tr class="table-row">
+              <td class="align-middle">
+                {{ row.position }}
+              </td>
+              <td class="align-middle">
+                {{ row.mutationLabel }}
+              </td>
+              <td class="align-middle">
+                {{ row.score }}
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+
+      </ng-template>
+    </p-panel>
+  </div>
 </div>
 }

@@ -37,14 +37,21 @@ import { Molecule3dComponent } from '~/app/components/molecule3d/molecule3d.comp
   }
 })
 export class EffectPredictionResultComponent implements OnDestroy {
-  columns                       = [];
-  currentPage                   = 'input';
+  columns = [
+    // Column for exports
+  ];
+  currentPage                   = 'result';
   jobId: string                 = this.route.snapshot.paramMap.get("id") || "example-id";
   jobInfo: any                  = {};
   jobType: JobType              = JobType.Somn;  //TODO: use the correct job type
   results: any                  = null;          //TODO: update results 
   showResults                   = false;
   subscriptions: Subscription[] = [];
+  tableValues = [
+    { position: 1, mutationLabel: 'L -> G', score: 0.1 },
+    { position: 1, mutationLabel: 'L -> K', score: 0.5 },
+    { position: 1, mutationLabel: 'L -> S', score: 1.3 },
+  ];
 
   statusResponse$
     = this.service.getResultStatus(this.jobType, this.jobId).pipe(
@@ -55,6 +62,10 @@ export class EffectPredictionResultComponent implements OnDestroy {
         };
       }),
     );
+
+  /* --------------------------- For testing purpose -------------------------- */
+  sequence = 'MEDIPDTSRPPLKYVKGIPLIKYFAEALESLQDFQAQPDDLLISTYPKSGTTWVSEILDMIYQDGDVEKCRRAPVFIRVPFLEFKAPGIPTGLEVLKDTPAPRLIKTHLPLALLPQTLLDQKVKVVYVARNAKDVAVSYYHFYRMAKVHPDPDTWDSFLEKFMAGEVSYGSWYQHVQEWWELSHTHPVLYLFYEDMKENPKREIQKILKFVGRSLPEETVDLIVQHTSFKEMKNNSMANYTTLSPDIMDHSISAFMRKGISGDWKTTFTVAQNERFDADYAKKMEGCGLSFRTQL'
+  selectedPositions = [9, 10, 11, 14];
 
   constructor(
     private service: CleanDbService,
