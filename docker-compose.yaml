@@ -1,10 +1,3 @@
-
-version: '3.9'
-
-secrets:
-  NPMRC:
-    file: ~/.npmrc
-
 networks:
   proxy:
 
@@ -14,8 +7,6 @@ services:
     container_name: cleandb-frontend
     build:
       context: .
-      secrets:
-        - NPMRC
     env_file:
       - .env
     ports:
