@@ -5,14 +5,14 @@ import { BodyCreateJobJobTypeJobsPost, FilesService, Job, JobType, JobsService }
 import { EnvironmentService } from "./environment.service";
 
 // import { CleanDbService as CleanDbApiService } from "../api/mmli-backend/v1"; // TODO: use the correct service
-// import exampleStatus from '../../assets/example_status.json';
-import example from '../../assets/example.db.json';
 import { CleanDbRecord, cleanDbRecordRawToCleanDbRecord } from "../models/CleanDbRecord";
 import { loadGzippedJson } from "../utils/loadGzippedJson";
 import { ReactionSchemaRecord, ReactionSchemaRecordRaw, reactionSchemaRecordRawToReactionSchemaRecord } from "../models/ReactionSchemaRecord";
 
-const exampleStatus: any = "WARNING: please provide your own example_status.json";
-// const example: any = "WARNING: please provide your own example.json";
+/* -------------------------------- File Imports -------------------------------- */
+const exampleSearch = import('../../assets/example.db.json').then((module) => module.default);
+const examplePrediction = import('../../assets/example.heatmap.json').then((module) => module.default);
+const exampleStatus: any = import('../../assets/example.prediction.status.json').then((module) => module.default);
 
 const reactionSchemaJson = loadGzippedJson<ReactionSchemaRecordRaw[]>('../../assets/rhea_reactions_ec.json.gz');
 
@@ -49,14 +49,22 @@ export class CleanDbService {
 
   getResult(jobType: JobType, jobID: string): Observable<any> {
     if (this.frontendOnly) {
-      return of(example.map(cleanDbRecordRawToCleanDbRecord));
+      return from(exampleSearch).pipe(map((records => records.map(cleanDbRecordRawToCleanDbRecord))))
     }
     return this.filesService.getResultsBucketNameResultsJobIdGet(jobType, jobID);
   }
 
+  getEffectPredictionResult(jobID: string): Observable<any> {
+    if (this.frontendOnly) {
+      return from(examplePrediction);
+    }
+    // TODO: update JobType
+    return this.filesService.getResultsBucketNameResultsJobIdGet(JobType.Somn, jobID);
+  }
+
   getData(): Observable<CleanDbRecord[]> {
     if (this.frontendOnly) {
-      return of(example.map(cleanDbRecordRawToCleanDbRecord));
+      return from(exampleSearch).pipe(map((records => records.map(cleanDbRecordRawToCleanDbRecord))))
     }
     // TODO: get data from backend
     return of([]);

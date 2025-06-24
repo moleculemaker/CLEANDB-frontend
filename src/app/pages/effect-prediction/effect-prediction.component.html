@@ -130,8 +130,16 @@
             [formControl]="form.controls['agreeToSubscription']"></p-checkbox>
         </div>
       </div>
-      <p-button label="Get Mutation Effect Prediction" type="submit" styleClass="bg-[#224063]"
-        [disabled]="form.invalid" iconPos="right" icon="pi pi-arrow-right"></p-button>
+      <div class="flex flex-col items-end gap-2">
+        <p-button label="Get Mutation Effect Prediction" type="submit" styleClass="bg-[#224063]" [disabled]="form.invalid"
+        iconPos="right" icon="pi pi-arrow-right"></p-button>
+        @if (exampleUsed) {
+        <span class="text-sm opacity-75">
+            <i class="pi pi-exclamation-triangle text-yellow-400"></i>
+            A precomputed result will be returned for the example values.
+        </span>
+        }
+      </div>
     </div>
   </form>
 </div>
