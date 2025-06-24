@@ -2,9 +2,8 @@
 @let displayIdx = $index + 1;
 @let isMuted = cell.state === SequenceCellState.MUTED;
 @let isSelected = cell.state === SequenceCellState.SELECTED;
-@let isPending 
-    = cell.state === SequenceCellState.PENDING_SELECTED
-    || cell.state === SequenceCellState.PENDING_DEFAULT;
+@let isPendingSelected = cell.state === SequenceCellState.PENDING_SELECTED;
+@let isPendingDefault = cell.state === SequenceCellState.PENDING_DEFAULT;
 @let shouldHideIndex = (displayIdx % showIndexPer) !== 0;
 @let shouldShowIndicator 
     = cell.state === SequenceCellState.SELECTED
@@ -16,11 +15,12 @@
         isSelected
         ? 'border-pink-500' 
         : (isMuted
-            ? 'opacity-75'
+            ? 'opacity-25 border-transparent'
             : 'border-transparent'
         ));
 <div class="inline-block relative pt-4 text-xs text-center select-none"
-    [class.bg-blue-100]="isPending"
+    [class.bg-blue-100]="isPendingSelected"
+    [class.bg-pink-100]="isPendingDefault"
     (mousedown)="onCellMouseDown(cell, $event)"
     (mouseup)="onCellMouseUp(cell, $event)"
     (mouseover)="onCellMouseOver(cell, $event)"
