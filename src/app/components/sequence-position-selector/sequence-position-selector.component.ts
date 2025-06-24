@@ -45,6 +45,7 @@ class SequenceCell {
   styleUrl: './sequence-position-selector.component.scss'
 })
 export class SequencePositionSelectorComponent implements OnChanges {
+  @Input() mutedPositions: number[];
   @Input() selectedPositions: number[];
   @Input() sequence: string;
   @Input() showIndexPer: number = 10;
@@ -61,9 +62,14 @@ export class SequencePositionSelectorComponent implements OnChanges {
       this.sequenceCells = this.buildSequenceCells(this.sequence, this.selectedPositions);
     }
 
+    if (changes['mutedPositions'] && changes['mutedPositions'].currentValue) {
+      this.validatePositions(this.sequenceCells, this.mutedPositions);
+      this.updateSequenceCells(this.sequenceCells, this.mutedPositions, SequenceCellState.MUTED);
+    }
+
     if (changes['selectedPositions'] && changes['selectedPositions'].currentValue) {
-      this.validateSelectedIndexes(this.sequenceCells, this.selectedPositions);
-      this.updateSequenceCells(this.sequenceCells, this.selectedPositions);
+      this.validatePositions(this.sequenceCells, this.selectedPositions);
+      this.updateSequenceCells(this.sequenceCells, this.selectedPositions, SequenceCellState.SELECTED);
     }
   }
 
@@ -87,21 +93,17 @@ export class SequencePositionSelectorComponent implements OnChanges {
     return retVal;
   }
 
-  updateSequenceCells(sequenceCells: SequenceCell[], selectedIdxes: number[]): void {
-    sequenceCells.forEach((cell) => {
-      cell.state = SequenceCellState.DEFAULT;
-    });
-
-    selectedIdxes.forEach((index) => {
-      sequenceCells[index].state = SequenceCellState.SELECTED;
+  updateSequenceCells(sequenceCells: SequenceCell[], positions: number[], state: SequenceCellState): void {
+    positions.forEach((position) => {
+      sequenceCells[position].state = state;
     });
   }
 
-  validateSelectedIndexes(sequenceCells: SequenceCell[], selectedIdxes: number[]): void {
+  validatePositions(sequenceCells: SequenceCell[], positions: number[]): void {
     const isInvalidIdx = (idx: number) => idx < 0 || idx >= sequenceCells.length;
-    const invalidIndexes = selectedIdxes.filter(isInvalidIdx);
+    const invalidIndexes = positions.filter(isInvalidIdx);
     if (invalidIndexes.length > 0) {
-      throw new Error(`selectedIdxes contains invalid indexes: ${invalidIndexes}, expect max index: ${sequenceCells.length - 1}`);
+      throw new Error(`positions contains invalid indexes: ${invalidIndexes}, expect max index: ${sequenceCells.length - 1}`);
     }
   }
 
@@ -120,7 +122,6 @@ export class SequencePositionSelectorComponent implements OnChanges {
         break;
       case SequenceCellState.PENDING_SELECTED:
       case SequenceCellState.PENDING_DEFAULT:
-      case SequenceCellState.MUTED:
         break;
     }
   }
