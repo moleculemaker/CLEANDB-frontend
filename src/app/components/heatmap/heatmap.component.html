@@ -1,0 +1,59 @@
+<table class="table-fixed">
+  <tr>
+    @for (interactable of columnKeys; track interactable.id) {
+    <ng-container *ngTemplateOutlet="interactableTemplate; context : {
+                $implicit: interactable,
+                type: 'colKey'
+            }"></ng-container>
+    }
+  </tr>
+  @for (row of values; track $index) {
+  <tr>
+    <!-- Row Header -->
+    <ng-container *ngTemplateOutlet="interactableTemplate; context : {
+                $implicit: rowKeys[$index],
+                type: 'rowKey'
+            }"></ng-container>
+
+    <!-- Cells -->
+    @for (interactable of row; track interactable.id) {
+    <ng-container *ngTemplateOutlet="interactableTemplate; context : {
+                    $implicit: interactable,
+                    type: 'cell'
+                }"></ng-container>
+    }
+  </tr>
+  }
+</table>
+
+<ng-template #interactableTemplate let-interactable let-type="type">
+  @let isColKey = type === 'colKey';
+  @let isRowKey = type === 'rowKey';
+  @let isKey = isColKey || isRowKey;
+  @let keyClassName = 'border-solid border-gray-200 h-full' + (isColKey ? ' border-b' : ' border-r'); 
+  <td
+    class="sticky left-0 bg-white"
+    [class.z-[10]]="isKey"
+    (mousedown)="onMouseDownInteractable(interactable, $event)"
+    (mouseenter)="onMouseEnterInteractable(interactable, $event)"
+    (mouseleave)="onMouseLeaveInteractable(interactable, $event)"
+    (mouseup)="onMouseUpInteractable(interactable, $event)"
+  >
+    <!-- {{ interactable.value }} -->
+    @switch (type) {
+      @case('cell') {
+        <div class="inline-block w-4 h-4" [style.background-color]="interactable.color"></div>
+      }
+      @case('colKey') {
+        <div [class]="keyClassName">
+          {{ interactable.value }}
+        </div>
+      }
+      @case('rowKey') {
+        <div [class]="keyClassName">
+          {{ interactable.value }}
+        </div>
+      }
+    }
+  </td>
+</ng-template>

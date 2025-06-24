@@ -1,5 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Observable, from, map, of } from "rxjs";
+import { scaleLinear } from 'd3';
+
 
 import { BodyCreateJobJobTypeJobsPost, FilesService, Job, JobType, JobsService } from "../api/mmli-backend/v1";
 import { EnvironmentService } from "./environment.service";
@@ -16,9 +18,15 @@ const exampleStatus: any = import('../../assets/example.prediction.status.json')
 
 const reactionSchemaJson = loadGzippedJson<ReactionSchemaRecordRaw[]>('../../assets/rhea_reactions_ec.json.gz');
 
-export type EffectPredictionResult = {
+export type EffectPredictionResponseRaw = {
   row_headers: string[]
   col_headers: string[]
+  values: number[][];
+}
+
+export type EffectPredictionResult = {
+  rowKeys: string[]
+  colKeys: string[]
   values: number[][];
 }
 
@@ -60,12 +68,15 @@ export class CleanDbService {
     return this.filesService.getResultsBucketNameResultsJobIdGet(jobType, jobID);
   }
 
-  getEffectPredictionResult(jobID: string): Observable<any> {
-    if (this.frontendOnly) {
-      return from(examplePrediction);
-    }
-    // TODO: update JobType
-    return this.filesService.getResultsBucketNameResultsJobIdGet(JobType.Somn, jobID);
+  getEffectPredictionResult(jobID: string): Observable<EffectPredictionResult> {
+    const observable$ 
+      = this.frontendOnly 
+      ? from(examplePrediction)
+      : this.filesService.getResultsBucketNameResultsJobIdGet(JobType.Somn, jobID);
+    
+    return observable$.pipe(
+      map(this.effectPredictionResponseToResult)
+    );
   }
 
   getData(): Observable<CleanDbRecord[]> {
@@ -102,5 +113,23 @@ export class CleanDbService {
       run_id: 0,
       email: email,
     });
+  }
+
+  /* ---------------------------------- Utils --------------------------------- */
+  effectPredictionResponseToResult(response: EffectPredictionResponseRaw): EffectPredictionResult {
+    return {
+      rowKeys: response.row_headers,
+      colKeys: response.col_headers,
+      values: response.values
+    }
+  }
+
+  getColorFor(value: number, dataMin: number, dataMax: number): string {
+    const min = Math.min(dataMin, -10);
+    const max = Math.max(dataMax, -10);
+    return scaleLinear(
+      [ min, -2, -1, 0, 1, 2, max ],
+      [ '#515CC2',  '#868BC7', '#B4B7DE', '#E3E2EB', '#EAD0CF', '#CF8184', '#BA4147' ],
+    )(value);
   }
 }
