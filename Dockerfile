@@ -5,7 +5,7 @@
 #
 
 # Use official node image as the base image
-FROM --platform=$BUILDPLATFORM node:22 as build
+FROM --platform=$BUILDPLATFORM node:22 AS build
 
 # Set the working directory
 WORKDIR /usr/local/app
@@ -19,6 +19,7 @@ COPY package.json package-lock.json ./
 
 # Install all the dependencies
 RUN --mount=type=secret,id=NPMRC npm install
+RUN npm install
 
 # Add the source code to app
 COPY angular.json entrypoint.sh tsconfig*.json package*.json proxy.conf.json tailwind.config.js ./

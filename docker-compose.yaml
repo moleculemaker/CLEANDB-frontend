@@ -8,7 +8,6 @@ secrets:
 networks:
   proxy:
 
-
 services:
   cleandb:
     image: moleculemaker/cleandb-frontend:localdev
