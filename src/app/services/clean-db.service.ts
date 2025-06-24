@@ -16,6 +16,12 @@ const exampleStatus: any = import('../../assets/example.prediction.status.json')
 
 const reactionSchemaJson = loadGzippedJson<ReactionSchemaRecordRaw[]>('../../assets/rhea_reactions_ec.json.gz');
 
+export type EffectPredictionResult = {
+  row_headers: string[]
+  col_headers: string[]
+  values: number[][];
+}
+
 @Injectable({
   providedIn: "root",
 })
