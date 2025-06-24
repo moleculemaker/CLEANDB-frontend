@@ -18,7 +18,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 COPY package.json package-lock.json ./
 
 # Install all the dependencies
-RUN --mount=type=secret,id=NPMRC npm install
+#RUN --mount=type=secret,id=NPMRC npm install
+RUN npm install
 
 # Add the source code to app
 COPY angular.json entrypoint.sh tsconfig*.json package*.json proxy.conf.json tailwind.config.js ./
