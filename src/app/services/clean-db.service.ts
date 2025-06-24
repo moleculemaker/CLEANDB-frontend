@@ -34,14 +34,14 @@ export class CleanDbService {
 
   createAndRunJob(jobType: JobType, requestBody: BodyCreateJobJobTypeJobsPost): Observable<Job> {
     if (this.frontendOnly) {
-      return of(exampleStatus as any);
+      return from(exampleStatus) as Observable<Job>;
     }
     return this.jobsService.createJobJobTypeJobsPost(jobType, requestBody);
   }
 
   getResultStatus(jobType: JobType, jobID: string): Observable<Job> {
     if (this.frontendOnly) {
-      return of(exampleStatus as any);
+      return from(exampleStatus) as Observable<Job>;
     }
     return this.jobsService.listJobsByTypeAndJobIdJobTypeJobsJobIdGet(jobType, jobID)
       .pipe(map((jobs) => jobs[0]));
@@ -89,7 +89,7 @@ export class CleanDbService {
 
   updateSubscriberEmail(jobType: JobType, jobId: string, email: string) {
     if (this.frontendOnly) {
-      return of(exampleStatus as any);
+      return from(exampleStatus) as Observable<Job>;
     }
     return this.jobsService.patchExistingJobJobTypeJobsJobIdRunIdPatch(jobType, {
       job_id: jobId,

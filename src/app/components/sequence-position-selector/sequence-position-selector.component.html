@@ -1,1 +1,37 @@
-<p>sequence-position-selector works!</p>
+@for (cell of sequenceCells; track cell.id) {
+@let displayIdx = $index + 1;
+@let isMuted = cell.state === SequenceCellState.MUTED;
+@let isSelected = cell.state === SequenceCellState.SELECTED;
+@let isPending 
+    = cell.state === SequenceCellState.PENDING_SELECTED
+    || cell.state === SequenceCellState.PENDING_DEFAULT;
+@let shouldHideIndex = (displayIdx % showIndexPer) !== 0;
+@let shouldShowIndicator 
+    = cell.state === SequenceCellState.SELECTED
+    && ((cell.next ? cell.next.state !== SequenceCellState.SELECTED : true)
+        || (cell.prev ? cell.prev.state !== SequenceCellState.SELECTED : true)
+    );
+@let cellClassName 
+    = 'text-xs border-b-2 border-solid px-1 ' + (
+        isSelected
+        ? 'border-pink-500' 
+        : (isMuted
+            ? 'opacity-75'
+            : 'border-transparent'
+        ));
+<div class="inline-block relative pt-4 text-xs text-center pb-2 select-none"
+    [class.bg-blue-100]="isPending"
+    (mousedown)="onCellMouseDown(cell, $event)"
+    (mouseup)="onCellMouseUp(cell, $event)"
+    (mouseover)="onCellMouseOver(cell, $event)"
+>
+    <div [class.hidden]="shouldHideIndex" class="absolute right-0 top-0 text-[#9E9E9E] text-xs">{{ displayIdx }}</div>
+    <div [class]="cellClassName">{{ cell.value }}</div>
+    <svg width="16" height="7" viewBox="0 0 8 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7.1377 6.5H0.862305L4 1.00781L7.1377 6.5Z" 
+            [attr.fill]="shouldShowIndicator ? '#EC4899' : 'transparent'" 
+            [attr.stroke]="shouldShowIndicator ? '#EC4899' : 'transparent'"
+        />
+    </svg>
+</div>
+}
