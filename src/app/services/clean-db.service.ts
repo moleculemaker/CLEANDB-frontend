@@ -69,11 +69,11 @@ export class CleanDbService {
   }
 
   getEffectPredictionResult(jobID: string): Observable<EffectPredictionResult> {
-    const observable$ 
-      = this.frontendOnly 
-      ? from(examplePrediction)
-      : this.filesService.getResultsBucketNameResultsJobIdGet(JobType.Somn, jobID);
-    
+    const observable$
+      = this.frontendOnly
+        ? from(examplePrediction)
+        : this.filesService.getResultsBucketNameResultsJobIdGet(JobType.Somn, jobID);
+
     return observable$.pipe(
       map(this.effectPredictionResponseToResult)
     );
@@ -90,8 +90,8 @@ export class CleanDbService {
   getReactionSchemaForEc(ec: string): Observable<ReactionSchemaRecord | null> {
     return from(reactionSchemaJson).pipe(
       map(data => data.find(r => r.ec_numbers.includes(ec))),
-      map(data => data 
-        ? reactionSchemaRecordRawToReactionSchemaRecord(data) 
+      map(data => data
+        ? reactionSchemaRecordRawToReactionSchemaRecord(data)
         : null
       )
     );
@@ -128,8 +128,8 @@ export class CleanDbService {
     const min = Math.min(dataMin, -10);
     const max = Math.max(dataMax, -10);
     return scaleLinear(
-      [ min, -2, -1, 0, 1, 2, max ],
-      [ '#515CC2',  '#868BC7', '#B4B7DE', '#E3E2EB', '#EAD0CF', '#CF8184', '#BA4147' ],
+      [min, -2, -1, 0, 1, 2, max],
+      ['#BA4147', '#CF8184', '#EAD0CF', '#E3E2EB', '#B4B7DE', '#868BC7', '#515CC2'],
     )(value);
   }
 }

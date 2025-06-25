@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -14,6 +14,8 @@ import { TableModule } from 'primeng/table';
 import { SequencePositionSelectorComponent } from '~/app/components/sequence-position-selector/sequence-position-selector.component';
 import { HeatmapCellLocations, HeatmapComponent } from '~/app/components/heatmap/heatmap.component';
 import { Molecule3dComponent } from '~/app/components/molecule3d/molecule3d.component';
+import { transpose } from '~/app/utils/transpose';
+import { ScoreChipComponent } from "../../components/score-chip/score-chip.component";
 
 @Component({
   selector: 'app-effect-prediction-result',
@@ -25,18 +27,20 @@ import { Molecule3dComponent } from '~/app/components/molecule3d/molecule3d.comp
     LoadingComponent,
     PanelModule,
     TableModule,
-
     EffectPredictionComponent,
     HeatmapComponent,
     JobTabComponent,
     Molecule3dComponent,
     SequencePositionSelectorComponent,
-  ],
+    ScoreChipComponent
+],
   host: {
     class: 'flex flex-col h-full',
   }
 })
 export class EffectPredictionResultComponent implements OnDestroy {
+  @ViewChild('heatmap') heatmap: HeatmapComponent;
+
   columns = [
     // Column for exports
   ];
@@ -67,6 +71,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
   /* --------------------------- For testing purpose -------------------------- */
   mutedCells: HeatmapCellLocations = [];
   mutedPositions: number[] = [];
+  previousSelectedPositions: number[] = [];
   result: EffectPredictionResult;
   sequence = 'SFVKDFKPQALGDTNLFKPIKIGNNELLHRAVIPPLTRMRALHPGNIPNRDWAVEYYTQRAQRPGTMIITEGAFISPQAGGYDNAPGVWSEEQMVEWTKIFNAIHEKKSFVWVQLWVLGWAAFPDNLARDGLRYDSASDNVFMDAEQEAKAKKANNPQHSLTKDEIKQYIKEYVQAAKNSIAAGADGVEIHSANGYLLNQFLDPHSNTRTDEYGGSIENRARFTLEVVDALVEAIGHEKVGLRLSPYGVFNSMSGGAETGIVAQYAYVAGELEKRAKAGKRLAFVHLVEPRVTNPFLTEGEGEYEGGSNDFVYSIWKGPVIRAGNFALHPEVVREEVKDKRTLIGYGRFFISNPDLVDRLEKGLPLNKYDRDTFYQMSAHGYIDYPTYEEALKLGWDKK';
   selectedPositions: number[] = [];
@@ -78,6 +83,23 @@ export class EffectPredictionResultComponent implements OnDestroy {
   ) {
     this.service.getEffectPredictionResult('precomputed').subscribe((result) => {
       this.result = result;
+
+      const tableValues: any[] = [];
+      result.values.forEach((row, rowIdx) => {
+        row.forEach((value, colIdx) => {
+          const from = this.result.colKeys[colIdx];
+          const to = this.result.rowKeys[rowIdx];
+          if (from === to) return;
+          tableValues.push({
+            position: colIdx + 1,
+            mutationLabel: `${from} -> ${to}`,
+            score: value,
+          });
+        });
+      });
+
+      tableValues.sort((a, b) => a.position - b.position);
+      this.tableValues = tableValues;
     })
   }
 
@@ -113,10 +135,18 @@ export class EffectPredictionResultComponent implements OnDestroy {
 
   onSelectedPositionsChange(newPositions: number[]): void {
     const columns = Array.from({ length: this.numColumns }, (_, i) => i);
-    this.selectedPositions = newPositions;
     this.selectedCells 
       = newPositions.map((position) => 
         columns.map((col) => [col, position] as [number, number])
       ).flat();
+    if (newPositions.length > 0) {
+      const oldPositionSet = new Set(this.previousSelectedPositions);
+      const newPositionSet = new Set(newPositions);
+      //@ts-ignore
+      const diff: number[] = Array.from(newPositionSet.difference(oldPositionSet));
+      this.heatmap.scrollToCol(Math.min(...diff));
+    }
+    this.previousSelectedPositions = [...this.selectedPositions];
+    this.selectedPositions = newPositions;
   }
 }

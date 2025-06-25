@@ -1,4 +1,4 @@
-<table class="table-fixed border-spacing-2">
+<table class="table-fixed border-spacing-2" #heatmapTable>
   <tr>
     @for (interactable of columnKeys; track interactable.id) {
     <ng-container *ngTemplateOutlet="interactableTemplate; context : {
@@ -32,29 +32,29 @@
   @let isKey = isColKey || isRowKey;
   @let isSelected = interactable.state === InteractableState.SELECTED;
   @let isMuted = interactable.state === InteractableState.MUTED;
-  @let baseCellClassName = 'sticky left-0 align-middle min-w-4 h-4';
-  @let keyClassName = 'bg-white border-solid border-gray-200 h-full z-[10]' + (isColKey ? ' border-b' : ' border-r'); 
+  @let baseCellClassName = 'align-middle min-w-4 h-4';
+  @let keyClassName = 'sticky left-0 bg-white border-solid border-gray-200 h-full z-[10]' + (isColKey ? ' border-b' : ' border-r'); 
   @let mutedClassName = 'cell-muted';
   @let selectedClassName = 'z-[9] border-solid border-pink-500';
   @let topBorderClassName
     = (interactable.state === InteractableState.SELECTED
     && (interactable.above ? interactable.above.state !== InteractableState.SELECTED : true))
-    ? 'border-t-2' : '';
+    ? 'border-t-4' : '';
 
   @let leftBorderClassName
     = (interactable.state === InteractableState.SELECTED
     && (interactable.prev ? interactable.prev.state !== InteractableState.SELECTED : true))
-    ? 'border-l-2' : '';
+    ? 'border-l-4' : '';
 
   @let bottomBorderClassName
     = (interactable.state === InteractableState.SELECTED
     && (interactable.below ? interactable.below.state !== InteractableState.SELECTED : true))
-    ? 'border-b-2' : '';
+    ? 'border-b-4' : '';
 
   @let rightBorderClassName
     = (interactable.state === InteractableState.SELECTED
     && (interactable.next ? interactable.next.state !== InteractableState.SELECTED : true))
-    ? 'border-r-2' : '';
+    ? 'border-r-4' : '';
   
   @let classNames = [
     baseCellClassName,
@@ -73,6 +73,8 @@
     (mousedown)="onInteractableMouseDown(interactable, $event)"
     (mouseover)="onInteractableMouseOver(interactable, $event)"
     (mouseup)="onInteractableMouseUp(interactable, $event)"
+    [attr.data-col-index]="interactable.column"
+    [attr.data-row-index]="interactable.row"
   >
     {{ type === 'cell' ? '' : interactable.value }}
   </td>

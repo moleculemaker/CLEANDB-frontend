@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { BehaviorSubject, combineLatest, combineLatestAll, combineLatestWith, filter, Subscription, tap } from 'rxjs';
 import { CleanDbService, EffectPredictionResult } from '~/app/services/clean-db.service';
 
@@ -73,6 +73,8 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
   @Input() selectedCells: HeatmapCellLocations;
   @Output() selectedCellsChange: EventEmitter<HeatmapCellLocations> = new EventEmitter();
 
+  @ViewChild('heatmapTable') heatmapTable: ElementRef<HTMLTableElement>;
+
   columnKeys: Interactable[];
   heatmapState: HeatmapState = HeatmapState.DEFAULT;
   rowKeys: Interactable[];
@@ -84,6 +86,24 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
   selectedCells$ = new BehaviorSubject<HeatmapCellLocations | null>(null);
 
   public InteractableState = InteractableState;
+
+  public scrollToCol(col: number) {
+    const cell = this.heatmapTable.nativeElement.querySelector(`td[data-col-index="${col}"][data-row-index="1"]`);
+    if (cell) {
+      // Find the scrollable parent container
+      const scrollContainer = cell.closest('.overflow-x-scroll')!;
+
+      // Calculate scroll position to align element to left edge
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const elementRect = cell.getBoundingClientRect();
+      const scrollLeft = elementRect.left - containerRect.left + scrollContainer.scrollLeft - 32;
+
+      scrollContainer.scrollTo({
+        left: scrollLeft,
+        behavior: 'smooth'
+      });
+    }
+  }
 
   constructor(
     private service: CleanDbService
