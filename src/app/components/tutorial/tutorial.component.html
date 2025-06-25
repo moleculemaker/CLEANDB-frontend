@@ -1,0 +1,121 @@
+<div class="mb-10">
+    <h1 class="mb-4 font-bold">Tutorial</h1>
+    <h5 class="leading-xl">
+        Open Enzyme Database offers curated data on enzyme kinetic parameters, structural data, and functional annotations, along with state-of-the-art AI models for enzyme property prediction and cheminformatics-driven enzyme recommendations, in a unified web-based interface. Below, you’ll find documentation on how to use the database.</h5>
+
+    <h5 class="mt-10 font-semibold">Database Search</h5>
+    <h5 class="leading-xl">
+        The database search functionality enables users to discover curated data on enzyme kinetics parameters with
+        experimental support. After inputting an entity (compound, organism, Uniprot ID, EC Number, pH, or temperature),
+        users receive an interactive list of relevant data, which they can filter, sort, or drill down into to explore
+        detailed information for compounds, EC Numbers, and Uniprot IDs. Outlinks to reference databases such as PubMed,
+        Uniprot, and BRENDA, as well as export to CSV, are also supported.</h5>
+
+    <img src="assets/screenshot.png" class="mt-8 w-[100%]" />
+    <h6 class="text-[#6C757D] italic text-center">Multiple entity types are supported for database search. Here, the
+        compound Ethanol (SMILES: COO) has been input.</h6>
+
+    <img src="assets/screenshot.png" class="mt-8 w-[100%]" />
+    <h6 class="text-[#6C757D] italic text-center">After clicking ‘Search Open Enzyme Database,’ relevant experimental
+        results are displayed in an ‘Experimental Data’ table. Users can expand individual table rows to access
+        additional
+        information such as reference data outlinks and reaction schemes..</h6>
+
+    <img src="assets/screenshot.png" class="mt-8 w-[100%]" />
+    <h6 class="text-[#6C757D] italic text-center">Individual entity pages - which can be accessed by clicking any of the
+        <span class="text-[#0080FF]">blue internal links</span> - provide detailed information and further filterable
+        data for Compounds, EC Numbers, and
+        Uniprot IDs. Here, the Compound entity page for Ethanol is displayed.
+    </h6>
+
+    <h5 class="mt-10 font-semibold">Enzyme Property Prediction</h5>
+    <h5 class="leading-xl">
+        The enzyme property prediction functionality enables users to predict <span
+            class="italic">k<sub class="text-xs">cat</sub></span>,
+        <span class="italic">K</span><sub class="text-xs">m</sub>, <span class="italic">k</span><sub class="text-xs">cat</sub>/<span class="italic">K</span><sub class="text-xs">m</sub> (catalytic
+        efficiency), or <span class="italic">K</span><sub class="text-xs">i</sub> (inhibitory constant) values for enzyme-substrate
+        pairs using 3 novel ML algorithms: <b class="font-bold italic">DLKcat</b>, <b
+            class="font-bold italic">UniKP</b>,
+        and <b class="font-bold italic">CatPred</b>:
+    </h5>
+    <ul class="ml-6 list-disc">
+        <li class="pl-2">
+            <h5 class="mt-1 leading-xl"><b class="font-bold italic">DLKcat</b> employs a deep learning approach that combines a
+                graph neural network for substrate representation with a convolutional neural network for protein
+                representation to predict the <span class="italic">k<sub class="text-xs">cat</sub></span> kinetic parameter from
+                enzyme-substrate pairs.</h5>
+        </li>
+        <li class="pl-2">
+            <h5 class="mt-1 leading-xl"><b class="font-bold italic">UniKP</b> is a unified framework for predicting enzyme kinetic
+                parameters (including <span class="italic">k</span><sub class="text-xs">cat</sub>, <span
+                    class="italic">K</span><sub class="text-xs">m</sub> and catalytic efficiency <span
+                    class="italic">k</span><sub class="text-xs">cat</sub>/<span class="italic">K</span><sub class="text-xs">m</sub>) from amino acid sequences and substrate pairs
+                using pre-trained language models.</h5>
+        </li>
+        <li class="pl-2">
+            <h5 class="mt-1 leading-xl"><b class="font-bold italic">CatPred</b> is a deep learning model for predicting in vitro
+                enzyme kinetic parameters (including <span class="italic">k</span><sub class="text-xs">cat</sub>, <span
+                    class="italic">K</span><sub class="text-xs">m</sub>, and inhibitory constant <span
+                    class="italic">K</span><sub class="text-xs">i</sub>) by leveraging pre-trained
+                protein language model and Directed Message Passing Neural Networks (D-MPNN).
+            </h5>
+        </li>
+    </ul>
+
+    <img src="assets/screenshot.png" class="mt-8 w-[100%]" />
+    <h6 class="text-[#6C757D] italic text-center">A single enzyme-substrate pair input allows users to run all three
+        prediction models at once. Here, the enzyme sequence WP_063460136 (FASTA) and substrate Ethanol (SMILES: COO)
+        have been input for analysis.</h6>
+
+    <img src="assets/screenshot.png" class="mt-8 w-[100%]" />
+    <h6 class="text-[#6C757D] italic text-center">After a short processing time, prediction results are returned for all
+        three models. The results summary page provides a high-level overview of each enzymatic property and its
+        predicted value for each model.</h6>
+
+    <img src="assets/screenshot.png" class="mt-8 w-[100%]" />
+    <h6 class="text-[#6C757D] italic text-center">Clicking ‘View full results’, users can navigate into detailed
+        prediction results pages for each model. Here, the predicted values for each parameter are contextualized with
+        respect to the corresponding experimental values reported in Open Enzyme Database.</h6>
+
+    <h5 class="mt-10 font-semibold">Enzyme Recommendation</h5>
+    <h5 class="leading-xl">
+        The enzyme recommendation functionality enables users to discover enzyme recommendations for a specific
+        substrate using 3 structure search algorithms: <b class="font-bold italic">MCS</b>, <b
+            class="font-bold italic">Tanimoto Similarity</b>,
+        and <b class="font-bold italic">Fragment Algorithm</b>:
+    </h5>
+    <ul class="ml-6 list-disc">
+        <li class="pl-2">
+            <h5 class="mt-1 leading-xl"><b class="font-bold italic">MCS</b> identifies the largest shared substructure between two
+                molecules, highlighting core structural similarities that may influence enzyme compatibility, where a
+                higher ‘MCS Score’ indicates greater similarity.</h5>
+        </li>
+        <li class="pl-2">
+            <h5 class="mt-1 leading-xl"><b class="font-bold italic">Tanimoto Similarity</b> calculates similarity based on
+                molecular
+                fingerprints, quantifying how much two molecules share in common relative to their overall structure,
+                where a higher ‘Tanimoto Score’ indicates greater similarity.</h5>
+        </li>
+        <li class="pl-2">
+            <h5 class="mt-1 leading-xl"><b class="font-bold italic">Fragment Algorithm</b> compares molecules by breaking them into
+                smaller
+                chemical fragments and assessing overlap, capturing similarities in localized functional groups or
+                motifs, where larger fragment sizes indicate greater similarity.
+            </h5>
+        </li>
+    </ul>
+
+    <img src="assets/screenshot.png" class="mt-8 w-[100%]" />
+    <h6 class="text-[#6C757D] italic text-center">A single substrate input allows users to run all three structure
+        search algorithms at once. Here, the substrate Ethanol (SMILES: COO) has been input for analysis.</h6>
+
+    <img src="assets/screenshot.png" class="mt-8 w-[100%]" />
+    <h6 class="text-[#6C757D] italic text-center">After a short processing time, recommendation results are returned for
+        all three models. The results summary page provides a high-level overview of the top substrate matches and
+        associated scores for each model.</h6>
+
+    <img src="assets/screenshot.png" class="mt-8 w-[100%]" />
+    <h6 class="text-[#6C757D] italic text-center">Clicking ‘View full results’, users can navigate into detailed
+        recommendation results pages for each model. Here, relevant experimental results are organized by compound, and
+        expandable table rows provide access to compound and enzyme structure visualizations.</h6>
+</div>

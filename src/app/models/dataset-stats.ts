@@ -41,8 +41,8 @@ export type ECClass = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 'TOTAL';
 
 export interface ECClassStatistics {
     ecClass: ECClass
-    ecClassTitle: string;
-    ecClassDescription: string;
+    ecClassTitle: string; // TODO remove this? data-snapshot.component.ts has its own titles
+    ecClassDescription: string; // TODO remove this? data-snapshot.component.ts has its own descriptions
     entries: number;
     ecNumbers: number;
     proteins: number;
