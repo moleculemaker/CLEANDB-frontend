@@ -1,4 +1,4 @@
-<table class="table-fixed">
+<table class="table-fixed border-spacing-2">
   <tr>
     @for (interactable of columnKeys; track interactable.id) {
     <ng-container *ngTemplateOutlet="interactableTemplate; context : {
@@ -30,30 +30,50 @@
   @let isColKey = type === 'colKey';
   @let isRowKey = type === 'rowKey';
   @let isKey = isColKey || isRowKey;
-  @let keyClassName = 'border-solid border-gray-200 h-full' + (isColKey ? ' border-b' : ' border-r'); 
+  @let isSelected = interactable.state === InteractableState.SELECTED;
+  @let isMuted = interactable.state === InteractableState.MUTED;
+  @let baseCellClassName = 'sticky left-0 align-middle min-w-4 h-4';
+  @let keyClassName = 'bg-white border-solid border-gray-200 h-full z-[10]' + (isColKey ? ' border-b' : ' border-r'); 
+  @let mutedClassName = 'cell-muted';
+  @let selectedClassName = 'z-[9] border-solid border-pink-500';
+  @let topBorderClassName
+    = (interactable.state === InteractableState.SELECTED
+    && (interactable.above ? interactable.above.state !== InteractableState.SELECTED : true))
+    ? 'border-t-2' : '';
+
+  @let leftBorderClassName
+    = (interactable.state === InteractableState.SELECTED
+    && (interactable.prev ? interactable.prev.state !== InteractableState.SELECTED : true))
+    ? 'border-l-2' : '';
+
+  @let bottomBorderClassName
+    = (interactable.state === InteractableState.SELECTED
+    && (interactable.below ? interactable.below.state !== InteractableState.SELECTED : true))
+    ? 'border-b-2' : '';
+
+  @let rightBorderClassName
+    = (interactable.state === InteractableState.SELECTED
+    && (interactable.next ? interactable.next.state !== InteractableState.SELECTED : true))
+    ? 'border-r-2' : '';
+  
+  @let classNames = [
+    baseCellClassName,
+    isKey ? keyClassName : '',
+    isSelected ? selectedClassName : '',
+    isMuted ? mutedClassName : '',
+    topBorderClassName,
+    leftBorderClassName,
+    bottomBorderClassName,
+    rightBorderClassName,
+  ].join(' ');
+
   <td
-    class="sticky left-0 bg-white"
-    [class.z-[10]]="isKey"
-    (mousedown)="onMouseDownInteractable(interactable, $event)"
-    (mouseenter)="onMouseEnterInteractable(interactable, $event)"
-    (mouseleave)="onMouseLeaveInteractable(interactable, $event)"
-    (mouseup)="onMouseUpInteractable(interactable, $event)"
+    [class]="classNames"
+    [style.background-color]="interactable.color"
+    (mousedown)="onInteractableMouseDown(interactable, $event)"
+    (mouseover)="onInteractableMouseOver(interactable, $event)"
+    (mouseup)="onInteractableMouseUp(interactable, $event)"
   >
-    <!-- {{ interactable.value }} -->
-    @switch (type) {
-      @case('cell') {
-        <div class="inline-block w-4 h-4" [style.background-color]="interactable.color"></div>
-      }
-      @case('colKey') {
-        <div [class]="keyClassName">
-          {{ interactable.value }}
-        </div>
-      }
-      @case('rowKey') {
-        <div [class]="keyClassName">
-          {{ interactable.value }}
-        </div>
-      }
-    }
+    {{ type === 'cell' ? '' : interactable.value }}
   </td>
 </ng-template>

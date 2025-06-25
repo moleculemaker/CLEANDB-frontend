@@ -1,4 +1,5 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
+import { BehaviorSubject, combineLatestWith, filter, Subscription, tap } from 'rxjs';
 
 enum SelectorState {
   DEFAULT,
@@ -44,7 +45,7 @@ class SequenceCell {
   templateUrl: './sequence-position-selector.component.html',
   styleUrl: './sequence-position-selector.component.scss'
 })
-export class SequencePositionSelectorComponent implements OnChanges {
+export class SequencePositionSelectorComponent implements OnChanges, OnDestroy {
   @Input() mutedPositions: number[];
   @Input() selectedPositions: number[];
   @Input() sequence: string;
@@ -54,34 +55,67 @@ export class SequencePositionSelectorComponent implements OnChanges {
 
   selectorState: SelectorState = SelectorState.DEFAULT;
   sequenceCells: SequenceCell[];
+  subscriptions: Subscription[] = [];
+
+  sequence$ = new BehaviorSubject<string | null>(null);
+  mutedPositions$ = new BehaviorSubject<number[] | null>(null);
+  selectedPositions$ = new BehaviorSubject<number[] | null>(null);
 
   public SequenceCellState = SequenceCellState;
 
+  constructor() {
+    this.subscriptions.push(
+      this.sequence$.pipe(
+        filter(d => !!d),
+        tap((data) => {
+          this.sequenceCells = this.buildSequenceCells(data!);
+        }),
+        combineLatestWith(
+          this.mutedPositions$,
+          this.selectedPositions$
+        )
+      ).subscribe(([_, mutedPositions, selectedPositions]) => {
+
+        if (mutedPositions) {
+          this.validatePositions(this.sequenceCells, mutedPositions);
+          this.updateSequenceCells(this.sequenceCells, mutedPositions, SequenceCellState.MUTED);
+        }
+
+        if (selectedPositions) {
+          this.validatePositions(this.sequenceCells, selectedPositions);
+          this.updateSequenceCells(this.sequenceCells, selectedPositions, SequenceCellState.MUTED);
+        }
+      })
+    )
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['sequence'] && changes['sequence'].currentValue) {
-      this.sequenceCells = this.buildSequenceCells(this.sequence, this.selectedPositions);
+      this.sequenceCells = this.buildSequenceCells(changes['sequence'].currentValue);
     }
 
-    if (changes['mutedPositions'] && changes['mutedPositions'].currentValue) {
-      this.validatePositions(this.sequenceCells, this.mutedPositions);
-      this.updateSequenceCells(this.sequenceCells, this.mutedPositions, SequenceCellState.MUTED);
+    if (changes['mutedPositions']) {
+      this.validatePositions(this.sequenceCells, changes['mutedPositions'].currentValue);
+      this.updateSequenceCells(this.sequenceCells, changes['mutedPositions'].currentValue, SequenceCellState.MUTED);
     }
 
-    if (changes['selectedPositions'] && changes['selectedPositions'].currentValue) {
-      this.validatePositions(this.sequenceCells, this.selectedPositions);
-      this.updateSequenceCells(this.sequenceCells, this.selectedPositions, SequenceCellState.SELECTED);
+    if (changes['selectedPositions']) {
+      this.validatePositions(this.sequenceCells, changes['selectedPositions'].currentValue);
+      this.updateSequenceCells(this.sequenceCells, changes['selectedPositions'].currentValue, SequenceCellState.SELECTED);
     }
   }
 
-  buildSequenceCells(sequence: string, selectedIdxes: number[]): SequenceCell[] {
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((subscription) => subscription.unsubscribe());
+  }
+
+  buildSequenceCells(sequence: string): SequenceCell[] {
     const retVal: SequenceCell[] = [];
     let lastCell: SequenceCell | null = null;
     sequence.split('').forEach((cellValue, i) => {
       const cell = new SequenceCell({
         prev: lastCell,
-        state: selectedIdxes.includes(i) 
-          ? SequenceCellState.SELECTED 
-          : SequenceCellState.DEFAULT,
+        state: SequenceCellState.DEFAULT,
         value: cellValue,
       });
       retVal.push(cell);
@@ -100,6 +134,9 @@ export class SequencePositionSelectorComponent implements OnChanges {
   }
 
   validatePositions(sequenceCells: SequenceCell[], positions: number[]): void {
+    if (!sequenceCells) {
+      throw new Error('no sequence to validate!');
+    }
     const isInvalidIdx = (idx: number) => idx < 0 || idx >= sequenceCells.length;
     const invalidIndexes = positions.filter(isInvalidIdx);
     if (invalidIndexes.length > 0) {
