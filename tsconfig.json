@@ -17,8 +17,8 @@
     "resolveJsonModule": true,
     "moduleResolution": "node",
     "importHelpers": true,
-    "target": "ES2022",
-    "module": "ES2022",
+    "target": "esnext",
+    "module": "esnext",
     "useDefineForClassFields": false,
     "paths": {
       "~/*": ["./src/*"],
@@ -27,7 +27,7 @@
       /* add additional virtual module aliases here */
     },
     "lib": [
-      "ES2022",
+      "esnext",
       "dom"
     ],
     "strictPropertyInitialization": false
