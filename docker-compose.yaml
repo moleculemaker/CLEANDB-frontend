@@ -1,12 +1,20 @@
+
+secrets:
+  NPMRC:
+    file: ~/.npmrc
+
 networks:
   proxy:
 
+
 services:
-  cleandb:
-    image: moleculemaker/cleandb-frontend:localdev
+  reactionminer:
+    image: moleculemaker/cleandb-frontend
     container_name: cleandb-frontend
     build:
       context: .
+      secrets:
+        - NPMRC
     env_file:
       - .env
     ports:

@@ -1,26 +1,27 @@
 # Builds a Docker image for the cleandb Frontend
 #
 # Usage:
-#     docker build -t moleculemaker/cleandb-frontend .
+#     docker build --secret id=NPMRC,src=$HOME/.npmrc -t moleculemaker/cleandb-frontend .
 #
 
 # Use official node image as the base image
-FROM --platform=$BUILDPLATFORM node:22 AS build
+FROM --platform=$BUILDPLATFORM node:22 as build
 
 # Set the working directory
 WORKDIR /usr/local/app
 
 # Pass in NPM credentials as a Docker build secret
+ENV NPM_CONFIG_USERCONFIG="/run/secrets/NPMRC"
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Add dependencies manifest to app
 COPY package.json package-lock.json ./
 
 # Install all the dependencies
-RUN npm install
+RUN --mount=type=secret,id=NPMRC npm install
 
 # Add the source code to app
-COPY angular.json entrypoint.sh tsconfig*.json package*.json proxy.conf.json tailwind.config.js ./
+COPY angular.json entrypoint.sh tsconfig*.json package*.json proxy.conf.json tailwind.config.js .
 COPY src ./src
 
 # Generate the build of the application
@@ -44,3 +45,4 @@ CMD [ "/entrypoint.sh" ]
 
 # Expose port 80
 EXPOSE 80
+
