@@ -6,13 +6,13 @@ import { JobType } from '~/app/api/mmli-backend/v1';
 import { LoadingComponent } from '~/app/components/loading/loading.component';
 import { JobTabComponent } from "~/app/components/job-tab/job-tab.component";
 
-import { CleanDbService } from '~/app/services/clean-db.service';
+import { CleanDbService, EffectPredictionResult } from '~/app/services/clean-db.service';
 import { EffectPredictionComponent } from '~/app/pages/effect-prediction/effect-prediction.component';
 import { Subscription, tap } from 'rxjs';
 import { PanelModule } from 'primeng/panel';
 import { TableModule } from 'primeng/table';
 import { SequencePositionSelectorComponent } from '~/app/components/sequence-position-selector/sequence-position-selector.component';
-import { HeatmapComponent } from '~/app/components/heatmap/heatmap.component';
+import { HeatmapCellLocations, HeatmapComponent } from '~/app/components/heatmap/heatmap.component';
 import { Molecule3dComponent } from '~/app/components/molecule3d/molecule3d.component';
 
 @Component({
@@ -44,6 +44,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
   jobId: string                 = this.route.snapshot.paramMap.get("id") || "example-id";
   jobInfo: any                  = {};
   jobType: JobType              = JobType.Somn;  //TODO: use the correct job type
+  numColumns                    = 20;
   results: any                  = null;          //TODO: update results 
   showResults                   = false;
   subscriptions: Subscription[] = [];
@@ -64,15 +65,20 @@ export class EffectPredictionResultComponent implements OnDestroy {
     );
 
   /* --------------------------- For testing purpose -------------------------- */
-  mutedPositions = [1,2,3];
-  result$ = this.service.getEffectPredictionResult('precomputed');
+  mutedCells: HeatmapCellLocations = [];
+  mutedPositions: number[] = [];
+  result: EffectPredictionResult;
   sequence = 'SFVKDFKPQALGDTNLFKPIKIGNNELLHRAVIPPLTRMRALHPGNIPNRDWAVEYYTQRAQRPGTMIITEGAFISPQAGGYDNAPGVWSEEQMVEWTKIFNAIHEKKSFVWVQLWVLGWAAFPDNLARDGLRYDSASDNVFMDAEQEAKAKKANNPQHSLTKDEIKQYIKEYVQAAKNSIAAGADGVEIHSANGYLLNQFLDPHSNTRTDEYGGSIENRARFTLEVVDALVEAIGHEKVGLRLSPYGVFNSMSGGAETGIVAQYAYVAGELEKRAKAGKRLAFVHLVEPRVTNPFLTEGEGEYEGGSNDFVYSIWKGPVIRAGNFALHPEVVREEVKDKRTLIGYGRFFISNPDLVDRLEKGLPLNKYDRDTFYQMSAHGYIDYPTYEEALKLGWDKK';
-  selectedPositions = [9, 10, 11, 14];
+  selectedPositions: number[] = [];
+  selectedCells: HeatmapCellLocations = [];
 
   constructor(
     private service: CleanDbService,
     private route: ActivatedRoute,
   ) {
+    this.service.getEffectPredictionResult('precomputed').subscribe((result) => {
+      this.result = result;
+    })
   }
 
   ngOnDestroy() {
@@ -103,5 +109,14 @@ export class EffectPredictionResultComponent implements OnDestroy {
           })
       );
     }
+  }
+
+  onSelectedPositionsChange(newPositions: number[]): void {
+    const columns = Array.from({ length: this.numColumns }, (_, i) => i);
+    this.selectedPositions = newPositions;
+    this.selectedCells 
+      = newPositions.map((position) => 
+        columns.map((col) => [col, position] as [number, number])
+      ).flat();
   }
 }
