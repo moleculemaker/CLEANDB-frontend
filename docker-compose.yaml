@@ -8,7 +8,7 @@ networks:
 
 
 services:
-  reactionminer:
+  cleandb:
     image: moleculemaker/cleandb-frontend
     container_name: cleandb-frontend
     build:
