@@ -54,7 +54,8 @@ export class CleanDbService {
   }
 
   getResultStatus(jobType: JobType, jobID: string): Observable<Job> {
-    if (this.frontendOnly) {
+    if (this.shouldUsePrecomputedResult(jobID)) {
+      console.log('frontendOnly or precomputed');
       return from(exampleStatus) as Observable<Job>;
     }
     return this.jobsService.listJobsByTypeAndJobIdJobTypeJobsJobIdGet(jobType, jobID)
@@ -62,7 +63,7 @@ export class CleanDbService {
   }
 
   getResult(jobType: JobType, jobID: string): Observable<any> {
-    if (this.frontendOnly) {
+    if (this.shouldUsePrecomputedResult(jobID)) {
       return from(exampleSearch).pipe(map((records => records.map(cleanDbRecordRawToCleanDbRecord))))
     }
     return this.filesService.getResultsBucketNameResultsJobIdGet(jobType, jobID);
@@ -70,7 +71,7 @@ export class CleanDbService {
 
   getEffectPredictionResult(jobID: string): Observable<EffectPredictionResult> {
     const observable$
-      = this.frontendOnly
+      = (this.shouldUsePrecomputedResult(jobID))
         ? from(examplePrediction)
         : this.filesService.getResultsBucketNameResultsJobIdGet(JobType.Somn, jobID);
 
@@ -98,18 +99,18 @@ export class CleanDbService {
   }
 
   getError(jobType: JobType, jobID: string): Observable<string> {
-    if (this.frontendOnly) {
+    if (this.shouldUsePrecomputedResult(jobID)) {
       return of('error');
     }
     return this.filesService.getErrorsBucketNameErrorsJobIdGet(jobType, jobID);
   }
 
-  updateSubscriberEmail(jobType: JobType, jobId: string, email: string) {
-    if (this.frontendOnly) {
+  updateSubscriberEmail(jobType: JobType, jobID: string, email: string) {
+    if (this.shouldUsePrecomputedResult(jobID)) {
       return from(exampleStatus) as Observable<Job>;
     }
     return this.jobsService.patchExistingJobJobTypeJobsJobIdRunIdPatch(jobType, {
-      job_id: jobId,
+      job_id: jobID,
       run_id: 0,
       email: email,
     });
@@ -131,5 +132,9 @@ export class CleanDbService {
       [min, -2, -1, 0, 1, 2, max],
       ['#BA4147', '#CF8184', '#EAD0CF', '#E3E2EB', '#B4B7DE', '#868BC7', '#515CC2'],
     )(value);
+  }
+
+  shouldUsePrecomputedResult(jobID: string): boolean {
+    return this.frontendOnly || jobID === 'precomputed';
   }
 }

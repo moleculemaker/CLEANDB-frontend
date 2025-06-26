@@ -45,11 +45,10 @@ export class EffectPredictionResultComponent implements OnDestroy {
     // Column for exports
   ];
   currentPage                   = 'result';
-  jobId: string                 = this.route.snapshot.paramMap.get("id") || "example-id";
+  jobId: string                 = this.route.snapshot.paramMap.get("id") || "precomputed";
   jobInfo: any                  = {};
-  jobType: JobType              = JobType.Somn;  //TODO: use the correct job type
+  jobType: JobType              = JobType.CleandbMepesm;
   numColumns                    = 20;
-  results: any                  = null;          //TODO: update results 
   showResults                   = false;
   subscriptions: Subscription[] = [];
   tableValues: any[] = [];
@@ -57,27 +56,29 @@ export class EffectPredictionResultComponent implements OnDestroy {
   statusResponse$
     = this.service.getResultStatus(this.jobType, this.jobId).pipe(
       tap((job) => {
-        this.jobId = {
-          ...JSON.parse(job.job_info || '{}'),
+        const jobInfo = JSON.parse(job.job_info || '{}');
+        this.sequence = jobInfo.sequence;
+        this.jobInfo = {
+          ...jobInfo,
           email: job.email || '',
         };
       }),
     );
 
   /* --------------------------- For testing purpose -------------------------- */
-  mutedCells: HeatmapCellLocations = [];
-  mutedPositions: number[] = [];
-  previousSelectedPositions: number[] = [];
+  mutedCells: HeatmapCellLocations          = [];
+  mutedPositions: number[]                  = [];
+  previousSelectedPositions: number[]       = [];
   result: EffectPredictionResult;
-  sequence = 'SFVKDFKPQALGDTNLFKPIKIGNNELLHRAVIPPLTRMRALHPGNIPNRDWAVEYYTQRAQRPGTMIITEGAFISPQAGGYDNAPGVWSEEQMVEWTKIFNAIHEKKSFVWVQLWVLGWAAFPDNLARDGLRYDSASDNVFMDAEQEAKAKKANNPQHSLTKDEIKQYIKEYVQAAKNSIAAGADGVEIHSANGYLLNQFLDPHSNTRTDEYGGSIENRARFTLEVVDALVEAIGHEKVGLRLSPYGVFNSMSGGAETGIVAQYAYVAGELEKRAKAGKRLAFVHLVEPRVTNPFLTEGEGEYEGGSNDFVYSIWKGPVIRAGNFALHPEVVREEVKDKRTLIGYGRFFISNPDLVDRLEKGLPLNKYDRDTFYQMSAHGYIDYPTYEEALKLGWDKK';
-  selectedPositions: number[] = [];
-  selectedCells: HeatmapCellLocations = [];
+  sequence                                  = '';
+  selectedPositions: number[]               = [];
+  selectedCells: HeatmapCellLocations       = [];
 
   constructor(
     private service: CleanDbService,
     private route: ActivatedRoute,
   ) {
-    this.service.getEffectPredictionResult('precomputed').subscribe((result) => {
+    this.service.getEffectPredictionResult(this.jobId).subscribe((result) => {
       this.result = result;
 
       const tableValues: any[] = [];
@@ -96,9 +97,6 @@ export class EffectPredictionResultComponent implements OnDestroy {
 
       tableValues.sort((a, b) => a.position - b.position);
       this.tableValues = tableValues;
-
-      this.mutedPositions = [1, 2, 3];
-      this.mutedCells = this.generateCellsFromPositions(this.mutedPositions);
     });
   }
 
@@ -126,7 +124,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
         this.service.getEffectPredictionResult(this.jobId)
           .subscribe((data) => {
             this.showResults = true;
-            this.results = data;
+            this.result = data;
           })
       );
     }
