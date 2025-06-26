@@ -25,6 +25,14 @@
     <div class="flex items-center gap-2">
 
       <!-- TODO: add button here -->
+      <p-splitButton id="btn-request-options" label="Request Options" outlined
+          [model]="requestOptions"></p-splitButton>
+      @if (showResults) {
+      <div id="btn-export" class="flex flex-col justify-center">
+          <p-button label="Export" icon="pi pi-download" (onClick)="menu.toggle($event)"></p-button>
+          <p-tieredMenu #menu [model]="exportOptions" [popup]="true" appendTo="body"/>
+      </div>
+      }
 
     </div>
   </div>
