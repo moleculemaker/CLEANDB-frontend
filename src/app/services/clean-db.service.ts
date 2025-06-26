@@ -73,7 +73,7 @@ export class CleanDbService {
     const observable$
       = (this.shouldUsePrecomputedResult(jobID))
         ? from(examplePrediction)
-        : this.filesService.getResultsBucketNameResultsJobIdGet(JobType.Somn, jobID);
+        : this.filesService.getResultsBucketNameResultsJobIdGet(JobType.CleandbMepesm, jobID);
 
     return observable$.pipe(
       map(this.effectPredictionResponseToResult)
