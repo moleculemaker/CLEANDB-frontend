@@ -109,7 +109,7 @@ export class SequencePositionSelectorComponent implements OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['sequence'] && changes['sequence'].currentValue) {
-      this.sequenceCells = this.buildSequenceCells(changes['sequence'].currentValue);
+      this.sequence$.next(changes['sequence'].currentValue);
     }
 
     if (changes['mutedPositions']) {

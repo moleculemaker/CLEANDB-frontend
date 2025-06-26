@@ -95,6 +95,7 @@
         <!-- Table -->
         <hr> <!-- hr for border styling -->
         <p-table 
+          #resultTable
           [columns]="columns" 
           
           [scrollable]="true" 
@@ -103,8 +104,6 @@
           tableStyleClass="w-full border-b-0"
 
           [value]="tableValues" 
-          [virtualScroll]="true"
-          [virtualScrollItemSize]="46"
         >
           <ng-template pTemplate="header">
             <tr>
@@ -129,14 +128,14 @@
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-row let-expanded="expanded">
-            <tr style="height: 46px;">
-              <td class="align-middle border-b border-solid border-[#dee2e6]">
+            <tr [attr.data-position]="row.position">
+              <td class="align-middle border-b border-solid border-[#dee2e6] !p-2">
                 {{ row.position }}
               </td>
-              <td class="align-middle border-b border-solid border-[#dee2e6]">
+              <td class="align-middle border-b border-solid border-[#dee2e6] !p-2">
                 {{ row.mutationLabel }}
               </td>
-              <td class="align-middle border-b border-solid border-[#dee2e6]">
+              <td class="align-middle border-b border-solid border-[#dee2e6] !p-2">
                 <app-score-chip [score]="row.score"></app-score-chip>
               </td>
             </tr>
