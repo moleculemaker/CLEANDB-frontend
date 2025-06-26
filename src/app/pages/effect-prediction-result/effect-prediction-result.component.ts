@@ -13,8 +13,8 @@ import { PanelModule } from 'primeng/panel';
 import { Table, TableModule } from 'primeng/table';
 import { SequencePositionSelectorComponent } from '~/app/components/sequence-position-selector/sequence-position-selector.component';
 import { HeatmapCellLocations, HeatmapComponent } from '~/app/components/heatmap/heatmap.component';
-import { Molecule3dComponent } from '~/app/components/molecule3d/molecule3d.component';
 import { ScoreChipComponent } from "../../components/score-chip/score-chip.component";
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-effect-prediction-result',
@@ -23,13 +23,14 @@ import { ScoreChipComponent } from "../../components/score-chip/score-chip.compo
   standalone: true,
   imports: [
     CommonModule,
-    LoadingComponent,
     PanelModule,
     TableModule,
+    TooltipModule,
+
     EffectPredictionComponent,
     HeatmapComponent,
     JobTabComponent,
-    Molecule3dComponent,
+    LoadingComponent,
     SequencePositionSelectorComponent,
     ScoreChipComponent
 ],
