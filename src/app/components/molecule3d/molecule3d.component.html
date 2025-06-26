@@ -1,0 +1,7 @@
+<div class="relative w-full h-full overflow-hidden">
+  <!-- 3D Viewer Container -->
+  <div #molContainer class="w-full h-full" [style.display]="options.displayMode?.useImageDisplay ? (isActive ? 'block' : 'none') : 'block'"></div>
+  
+  <!-- Image Display Container -->
+  <div #imageContainer class="w-full h-full" [style.display]="options.displayMode?.useImageDisplay ? (isActive ? 'none' : 'block') : 'block'"></div>
+</div>

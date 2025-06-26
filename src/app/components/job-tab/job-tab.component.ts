@@ -20,7 +20,7 @@ export class JobTabComponent implements OnChanges {
     : null;
   tabs: MenuItem[] = [
     { label: "Request Configuration" },
-    { label: "Recommendation Results" },
+    { label: "Model Results" },
   ];
   activeTab: MenuItem = this.tabs[0];
 

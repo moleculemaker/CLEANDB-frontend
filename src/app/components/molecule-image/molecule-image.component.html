@@ -1,10 +1,19 @@
-<div *ngIf="!image" 
-    [class]="placeholderClassName"
-    [style.width.px]="width"
-    [style.height.px]="height"
-    class="flex items-center justify-center"
->
-    No Image Available
+<div class="flex items-center justify-center" [style.width.px]="width" [style.height.px]="height">
+  @switch (chemical.status) {
+  @case ('loading') {
+  <p-progressSpinner aria-label="Loading"></p-progressSpinner>
+  }
+  @case ('loaded') {
+  <div [innerHTML]="chemical.data | safe:'html'"></div>
+  }
+  @case ('error') {
+  Error loading image
+  }
+  @case ('na') {
+  No Image Available
+  }
+  @default {
+  <div [innerHTML]="chemical.data | safe:'html'"></div>
+  }
+  }
 </div>
-
-<div [innerHTML]="image | safe:'html'"></div>

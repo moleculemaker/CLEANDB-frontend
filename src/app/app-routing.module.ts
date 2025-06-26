@@ -4,9 +4,9 @@ import { RouterModule, Routes } from "@angular/router";
 import { FontMatchComponent } from "./components/font-match/font-match.component";
 import { MainLayoutComponent } from "./components/main-layout/main-layout.component";
 import { AboutPageComponent } from "./pages/about-page/about-page.component";
+import { DatabaseSearchComponent } from "./pages/database-search/database-search.component";
 import { EffectPredictionComponent } from "~/app/pages/effect-prediction/effect-prediction.component";
 import { EffectPredictionResultComponent } from "~/app/pages/effect-prediction-result/effect-prediction-result.component";
-import { DatabaseSearchComponent } from "./pages/database-search/database-search.component";
 
 
 const routes: Routes = [

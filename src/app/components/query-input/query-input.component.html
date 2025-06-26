@@ -1,6 +1,6 @@
 <div class="flex flex-col gap-2">
   @if (selectedSearchOption; as option) {
-  <span class="flex justify-between mt-2 text-sm mx-2">
+  <span class="flex justify-between mt-2 text-sm">
     <div class="flex gap-4 items-center">
       <small class="font-semibold leading-xl">
         {{ option.label }}
@@ -14,7 +14,10 @@
     </small>
   </span>
   }
+  <ng-content select="tips"></ng-content>
   <div class="flex p-[5px] border rounded-lg border-solid gap-2 border-[--surface-d]">
+    <!-- Select Button -->
+    @if (showSelectButton) {
     <button type="button" class="flex items-center btn-outline !bg-[--surface-b] !px-4 !py-0 !text-[--surface-700]"
       (click)="multiple ? searchMenu.toggle($event) : null">
       <span class="font-semibold leading-lg">{{
@@ -24,7 +27,10 @@
       <i class="ml-2 pi pi-chevron-down"></i>
       }
     </button>
-    <p-menu #searchMenu [model]="searchOptions" [popup]="true"></p-menu>
+    <p-menu #searchMenu [model]="searchOptions" [popup]="true" appendTo="body"></p-menu>
+    }
+
+    <!-- Actual Input -->
     @if (selectedSearchOption) {
     <div class="grow h-8" [formGroup]="selectedSearchOption.formGroup">
       @switch (selectedSearchOption.key) {
@@ -35,6 +41,22 @@
       @case ('protein_name') {
       <input pInputText type="text" title="{{selectedSearchOption.placeholder}}"
         [placeholder]="selectedSearchOption.placeholder" formControlName="value" class="w-full border-none h-8" />
+      }
+      @case ('organism') {
+      <input pInputText type="text" title="{{selectedSearchOption.placeholder}}"
+        [placeholder]="selectedSearchOption.placeholder" formControlName="value" class="w-full border-none h-8" />
+      }
+      @case ('uniprot') {
+      <input pInputText type="text" title="{{selectedSearchOption.placeholder}}"
+        [placeholder]="selectedSearchOption.placeholder" formControlName="value" class="w-full border-none h-8" />
+      }
+      @case ('gene_id') {
+      <input pInputText type="text" title="{{selectedSearchOption.placeholder}}"
+        [placeholder]="selectedSearchOption.placeholder" formControlName="value" class="w-full border-none h-8" />
+      }
+      @case ('positions') {
+      <input pInputText type="text" title="{{selectedSearchOption.placeholder}}"
+        [placeholder]="selectedSearchOption.placeholder" formControlName="valueLabel" class="w-full border-none h-8" />
       }
       @default {
       <input pInputText type="text" placeholder="(Select a search type using the menu to the left to get started)"
@@ -48,9 +70,9 @@
     }
   </div>
 
-  @if (selectedSearchOption 
-    && selectedSearchOption.formGroup.invalid
-    && selectedSearchOption.formGroup.dirty
+  @if (selectedSearchOption
+  && selectedSearchOption.formGroup.invalid
+  && selectedSearchOption.formGroup.dirty
   ) {
   <div class="flex flex-col gap-1">
     @if (selectedSearchOption.formGroup.hasError('invalidName', 'inputValue')) {
