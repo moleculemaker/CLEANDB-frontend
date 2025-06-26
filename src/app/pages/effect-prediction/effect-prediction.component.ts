@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
+import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from "@angular/core";
 import { FormGroup, FormControl, Validators, ReactiveFormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { CheckboxModule } from "primeng/checkbox";
@@ -12,8 +12,9 @@ import { QueryInputComponent } from "~/app/components/query-input/query-input.co
 import { QueryValue, RangeSearchOption, SearchOption } from "~/app/models/search-options";
 import { InputTextareaModule } from "primeng/inputtextarea";
 import { JobType } from "~/app/api/mmli-backend/v1";
-import { Subscription } from "rxjs";
+import { combineLatestWith, map, Subscription, tap } from "rxjs";
 import { getFasta, getSeq } from "~/app/utils/fasta";
+import { InputTextModule } from "primeng/inputtext";
 
 @Component({
   selector: 'app-effect-prediction',
@@ -27,6 +28,7 @@ import { getFasta, getSeq } from "~/app/utils/fasta";
     ButtonModule,
     PanelModule,
     InputTextareaModule,
+    InputTextModule,
 
     JobTabComponent,
     QueryInputComponent,
@@ -35,20 +37,13 @@ import { getFasta, getSeq } from "~/app/utils/fasta";
     class: "flex flex-col h-full"
   }
 })
-export class EffectPredictionComponent implements OnChanges {
+export class EffectPredictionComponent implements OnChanges, OnDestroy {
   @Input() formValue!: any;    // TODO: update type to support positions
   @Input() showJobTab = true;
   
   currentPage = 'input';
-  example = {
-    sequence: '>sp|Q29476|ST1A1_CANLF Sulfotransferase 1A1 OS=Canis lupus familiaris OX=9615 GN=SULT1A1 PE=1 SV=1\nMEDIPDTSRPPLKYVKGIPLIKYFAEALESLQDFQAQPDDLLISTYPKSGTTWVSEILDMIYQDGDVEKCRRAPVFIRVPFLEFKAPGIPTGLEVLKDTPAPRLIKTHLPLALLPQTLLDQKVKVVYVARNAKDVAVSYYHFYRMAKVHPDPDTWDSFLEKFMAGEVSYGSWYQHVQEWWELSHTHPVLYLFYEDMKENPKREIQKILKFVGRSLPEETVDLIVQHTSFKEMKNNSMANYTTLSPDIMDHSISAFMRKGISGDWKTTFTVAQNERFDADYAKKMEGCGLSFRTQL',
-    positions: {
-      "selectedOption": "positions",
-      "value": [ 138, 145 ],
-      "valueLabel": "138-145"
-    }
-  }
-  exampleUsed = false;
+  example: any = null;
+  exampleUsed: boolean = false;
   form = new FormGroup({
     email: new FormControl("", [Validators.email]),
     sequence: new FormControl("", [Validators.required]),
@@ -75,13 +70,19 @@ export class EffectPredictionComponent implements OnChanges {
     private router: Router,
   ) {
     this.subscriptions.push(
-      this.form.valueChanges.subscribe((v) => {
-        this.exampleUsed
-          = v.sequence === this.example.sequence
-          // TODO: update to enable positions
-          // && v.positions?.value[0] === this.example.positions.value[0]
-          // && v.positions?.value[1] === this.example.positions.value[1];
-      })
+      this.service.getResultStatus(JobType.CleandbMepesm, 'precomputed')
+      .pipe(
+        map((status) => {
+          const jobInfo = JSON.parse(status.job_info || '{}');
+          return {
+            ...jobInfo,
+            sequence: getFasta(jobInfo.sequence_name, jobInfo.sequence),
+          }
+        }),
+        tap((v) => this.example = v),
+        combineLatestWith(this.form.valueChanges),
+        map(([example, formValue]) => example.sequence === formValue.sequence)
+      ).subscribe((v) => this.exampleUsed = v)
     );
   }
 
@@ -94,8 +95,12 @@ export class EffectPredictionComponent implements OnChanges {
     }
   }
 
-  useExample() {
-    this.form.patchValue(this.example);
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((subscription) => subscription.unsubscribe());
+  }
+
+  useExample(example: any) {
+    this.form.patchValue(example);
   }
 
   clearAll() {
@@ -107,25 +112,28 @@ export class EffectPredictionComponent implements OnChanges {
       return;
     }
 
+    console.log('to submit', this.form.value);
+
     if (this.exampleUsed) {
       this.router.navigate(['effect-prediction', 'result', 'precomputed']);
       return;
-    }
+    } 
 
-    const { sequenceName, sequence } = getSeq(this.form.controls["sequence"].value || '');
-
-    this.service.createAndRunJob(
-      JobType.CleandbMepesm,
-      { 
-        job_info: JSON.stringify({
-          sequence,
-          sequence_name: sequenceName,
-          positions: this.form.controls["positions"].value || [],
-        }),
-        email: this.form.controls["email"].value || '',
-      }
-    ).subscribe((response) => {
-      this.router.navigate(['effect-prediction', 'result', response.job_id]);
-    })
+    const { sequenceName, sequence } = getSeq(this.form.value.sequence || '');
+    this.subscriptions.push(
+      this.service.createAndRunJob(
+        JobType.CleandbMepesm,
+        { 
+          job_info: JSON.stringify({
+            sequence,
+            sequence_name: sequenceName,
+            positions: this.form.value.positions?.value || [],
+          }),
+          email: this.form.value.email || '',
+        }
+      ).subscribe((response) => 
+        this.router.navigate(['effect-prediction', 'result', response.job_id])
+      )
+    );
   }
 }

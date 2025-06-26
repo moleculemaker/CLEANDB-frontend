@@ -20,7 +20,12 @@
           <ng-template pTemplate="header">
             <h6 class="grow">Input</h6>
             <div class="flex gap-2 -my-1">
-              <button type="button" class="flex items-center btn-outline" (click)="useExample()">
+              <button 
+                type="button" 
+                class="flex items-center btn-outline" 
+                (click)="useExample(example)" 
+                [disabled]="!example"
+              >
                 <i class="mr-2 pi pi-box"></i>
                 Use an Example
               </button>
@@ -40,10 +45,11 @@
                   </div>
                   <small class="leading-xl text-text-secondary">
                     Example:
-                    <small class="font-semibold underline cursor-pointer"
-                      (click)="form.controls['sequence'].setValue('>sp|Q29476|ST1A1_CANLF Sulfotransferase 1A1 OS=Canis lupus familiaris OX=9615 GN=SULT1A1 PE=1 SV=1\nMEDIPDTSRPPLKYVKGIPLIKYFAEALESLQDFQAQPDDLLISTYPKSGTTWVSEILDMIYQDGDVEKCRRAPVFIRVPFLEFKAPGIPTGLEVLKDTPAPRLIKTHLPLALLPQTLLDQKVKVVYVARNAKDVAVSYYHFYRMAKVHPDPDTWDSFLEKFMAGEVSYGSWYQHVQEWWELSHTHPVLYLFYEDMKENPKREIQKILKFVGRSLPEETVDLIVQHTSFKEMKNNSMANYTTLSPDIMDHSISAFMRKGISGDWKTTFTVAQNERFDADYAKKMEGCGLSFRTQL')">
-                      Q29476 (Sulfotransferase 1A1)
-                    </small>
+                    <button type="button" class="text-sm font-semibold underline cursor-pointer"
+                      [disabled]="!example"
+                      (click)="form.controls['sequence'].setValue(example.sequence)">
+                      {{ example ? example.sequence_name : 'Loading...' }}
+                    </button>
                   </small>
                 </span>
                 <div class="flex p-[5px] border rounded-lg border-solid gap-2 border-[--surface-d]">
@@ -131,6 +137,8 @@
             [formControl]="form.controls['agreeToSubscription']"></p-checkbox>
         </div>
       </div>
+      <!-- exampleUsed: {{ exampleUsed$ | async | json }}
+      example: {{ example$ | async | json }} -->
       <div class="flex flex-col items-end gap-2">
         <p-button label="Get Mutation Effect Prediction" type="submit" styleClass="bg-[#224063]" [disabled]="form.invalid"
         iconPos="right" icon="pi pi-arrow-right"></p-button>
