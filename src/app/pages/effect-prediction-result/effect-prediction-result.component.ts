@@ -44,14 +44,21 @@ export class EffectPredictionResultComponent implements OnDestroy {
   columns = [
     // Column for exports
   ];
-  currentPage                   = 'result';
-  jobId: string                 = this.route.snapshot.paramMap.get("id") || "precomputed";
-  jobInfo: any                  = {};
-  jobType: JobType              = JobType.CleandbMepesm;
-  numColumns                    = 20;
-  showResults                   = false;
-  subscriptions: Subscription[] = [];
-  tableValues: any[] = [];
+  currentPage                               = 'result';
+  jobId: string                             = this.route.snapshot.paramMap.get("id") || "precomputed";
+  jobInfo: any                              = {};
+  jobType: JobType                          = JobType.CleandbMepesm;
+  previousSelectedPositions: number[]       = [];
+  mutedCells: HeatmapCellLocations          = [];
+  mutedPositions: number[]                  = [];
+  numColumns                                = 20;
+  result: EffectPredictionResult;
+  selectedCells: HeatmapCellLocations       = [];
+  selectedPositions: number[]               = [];
+  showResults                               = false;
+  subscriptions: Subscription[]             = [];
+  tableValues: any[]                        = [];
+  sequence                                  = '';
 
   statusResponse$
     = this.service.getResultStatus(this.jobType, this.jobId).pipe(
@@ -65,40 +72,10 @@ export class EffectPredictionResultComponent implements OnDestroy {
       }),
     );
 
-  /* --------------------------- For testing purpose -------------------------- */
-  mutedCells: HeatmapCellLocations          = [];
-  mutedPositions: number[]                  = [];
-  previousSelectedPositions: number[]       = [];
-  result: EffectPredictionResult;
-  sequence                                  = '';
-  selectedPositions: number[]               = [];
-  selectedCells: HeatmapCellLocations       = [];
-
   constructor(
     private service: CleanDbService,
     private route: ActivatedRoute,
-  ) {
-    this.service.getEffectPredictionResult(this.jobId).subscribe((result) => {
-      this.result = result;
-
-      const tableValues: any[] = [];
-      result.values.forEach((row, rowIdx) => {
-        row.forEach((value, colIdx) => {
-          const from = this.result.colKeys[colIdx];
-          const to = this.result.rowKeys[rowIdx];
-          if (from === to) return;
-          tableValues.push({
-            position: colIdx + 1,
-            mutationLabel: `${from} -> ${to}`,
-            score: value,
-          });
-        });
-      });
-
-      tableValues.sort((a, b) => a.position - b.position);
-      this.tableValues = tableValues;
-    });
-  }
+  ) {}
 
   ngOnDestroy() {
     this.subscriptions.forEach((subscription) => subscription.unsubscribe());
@@ -121,11 +98,27 @@ export class EffectPredictionResultComponent implements OnDestroy {
   onProgressChange(value: number): void {
     if (value === 100) {
       this.subscriptions.push(
-        this.service.getEffectPredictionResult(this.jobId)
-          .subscribe((data) => {
-            this.showResults = true;
-            this.result = data;
-          })
+        this.service.getEffectPredictionResult(this.jobId).subscribe((result) => {
+          this.result = result;
+    
+          const tableValues: any[] = [];
+          result.values.forEach((row, rowIdx) => {
+            row.forEach((value, colIdx) => {
+              const from = this.result.colKeys[colIdx];
+              const to = this.result.rowKeys[rowIdx];
+              if (from === to) return;
+              tableValues.push({
+                position: colIdx + 1,
+                mutationLabel: `${from} -> ${to}`,
+                score: value,
+              });
+            });
+          });
+    
+          tableValues.sort((a, b) => a.position - b.position);
+          this.tableValues = tableValues;
+          this.showResults = true;
+        })
       );
     }
   }
