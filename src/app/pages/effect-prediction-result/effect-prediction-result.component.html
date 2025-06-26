@@ -29,19 +29,45 @@
     </div>
   </div>
 
-  @if (isLoading$ | async) {
-    <app-loading [jobType]="jobType"></app-loading>
-  }
-
-  <div class="flex flex-col gap-8" [class.hidden]="isLoading$ | async">
-    @let response = response$ | async;
-    @if (response) {
-
-
-      <!-- TODO: display result here -->
-
-
+  @if (!showResults) {
+    <app-loading 
+      [statusQuery$]="statusResponse$" 
+      (progressChange)="onProgressChange($event)"
+      [estimatedTime]="1 * 60"
+    >
+    </app-loading>
     }
-  </div>
+
+    <div class="flex flex-col gap-8" [class.hidden]="!showResults">
+      <p-panel>
+        <ng-template pTemplate="header">
+          <h6 class="grow">Results</h6>
+        </ng-template>
+        <ng-template pTemplate="content">
+          <div class="flex flex-col gap-6 p-6">
+            <!-- Enzyme Sequence -->
+            <div class="flex flex-col gap-4">
+              <p class="font-semibold underline decoration-dotted">Enzyme Sequence</p>
+              <app-sequence-position-selector></app-sequence-position-selector>
+            </div>
+
+            <!-- Mutation Effect and Structure -->
+            <div class="flex gap-4">
+              <div class="flex flex-col gap-4">
+                <p class="font-semibold underline decoration-dotted">Mutation Effect Heatmap</p>
+                <app-heatmap></app-heatmap>
+              </div>
+              <div class="flex flex-col gap-4">
+                <p class="font-semibold underline decoration-dotted">Structure</p>
+                <app-molecule3d></app-molecule3d>
+              </div>
+            </div>
+
+            <!-- Table -->
+             
+          </div>
+        </ng-template>
+      </p-panel>
+    </div>
 </div>
 }

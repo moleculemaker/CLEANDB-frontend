@@ -1,52 +1,55 @@
 [
     {
-        "protein": "Free fatty acid receptor 2",
-        "uniprot": "P12345",
-        "organism": "Homo sapiens",
-        "curation_status": "Reviewed (Swiss-Prot)",
-        "predicted_ec": [
-            { "ec_number": "1.1.1.1", "score": 0.95 },
-            { "ec_number": "1.1.1.2", "score": 0.7 },
-            { "ec_number": "1.1.1.3", "score": 0.3 }
-        ],
-        "id": "AF-O15552-F1-v4",
-        "gene_id": "FFAR2",
-        "ncbi_tax_id": 9606,
-        "ec_uniprot": "1.1.1.1",
-        "amino_acids": 330,
-        "sequence": "MALWMRLLPLLALLALWGPDPAAA...K",
-        "function": "Produces ATP from ADP in the presence of a proton gradient across the membrane. The archaeal beta chain is a regulatory subunit"
+        "ID": "1A1D_BURCJ",
+        "Curation Status": "Reviewed (Swiss-Prot)",
+        "Accession": "B4EJA6",
+        "Protein Name": "1-aminocyclopropane-1-carboxylate deaminase",
+        "Gene Name": "acdS",
+        "Organism": " Burkholderia cenocepacia (strain ATCC BAA-245 / DSM 16553 / LMG 16656 / NCTC 13227 / J2315 / CF5610) (Burkholderia cepacia (strain J2315))",
+        "NCBI TaxID": "216591",
+        "Function": "Catalyzes a cyclopropane ring-opening reaction, the irreversible conversion of 1-aminocyclopropane-1-carboxylate (A) to ammonia and alpha-ketobutyrate. Allows growth on A as a nitrogen source",
+        "Amino Acids": "338",
+        "Sequence": "MNLQRFPRYPLTFGPTPIQPLKRLSAHLGGKVELYAKREDCNSGLAFGGNKTRKLEYLVPDALAQGADTLVSIGGVQSNQTRQVAAVAAHLGMKCVLVQEHWVNYEDPVYDRVGNIQLSRMMGADVRLVADGFDIGIRRSWEEAMESVRQAGGKPYPIPAGCSEHPLGGLGFVGFAEEVRAQEAELGFRFDYVVVCSVTGSTQAGMVVGFAADGRADRVIGIDASAKPEQTREQITRIARHTAELVGLGRDIVERDVVLDTRYGGPEYGLPSDGTLEAIRLCARLEGMLTDPVYEGKSMHGMIDKVRLGEFEPGSKVLYAHLGGAPALSAYNGIFRNG",
+        "CLEAN_EC": "EC:3.5.99.7/0.9989"
     },
     {
-        "protein": "Free fatty acid receptor 2",
-        "uniprot": "P12345",
-        "organism": "Homo sapiens",
-        "curation_status": "Reviewed (Swiss-Prot)",
-        "predicted_ec": [
-            { "ec_number": "1.1.1.3", "score": 0.3 }
-        ],
-        "id": "AF-O15552-F1-v4",
-        "gene_id": "FFAR2",
-        "ncbi_tax_id": 9606,
-        "ec_uniprot": "1.1.1.1",
-        "amino_acids": 330,
-        "sequence": "MALWMRLLPLLALLALWGPDPAAA...K",
-        "function": "Produces ATP from ADP in the presence of a proton gradient across the membrane. The archaeal beta chain is a regulatory subunit"
+        "ID": "149L_IIV6",
+        "Curation Status": "Reviewed (Swiss-Prot)",
+        "Accession": "O55753",
+        "Protein Name": "Uncharacterized protein 149L",
+        "Organism": " Invertebrate iridescent virus 6 (IIV-6) (Chilo iridescent virus)",
+        "NCBI TaxID": "176652",
+        "Amino Acids": "666",
+        "Sequence": "MKETIFEIFVDDLMDSSYDEEDFERGDAGIDDKKAFMKNQFRTISLAEKNSLVQRTMKLYEAGALNKRVMDKATLVEQNTYIPSHKEIDKYENDTVPIPVAKPKNPHVDEPAFNVNEIMGRADKYIGTFNLGMVWVYPYLDDPPIKFGTRTLEHKFEYDLLSPANDSTMLNIENKLYPSISHYLIVRVAQTMPGFENVDKAYGVISDGPNRFFSVADSESRLMNLEQTVFSKEKTFLLQKAIRNKFDQRKFKDILIATGDKVLVYAPLKLTDEARRLKYQGLAKPINIVTESNAYRKETTNFLEKIRPTILPEDVIFSNNNAFKTSLEYDEFMEMFMVEKVKDISFTIKCVQVFCKHKDLPFSLTKCFVKKVLESFYGECTPVNYISGSAKKQYPYRFEEALSAQFQIRSRKETSFSMSTKTANLIFNKILETLFNLENVMKNGELPHIGGQNEIPMYATLFKIALMDSQWLLSKRNNKDLKFDTKSKNNNNIISAIINVISILHMDLSDNKKVGNCIYDSIDNIVDDVDIKIATSILTGKIQPLEEITVAKSKGSLRAQIIAEEEIRFGEEIEAEFNDEEVVEEGDVIEEEELDEEGGEEEEGIDYADELPEFDEEAYYEGVVRTITGHFESLGLDVENGIEDKIRKEAQKIEKIGNRLKINFYA",
+        "CLEAN_EC": "EC:3.4.22.45/0.5661"
     },
     {
-        "protein": "Free fatty acid receptor 2",
-        "uniprot": "P12345",
-        "organism": "Homo sapiens",
-        "curation_status": "Reviewed (Swiss-Prot)",
-        "predicted_ec": [
-            { "ec_number": "1.1.1.2", "score": 0.7 }
+        "ID": "1A110_ARATH",
+        "Curation Status": "Unreviewed (TrEMBL)",
+        "Accession": "Q9LQ10",
+        "Protein Name": "Probable aminotransferase ACS10",
+        "Gene Name": "ACS10",
+        "Organism": " Arabidopsis thaliana (Mouse-ear cress)",
+        "NCBI TaxID": "3702",
+        "Function": "Probable aminotransferase. Does not have 1-aminocyclopropane- 1-carboxylate synthase (ACS) activity, suggesting that it is not involved in ethylene biosynthesis",
+        "Amino Acids": "557",
+        "Sequence": "MTRTEPNRSRSSNSDSDKNSGNVGGGRTTGMRVIVPLQGVVQGRGGLFLGSVIPCAFFYFLQFYLKRNRKNDESDNSGEQNSSASSSSSPNSGLPDPTRSQSAGHLTELTGLPRSLSRILLSPRNSGGAVSVSGRVNCVLKGGDSSPYYVGQKRVEDDPYDELGNPDGVIQLGLAQNNKLSLDDWVLENPKEAISDGLSISGIASYEPSDGLLELKMAVAGFMTEATKNSVTFDPSQLVLTSGASSAIEILSFCLADSGNAFLVPTPCSPGYDRDVKWRTGVDIIHVPCRSADNFNMSMVVLDRAFYQAKKRGVRIRGIIISNPSNPMGSLLSRENLYALLDFARERNIHIISNEIFAGSVHGEEGEFVSMAEIVDTEENIDRERVHIVYDLSKDLSFRGLRSAAIYSFNESVLSASRKLTTLSPVSSPTQHLLISAISNPKNVQRFVKTNRQRLQSIYTELVEGLKELGIECTRSNGGFYCWADMRGLISSYSEKGEIELWNKLLNIGKINVIPGSCCHCIEPGWFRICFSNLSERDVPVVMNRIRKVCETCKSQN",
+        "CLEAN_EC": "EC:2.6.1.5/0.7457,EC:2.6.1.80/0.5630"
+    },
+    {
+        "ID": "10HGO_CATRO",
+        "Curation Status": "Reviewed (Swiss-Prot)",
+        "Accession": "Q6V4H0",
+        "Protein Name": "8-hydroxygeraniol dehydrogenase",
+        "EC Number": [
+            "1.1.1.324"
         ],
-        "id": "AF-O15552-F1-v4",
-        "gene_id": "FFAR2",
-        "ncbi_tax_id": 9606,
-        "ec_uniprot": "1.1.1.1",
-        "amino_acids": 330,
-        "sequence": "MALWMRLLPLLALLALWGPDPAAA...K",
-        "function": "Produces ATP from ADP in the presence of a proton gradient across the membrane. The archaeal beta chain is a regulatory subunit"
+        "Gene Name": "10HGO",
+        "Organism": " Catharanthus roseus (Madagascar periwinkle) (Vinca rosea)",
+        "NCBI TaxID": "4058",
+        "Function": "Dehydrogenase involved in the biosynthesis of oxogeranial from hydroxygeraniol, a precursor of the terpenoid indole alkaloids such as vinblastine and vincristine",
+        "Amino Acids": "360",
+        "Sequence": "MAKSPEVEHPVKAFGWAARDTSGHLSPFHFSRRATGEHDVQFKVLYCGICHSDLHMIKNEWGFTKYPIVPGHEIVGIVTEVGSKVEKFKVGDKVGVGCLVGSCRKCDMCTKDLENYCPGQILTYSATYTDGTTTYGGYSDLMVADEHFVIRWPENLPMDIGAPLLCAGITTYSPLRYFGLDKPGTHVGVVGLGGLGHVAVKFAKAFGAKVTVISTSESKKQEALEKLGADSFLVSRDPEQMKAAAASLDGIIDTVSAIHPIMPLLSILKSHGKLILVGAPEKPLELPSFPLIAGRKIIAGSAIGGLKETQEMIDFAAKHNVLPDVELVSMDYVNTAMERLLKADVKYRFVIDVANTLKSA",
+        "CLEAN_EC": "EC:1.1.1.324/0.9979"
     }
 ]

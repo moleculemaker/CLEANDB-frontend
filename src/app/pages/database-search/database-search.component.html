@@ -31,13 +31,8 @@
                                 (click)="useExampleMenu.toggle($event)">
                                 <i class="mr-2 pi pi-box"></i>
                                 Use an Example
-                                <p-menu #useExampleMenu styleClass="w-[300px]" [model]="exampleRecords"
+                                <p-menu #useExampleMenu styleClass="w-[300px]" [model]="exampleRecords" appendTo="body"
                                     [popup]="true" />
-                            </button>
-                            <button type="button" class="rounded-lg border border-[--surface-d] p-2"
-                                (click)="viewAllData()">
-                                <i class="mr-2 pi pi-table"></i>
-                                View All Data
                             </button>
                             <button type="button" class="rounded-lg border border-[--surface-d] p-2 disabled:opacity-50"
                                 [disabled]="!form.value.searchCriteria?.length" (click)="clearAll()">

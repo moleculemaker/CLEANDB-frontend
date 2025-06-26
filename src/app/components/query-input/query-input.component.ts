@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, SimpleChanges } from '@angular/core';
+import { Component, Input, SimpleChanges, TemplateRef } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 
 import { DropdownModule } from 'primeng/dropdown';
@@ -42,6 +42,7 @@ import { SearchOption, QueryValue } from '../../models/search-options';
 export class QueryInputComponent implements ControlValueAccessor {
   @Input() searchConfigs: SearchOption[] = [];
   @Input() multiple = true;
+  @Input() showSelectButton = true;
 
   selectedSearchOption: SearchOption | null = null;
 
@@ -101,6 +102,7 @@ export class QueryInputComponent implements ControlValueAccessor {
         this.selectedSearchOption = null;
       } else {
         this.selectedSearchOption = this.searchConfigs[0];
+        this.selectedSearchOption.formGroup.reset();
       }
     }
   }
