@@ -14,6 +14,12 @@ enum SequenceCellState {
 }
 type SequenceCellValue = string;
 
+type SequenceCellOperation = {
+  type: 'update';
+  positions: number[];
+  state: SequenceCellState;
+}
+
 type SequenceCellParams
   = { value: SequenceCellValue }
   & Partial<{
@@ -76,15 +82,27 @@ export class SequencePositionSelectorComponent implements OnChanges, OnDestroy {
         )
       ).subscribe(([_, mutedPositions, selectedPositions]) => {
 
+        const sequenceCellOperations = [];
         if (mutedPositions) {
           this.validatePositions(this.sequenceCells, mutedPositions);
-          this.updateSequenceCells(this.sequenceCells, mutedPositions, SequenceCellState.MUTED);
+          sequenceCellOperations.push({
+            type: 'update',
+            positions: mutedPositions,
+            state: SequenceCellState.MUTED,
+          } as SequenceCellOperation);
         }
 
         if (selectedPositions) {
           this.validatePositions(this.sequenceCells, selectedPositions);
-          this.updateSequenceCells(this.sequenceCells, selectedPositions, SequenceCellState.MUTED);
+          sequenceCellOperations.push({
+            type: 'update',
+            positions: selectedPositions,
+            state: SequenceCellState.SELECTED,
+          } as SequenceCellOperation);
         }
+
+        this.resetCellStates();
+        this.applyCellOperations(sequenceCellOperations);
       })
     )
   }
@@ -95,18 +113,24 @@ export class SequencePositionSelectorComponent implements OnChanges, OnDestroy {
     }
 
     if (changes['mutedPositions']) {
-      this.validatePositions(this.sequenceCells, changes['mutedPositions'].currentValue);
-      this.updateSequenceCells(this.sequenceCells, changes['mutedPositions'].currentValue, SequenceCellState.MUTED);
+      this.mutedPositions$.next(changes['mutedPositions'].currentValue);
     }
 
     if (changes['selectedPositions']) {
-      this.validatePositions(this.sequenceCells, changes['selectedPositions'].currentValue);
-      this.updateSequenceCells(this.sequenceCells, changes['selectedPositions'].currentValue, SequenceCellState.SELECTED);
+      this.selectedPositions$.next(changes['selectedPositions'].currentValue);
     }
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((subscription) => subscription.unsubscribe());
+  }
+
+  applyCellOperations(cellOperations: SequenceCellOperation[]): void {
+    cellOperations.forEach((operation) => {
+      operation.positions.forEach((position) => {
+        this.sequenceCells[position].state = operation.state;
+      });
+    });
   }
 
   buildSequenceCells(sequence: string): SequenceCell[] {
@@ -125,6 +149,12 @@ export class SequencePositionSelectorComponent implements OnChanges, OnDestroy {
       lastCell = cell;
     });
     return retVal;
+  }
+
+  resetCellStates(): void {
+    this.sequenceCells.forEach((cell) => {
+      cell.state = SequenceCellState.DEFAULT;
+    });
   }
 
   updateSequenceCells(sequenceCells: SequenceCell[], positions: number[], state: SequenceCellState): void {

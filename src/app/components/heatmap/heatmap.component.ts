@@ -7,6 +7,11 @@ export type HeatmapCellValue = any;
 export type HeatmapCellLocation = [number, number]
 export type HeatmapCellLocations = HeatmapCellLocation[]
 export type HeatmapInput = EffectPredictionResult;
+export type HeatmapCellOperation = {
+  type: 'update';
+  cells: HeatmapCellLocations;
+  state: InteractableState;
+}
 export enum HeatmapState {
   DEFAULT,
   SELECTING,
@@ -123,16 +128,27 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
         )
       ).subscribe(([data, mutedCells, selectedCells]) => {
 
+        const cellOperations = [];
         if (!Object.is(mutedCells, null)) {
           this.validateCellLocations(this.values, mutedCells!);
-          this.updateCells(this.values, mutedCells!, InteractableState.MUTED);
+          cellOperations.push({
+            type: 'update',
+            cells: mutedCells!,
+            state: InteractableState.MUTED,
+          } as HeatmapCellOperation);
         }
 
         if (!Object.is(selectedCells, null)) {
-          // console.log('selected cells updated: ', selectedCells);
           this.validateCellLocations(this.values, selectedCells!);
-          this.updateCells(this.values, selectedCells!, InteractableState.SELECTED);
+          cellOperations.push({
+            type: 'update',
+            cells: selectedCells!,
+            state: InteractableState.SELECTED,
+          } as HeatmapCellOperation);
         }
+
+        this.resetCellStates();
+        this.applyCellOperations(cellOperations);
       })
     )
   }
@@ -153,6 +169,14 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((subscription) => subscription.unsubscribe());
+  }
+
+  applyCellOperations(cellOperations: HeatmapCellOperation[]): void {
+    cellOperations.forEach((operation) => {
+      operation.cells.forEach((cell) => {
+        this.values[cell[0]][cell[1]].state = operation.state;
+      });
+    });
   }
 
   parseInput(data: HeatmapInput) {
@@ -234,16 +258,12 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
     }
   }
 
-  updateCells(cellMatrix: Interactable[][], locations: HeatmapCellLocations, state: InteractableState): void {
-    cellMatrix.forEach((row) => {
+  resetCellStates(): void {
+    this.values.forEach((row) => {
       row.forEach((cell) => {
         cell.state = InteractableState.DEFAULT;
       })
     });
-
-    locations.forEach(([row, col]) => {
-      cellMatrix[row][col].state = state;
-    })
   }
 
   validateInput(data: HeatmapInput): void {

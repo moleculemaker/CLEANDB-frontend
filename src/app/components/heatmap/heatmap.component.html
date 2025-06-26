@@ -30,11 +30,14 @@
   @let isColKey = type === 'colKey';
   @let isRowKey = type === 'rowKey';
   @let isKey = isColKey || isRowKey;
-  @let isSelected = interactable.state === InteractableState.SELECTED;
   @let isMuted = interactable.state === InteractableState.MUTED;
+  @let isNA = interactable.value === 0;
+  @let isSelected = interactable.state === InteractableState.SELECTED;
+  
   @let baseCellClassName = 'align-middle min-w-4 h-4';
   @let keyClassName = 'sticky left-0 bg-white border-solid border-gray-200 h-full z-[10]' + (isColKey ? ' border-b' : ' border-r'); 
   @let mutedClassName = 'cell-muted';
+  @let naClassName = 'cell-na';
   @let selectedClassName = 'z-[9] border-solid border-pink-500';
   @let topBorderClassName
     = (interactable.state === InteractableState.SELECTED
@@ -61,6 +64,7 @@
     isKey ? keyClassName : '',
     isSelected ? selectedClassName : '',
     isMuted ? mutedClassName : '',
+    isNA ? naClassName : '',
     topBorderClassName,
     leftBorderClassName,
     bottomBorderClassName,

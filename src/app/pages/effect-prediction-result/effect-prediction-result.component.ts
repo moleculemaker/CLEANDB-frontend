@@ -52,11 +52,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
   results: any                  = null;          //TODO: update results 
   showResults                   = false;
   subscriptions: Subscription[] = [];
-  tableValues = [
-    { position: 1, mutationLabel: 'L -> G', score: 0.1 },
-    { position: 1, mutationLabel: 'L -> K', score: 0.5 },
-    { position: 1, mutationLabel: 'L -> S', score: 1.3 },
-  ];
+  tableValues: any[] = [];
 
   statusResponse$
     = this.service.getResultStatus(this.jobType, this.jobId).pipe(
@@ -100,7 +96,10 @@ export class EffectPredictionResultComponent implements OnDestroy {
 
       tableValues.sort((a, b) => a.position - b.position);
       this.tableValues = tableValues;
-    })
+
+      this.mutedPositions = [1, 2, 3];
+      this.mutedCells = this.generateCellsFromPositions(this.mutedPositions);
+    });
   }
 
   ngOnDestroy() {
@@ -134,11 +133,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
   }
 
   onSelectedPositionsChange(newPositions: number[]): void {
-    const columns = Array.from({ length: this.numColumns }, (_, i) => i);
-    this.selectedCells 
-      = newPositions.map((position) => 
-        columns.map((col) => [col, position] as [number, number])
-      ).flat();
+    this.selectedCells = this.generateCellsFromPositions(newPositions);
     if (newPositions.length > 0) {
       const oldPositionSet = new Set(this.previousSelectedPositions);
       const newPositionSet = new Set(newPositions);
@@ -148,5 +143,13 @@ export class EffectPredictionResultComponent implements OnDestroy {
     }
     this.previousSelectedPositions = [...this.selectedPositions];
     this.selectedPositions = newPositions;
+  }
+
+  /* ------------------------------ Utils ------------------------------ */
+  generateCellsFromPositions(positions: number[]): HeatmapCellLocations {
+    const columns = Array.from({ length: this.numColumns }, (_, i) => i);
+    return positions.map((position) => 
+        columns.map((col) => [col, position] as [number, number])
+      ).flat();
   }
 }
