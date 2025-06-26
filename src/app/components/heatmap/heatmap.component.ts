@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { BehaviorSubject, combineLatest, combineLatestAll, combineLatestWith, filter, Subscription, tap } from 'rxjs';
+import { BehaviorSubject, combineLatestWith, filter, Subscription, tap } from 'rxjs';
 import { CleanDbService, EffectPredictionResult } from '~/app/services/clean-db.service';
+
+import { toPng, toJpeg, toSvg } from 'html-to-image';
 
 export type HeatmapCellValue = any;
 export type HeatmapCellLocation = [number, number]
@@ -177,6 +179,27 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
         this.values[cell[0]][cell[1]].state = operation.state;
       });
     });
+  }
+
+  async exportAs(format: 'png' | 'jpeg' | 'svg'): Promise<void> {
+
+    const heatmapTable = this.heatmapTable.nativeElement;
+    let link: HTMLAnchorElement = document.createElement('a');
+    let dataUrl: string 
+      = format === 'svg' 
+      ? await toSvg(heatmapTable) : (
+        format === 'png' 
+        ? await toPng(heatmapTable) 
+        : await toJpeg(heatmapTable)
+      );
+
+    link.href = dataUrl;
+    link.download = `heatmap.${format}`;
+    link.click();
+    link.remove();
+    if (dataUrl) {
+      URL.revokeObjectURL(dataUrl);
+    }
   }
 
   parseInput(data: HeatmapInput) {

@@ -36,6 +36,7 @@
     "@angular/router": "^18.2.7",
     "chart.js": "^3",
     "d3": "^7.9.0",
+    "html-to-image": "^1.11.13",
     "ngx-matomo-client": "^6.3.1",
     "nightwatch": "^3.8.1",
     "pako": "^2.1.0",

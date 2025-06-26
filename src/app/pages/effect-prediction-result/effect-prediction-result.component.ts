@@ -15,6 +15,9 @@ import { SequencePositionSelectorComponent } from '~/app/components/sequence-pos
 import { HeatmapCellLocations, HeatmapComponent } from '~/app/components/heatmap/heatmap.component';
 import { ScoreChipComponent } from "../../components/score-chip/score-chip.component";
 import { TooltipModule } from 'primeng/tooltip';
+import { SplitButtonModule } from 'primeng/splitbutton';
+import { TieredMenuModule } from 'primeng/tieredmenu';
+import { MenuItem } from 'primeng/api';
 
 @Component({
   selector: 'app-effect-prediction-result',
@@ -24,8 +27,11 @@ import { TooltipModule } from 'primeng/tooltip';
   imports: [
     CommonModule,
     PanelModule,
+    SplitButtonModule,
     TableModule,
     TooltipModule,
+    TieredMenuModule,
+
 
     EffectPredictionComponent,
     HeatmapComponent,
@@ -42,10 +48,26 @@ export class EffectPredictionResultComponent implements OnDestroy {
   @ViewChild('heatmap') heatmap: HeatmapComponent;
   @ViewChild('resultTable') resultTable: Table;
 
-  columns = [
-    // Column for exports
+  columns                                   = [
+    { field: 'position', header: 'Position' },
+    { field: 'mutationLabelExport', header: 'Mutation (Export)' },
+    { field: 'score', header: 'Score' }
   ];
   currentPage                               = 'result';
+  exportOptions: MenuItem[]                 = [
+    {
+      label: 'Table (CSV)',
+      command: () => this.resultTable.exportCSV()
+    },
+    {
+      label: 'Heatmap',
+      items: [
+        // { label: 'SVG', command: () => this.heatmap.exportAs('svg') },
+        { label: 'PNG', command: () => this.heatmap.exportAs('png') },
+        { label: 'JPEG', command: () => this.heatmap.exportAs('jpeg') },
+      ]
+    }
+  ];
   jobId: string                             = this.route.snapshot.paramMap.get("id") || "precomputed";
   jobInfo: any                              = {};
   jobType: JobType                          = JobType.CleandbMepesm;
@@ -53,6 +75,9 @@ export class EffectPredictionResultComponent implements OnDestroy {
   mutedCells: HeatmapCellLocations          = [];
   mutedPositions: number[]                  = [];
   numColumns                                = 20;
+  requestOptions: MenuItem[]                = [
+    
+  ];
   result: EffectPredictionResult;
   selectedCells: HeatmapCellLocations       = [];
   selectedPositions: number[]               = [];
@@ -111,6 +136,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
               tableValues.push({
                 position: colIdx + 1,
                 mutationLabel: `${from} -> ${to}`,
+                mutationLabelExport: `${from}${colIdx + 1}${to}`,
                 score: value,
               });
             });
