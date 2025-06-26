@@ -1,6 +1,4 @@
 
-version: '3.9'
-
 secrets:
   NPMRC:
     file: ~/.npmrc
@@ -11,7 +9,7 @@ networks:
 
 services:
   cleandb:
-    image: moleculemaker/cleandb-frontend:localdev
+    image: moleculemaker/cleandb-frontend
     container_name: cleandb-frontend
     build:
       context: .

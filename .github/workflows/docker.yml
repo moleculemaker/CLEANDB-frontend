@@ -5,11 +5,11 @@ name: Docker
 #   latest and develop
 # - when a pull request is created and updated  to make sure the
 #   Dockerfile is still valid.
-# To be able to push to dockerhub, this execpts the following
+# To be able to push to dockerhub, this expects the following
 # secrets to be set in the project:
 # - NPM_TOKEN : NPM auth token for accessing private chemaxon NPM registry
 # - DOCKERHUB_USERNAME : username that can push to the org
-# - DOCKERHUB_PASSWORD : password asscoaited with the username
+# - DOCKERHUB_PASSWORD : password associated with the username
 on:
   push:
     branches:
@@ -28,7 +28,7 @@ on:
 
 # Certain actions will only run when this is the main repo.
 env:
-  MAIN_REPO: moleculemaker/cleandb-frontend
+  MAIN_REPO: moleculemaker/CLEANDB-frontend
   DOCKERHUB_ORG: moleculemaker
 
 jobs:
@@ -42,8 +42,10 @@ jobs:
 
       - name: Authenticate with private NPM package
         run: |
-          echo "//hub.chemaxon.com/artifactory/api/npm/npm/:_auth=${{ secrets.NPM_TOKEN }}" > $HOME/.npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> $HOME/.npmrc
+          echo "@chemaxon:registry=https://hub.chemaxon.com/artifactory/api/npm/npm/" > $HOME/.npmrc
+          echo "//hub.chemaxon.com/artifactory/api/npm/npm/:_auth=${{ secrets.NPM_TOKEN }}" >> $HOME/.npmrc
+          echo "@moleculemaker:registry=https://npm.pkg.github.com" >> $HOME/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}" >> $HOME/.npmrc
           echo "npmrc_path=$HOME/.npmrc" >> "$GITHUB_ENV"
 
       - name: Docker meta
@@ -95,3 +97,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args:
             configuration=staging
+          secret-files: |
+            NPMRC=${{env.npmrc_path}}
+
