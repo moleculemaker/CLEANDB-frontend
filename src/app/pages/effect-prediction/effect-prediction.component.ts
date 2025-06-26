@@ -13,6 +13,7 @@ import { QueryValue, RangeSearchOption, SearchOption } from "~/app/models/search
 import { InputTextareaModule } from "primeng/inputtextarea";
 import { JobType } from "~/app/api/mmli-backend/v1";
 import { Subscription } from "rxjs";
+import { getFasta, getSeq } from "~/app/utils/fasta";
 
 @Component({
   selector: 'app-effect-prediction',
@@ -35,7 +36,7 @@ import { Subscription } from "rxjs";
   }
 })
 export class EffectPredictionComponent implements OnChanges {
-  @Input() formValue!: any; // TODO: update type
+  @Input() formValue!: any;    // TODO: update type to support positions
   @Input() showJobTab = true;
   
   currentPage = 'input';
@@ -50,7 +51,7 @@ export class EffectPredictionComponent implements OnChanges {
   exampleUsed = false;
   form = new FormGroup({
     email: new FormControl("", [Validators.email]),
-    sequence: new FormControl(""),
+    sequence: new FormControl("", [Validators.required]),
     positions: new FormControl<QueryValue | null>(null),
     agreeToSubscription: new FormControl(false),
   });
@@ -76,16 +77,20 @@ export class EffectPredictionComponent implements OnChanges {
     this.subscriptions.push(
       this.form.valueChanges.subscribe((v) => {
         this.exampleUsed
-          = v.positions?.value[0] === this.example.positions.value[0]
-          && v.positions?.value[1] === this.example.positions.value[1]
-          && v.sequence === this.example.sequence;
+          = v.sequence === this.example.sequence
+          // TODO: update to enable positions
+          // && v.positions?.value[0] === this.example.positions.value[0]
+          // && v.positions?.value[1] === this.example.positions.value[1];
       })
     );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['formValue'] && changes['formValue'].currentValue) {
-      this.form.patchValue(this.formValue);
+      this.form.patchValue({
+        ...this.formValue,
+        sequence: getFasta(this.formValue.sequence_name, this.formValue.sequence),
+      });
     }
   }
 
@@ -102,13 +107,20 @@ export class EffectPredictionComponent implements OnChanges {
       return;
     }
 
-    console.log('submitting value: ', this.form.value);
+    if (this.exampleUsed) {
+      this.router.navigate(['effect-prediction', 'result', 'precomputed']);
+      return;
+    }
+
+    const { sequenceName, sequence } = getSeq(this.form.controls["sequence"].value || '');
 
     this.service.createAndRunJob(
-      JobType.Somn, //TODO: use the correct job type
+      JobType.CleandbMepesm,
       { 
         job_info: JSON.stringify({
-          // TODO: add job info here
+          sequence,
+          sequence_name: sequenceName,
+          positions: this.form.controls["positions"].value || [],
         }),
         email: this.form.controls["email"].value || '',
       }
