@@ -10,11 +10,10 @@ import { CleanDbService, EffectPredictionResult } from '~/app/services/clean-db.
 import { EffectPredictionComponent } from '~/app/pages/effect-prediction/effect-prediction.component';
 import { Subscription, tap } from 'rxjs';
 import { PanelModule } from 'primeng/panel';
-import { TableModule } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { SequencePositionSelectorComponent } from '~/app/components/sequence-position-selector/sequence-position-selector.component';
 import { HeatmapCellLocations, HeatmapComponent } from '~/app/components/heatmap/heatmap.component';
 import { Molecule3dComponent } from '~/app/components/molecule3d/molecule3d.component';
-import { transpose } from '~/app/utils/transpose';
 import { ScoreChipComponent } from "../../components/score-chip/score-chip.component";
 
 @Component({
@@ -40,6 +39,7 @@ import { ScoreChipComponent } from "../../components/score-chip/score-chip.compo
 })
 export class EffectPredictionResultComponent implements OnDestroy {
   @ViewChild('heatmap') heatmap: HeatmapComponent;
+  @ViewChild('resultTable') resultTable: Table;
 
   columns = [
     // Column for exports
@@ -139,7 +139,13 @@ export class EffectPredictionResultComponent implements OnDestroy {
       const newPositionSet = new Set(newPositions);
       //@ts-ignore
       const diff: number[] = Array.from(newPositionSet.difference(oldPositionSet));
-      this.heatmap.scrollToCol(Math.min(...diff));
+      const minPosition = Math.min(...diff);
+      this.heatmap.scrollToCol(minPosition);
+
+      this.resultTable.el.nativeElement.querySelector(`[data-position="${minPosition + 1}"]`).scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
     }
     this.previousSelectedPositions = [...this.selectedPositions];
     this.selectedPositions = newPositions;
