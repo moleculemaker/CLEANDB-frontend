@@ -1,5 +1,4 @@
 .gitignore
-.openapi-generator-ignore
 README.md
 api.module.ts
 api/api.ts
@@ -13,6 +12,7 @@ model/cLEANECLookupMatch.ts
 model/cLEANECLookupResponse.ts
 model/cLEANSearchResponse.ts
 model/cLEANTypeaheadResponse.ts
+model/eCNumberConfidence.ts
 model/hTTPValidationError.ts
 model/models.ts
 model/responseFormat.ts

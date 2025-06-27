@@ -10,7 +10,7 @@ export interface CleanDbRecord {
     curation_status: string;
     predicted_ec: CleanDbPredictedEC[];
     id: string;
-    gene_id: string;
+    gene_name: string;
     ncbi_tax_id: string;
     ec_uniprot: string[];
     amino_acids: string;
@@ -56,7 +56,7 @@ export function cleanDbRecordRawToCleanDbRecord(raw: CleanDbRecordRaw): CleanDbR
         predicted_ec: cleanEcEntries,
         ec_uniprot: raw['EC Number']?.map(ec => ec.trim()) || [],
         id: raw.ID.trim(),
-        gene_id: raw['Gene Name']?.trim() || '',
+        gene_name: raw['Gene Name']?.trim() || '',
         ncbi_tax_id: raw['NCBI TaxID'].trim(),
         amino_acids: raw['Amino Acids'].trim(),
         sequence: raw.Sequence.trim(),

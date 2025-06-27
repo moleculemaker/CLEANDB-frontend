@@ -4,10 +4,11 @@ import { Observable, from, map, of } from "rxjs";
 import { BodyCreateJobJobTypeJobsPost, FilesService, Job, JobType, JobsService } from "../api/mmli-backend/v1";
 import { EnvironmentService } from "./environment.service";
 
-// import { CleanDbService as CleanDbApiService } from "../api/mmli-backend/v1"; // TODO: use the correct service
 import { CleanDbRecord, cleanDbRecordRawToCleanDbRecord } from "../models/CleanDbRecord";
 import { loadGzippedJson } from "../utils/loadGzippedJson";
 import { ReactionSchemaRecord, ReactionSchemaRecordRaw, reactionSchemaRecordRawToReactionSchemaRecord } from "../models/ReactionSchemaRecord";
+import { SearchService } from "../api/cleandb/v1"; // TODO: use the correct service
+
 
 /* -------------------------------- File Imports -------------------------------- */
 const exampleSearch = import('../../assets/example.db.json').then((module) => module.default);
@@ -26,6 +27,7 @@ export class CleanDbService {
     private jobsService: JobsService,
     private filesService: FilesService,
     private environmentService: EnvironmentService,
+    private searchService: SearchService
 
     // private apiService: CleanDbApiService,
   ) {
@@ -62,12 +64,12 @@ export class CleanDbService {
     return this.filesService.getResultsBucketNameResultsJobIdGet(JobType.Somn, jobID);
   }
 
-  getData(): Observable<CleanDbRecord[]> {
+  getData(query: any): Observable<any> {
     if (this.frontendOnly) {
       return from(exampleSearch).pipe(map((records => records.map(cleanDbRecordRawToCleanDbRecord))))
     }
     // TODO: get data from backend
-    return of([]);
+    return this.searchService.getDataApiV1SearchGet(query);
   }
 
   getReactionSchemaForEc(ec: string): Observable<ReactionSchemaRecord | null> {

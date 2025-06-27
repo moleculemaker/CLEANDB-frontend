@@ -369,7 +369,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
           break;
         case 'gene_id':
           criteriaQuery = {
-            gene_id: search.value,
+            gene_name: search.value,
           };
           break;
         default:
@@ -409,9 +409,9 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     // In a real implementation, this would send the query to the backend first
 
     // TODO: implement this
-    this.service.getData()
+    this.service.getData(query)
       .pipe(
-        map((response: CleanDbRecord[]) => 
+        map(({data: response} : {data: CleanDbRecord[]}) => 
           response
             .filter((row) => {
               // Process multi-criteria filtering client-side
@@ -444,7 +444,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
   }
 
   // Helper method to match a row against all criteria
-  private matchesSearchCriteria(row: any, criteriaArray: FormArray): boolean {
+  private matchesSearchCriteria(row: CleanDbRecord, criteriaArray: FormArray): boolean {    
     let matches = true;
     let prevMatch = true;
     
@@ -473,7 +473,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
           currentMatch = row.uniprot.toLowerCase() === search.value.toLowerCase();
           break;
         case 'gene_id':
-          currentMatch = row.gene_id.toLowerCase() === search.value.toLowerCase();
+          currentMatch = row.gene_name.toLowerCase() === search.value.toLowerCase();
           break;
         default:
           currentMatch = true;

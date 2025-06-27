@@ -22,7 +22,7 @@ export interface CLEANDataBase {
     /**
      * Unique identifier for the Uniprot record.
      */
-    uniprot_id?: any | null;
+    uniprot?: any | null;
     /**
      * Status of the curation for the Uniprot record.
      */
@@ -34,7 +34,7 @@ export interface CLEANDataBase {
     /**
      * Name of the protein associated with the Uniprot record.
      */
-    protein_name?: any | null;
+    protein?: any | null;
     /**
      * Name of the organism associated with the Uniprot record.
      */
@@ -42,7 +42,7 @@ export interface CLEANDataBase {
     /**
      * NCBI Taxonomy ID for the organism associated with the Uniprot record.
      */
-    ncbi_taxid?: any | null;
+    ncbi_tax_id?: any | null;
     /**
      * Length of the amino acid sequence associated with the Uniprot record.
      */
@@ -50,23 +50,19 @@ export interface CLEANDataBase {
     /**
      * Amino acid sequence of the protein associated with the Uniprot record.
      */
-    protein_sequence?: any | null;
+    sequence?: any | null;
     /**
      * Function of the enzyme associated with the Uniprot record.
      */
-    enzyme_function?: any | null;
+    _function?: any | null;
     /**
      * Name of the gene associated with the Uniprot record.
      */
     gene_name?: any | null;
     /**
-     * List of CLEAN predicted EC numbers associated with the Uniprot record. Each EC number is a string.
+     * List of CLEAN predicted EC numbers with associated confidence scores.
      */
-    clean_ec_number_array?: any | null;
-    /**
-     * List of confidence scores for each CLEAN predicted EC number. Each score is a float.
-     */
-    clean_ec_confidence_array?: any | null;
+    predicted_ec?: any | null;
     /**
      * List of annotated EC numbers associated with the Uniprot record. Each EC number is a string.
      */

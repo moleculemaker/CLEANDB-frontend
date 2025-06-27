@@ -12,7 +12,7 @@ import { Subscription, tap } from 'rxjs';
 import { PanelModule } from 'primeng/panel';
 import { TableModule } from 'primeng/table';
 import { SequencePositionSelectorComponent } from '~/app/components/sequence-position-selector/sequence-position-selector.component';
-import { HeatmapComponent } from '~/app/components/heatmap/heatmap.component';
+// import { HeatmapComponent } from '~/app/components/heatmap/heatmap.component';
 import { Molecule3dComponent } from '~/app/components/molecule3d/molecule3d.component';
 
 @Component({
@@ -27,7 +27,7 @@ import { Molecule3dComponent } from '~/app/components/molecule3d/molecule3d.comp
     TableModule,
 
     EffectPredictionComponent,
-    HeatmapComponent,
+    // HeatmapComponent,
     JobTabComponent,
     Molecule3dComponent,
     SequencePositionSelectorComponent,
