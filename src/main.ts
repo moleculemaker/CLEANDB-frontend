@@ -38,11 +38,12 @@ import { SplitButtonModule } from 'primeng/splitbutton';
 import { MatomoModule, MatomoRouterModule } from 'ngx-matomo-client';
 import { MenuModule } from 'primeng/menu';
 import { ApiModule, Configuration } from '@api/mmli-backend/v1';
+import { ApiModule as CleandbApiModule, Configuration as CleandbConfiguration } from '@api/cleandb/v1';
 import { DialogModule } from 'primeng/dialog';
 import { AppComponent } from './app/app.component';
 
 const initAppFn = (envService: EnvironmentService) => {
-  return () => envService.loadEnvConfig("/assets/config/envvars.json");
+    return () => envService.loadEnvConfig("/assets/config/envvars.json");
 };
 
 
@@ -50,20 +51,56 @@ const initAppFn = (envService: EnvironmentService) => {
 
 bootstrapApplication(AppComponent, {
     providers: [
-        importProvidersFrom(BrowserModule, AppRoutingModule, CardModule, ChipModule, ChartModule, FormsModule, MessagesModule, ButtonModule, InputTextareaModule, InputNumberModule, PanelModule, MultiSelectModule, ProgressBarModule, SelectButtonModule, SkeletonModule, ProgressSpinnerModule, StepsModule, SliderModule, DropdownModule, TableModule, InputTextModule, ListboxModule, OverlayPanelModule, SidebarModule, TabViewModule, TabMenuModule, RadioButtonModule, CheckboxModule, FileUploadModule, SplitButtonModule, PanelModule, MatomoModule.forRoot({
-            siteId: 8, //TODO: update site id
-            trackerUrl: 'https://matomo.mmli1.ncsa.illinois.edu/'
-        }), MatomoRouterModule, MenuModule, ApiModule.forRoot(() => new Configuration()), ReactiveFormsModule, DialogModule),
-        EnvironmentService,
-        {
-            provide: APP_INITIALIZER,
-            useFactory: initAppFn,
-            multi: true,
-            deps: [EnvironmentService],
-        },
-        provideHttpClient(withInterceptorsFromDi()),
-        provideAnimations(),
-        provideAnimations()
+        importProvidersFrom(
+            BrowserModule,
+            AppRoutingModule,
+            CardModule,
+            ChipModule,
+            ChartModule,
+            FormsModule,
+            MessagesModule,
+            ButtonModule,
+            InputTextareaModule,
+            InputNumberModule,
+            PanelModule,
+            MultiSelectModule,
+            ProgressBarModule,
+            SelectButtonModule,
+            SkeletonModule,
+            ProgressSpinnerModule,
+            StepsModule,
+            SliderModule,
+            DropdownModule,
+            TableModule,
+            InputTextModule,
+            ListboxModule,
+            OverlayPanelModule,
+            SidebarModule,
+            TabViewModule,
+            TabMenuModule,
+            RadioButtonModule,
+            CheckboxModule,
+            FileUploadModule,
+            SplitButtonModule,
+            PanelModule,
+            MatomoModule.forRoot({
+                siteId: 12,
+                trackerUrl: 'https://matomo.mmli1.ncsa.illinois.edu/'
+            }),
+            MatomoRouterModule,
+            MenuModule,
+            ApiModule.forRoot(() => new Configuration()),
+            CleandbApiModule.forRoot(() => new CleandbConfiguration()),
+            ReactiveFormsModule, DialogModule),
+            EnvironmentService,
+            {
+                provide: APP_INITIALIZER,
+                useFactory: initAppFn,
+                multi: true,
+                deps: [EnvironmentService],
+            },
+            provideHttpClient(withInterceptorsFromDi()),
+            provideAnimations(),
     ]
 })
-  .catch(err => console.error(err));
+    .catch(err => console.error(err));
