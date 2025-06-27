@@ -79,7 +79,10 @@ export class EffectPredictionComponent implements OnChanges, OnDestroy {
             sequence: getFasta(jobInfo.sequence_name, jobInfo.sequence),
           }
         }),
-        tap((v) => this.example = v),
+        tap((v) => this.example = {
+          ...v,
+          positions: this.getQueryValueFromPositions(v.positions),
+        }),
         combineLatestWith(this.form.valueChanges),
         map(([example, formValue]) => example.sequence === formValue.sequence)
       ).subscribe((v) => this.exampleUsed = v)
@@ -91,6 +94,7 @@ export class EffectPredictionComponent implements OnChanges, OnDestroy {
       this.form.patchValue({
         ...this.formValue,
         sequence: getFasta(this.formValue.sequence_name, this.formValue.sequence),
+        positions: this.getQueryValueFromPositions(this.formValue.positions),
       });
     }
   }
@@ -135,5 +139,14 @@ export class EffectPredictionComponent implements OnChanges, OnDestroy {
         this.router.navigate(['effect-prediction', 'result', response.job_id])
       )
     );
+  }
+
+  /* ---------------------------------- Utils --------------------------------- */
+  getQueryValueFromPositions(positions: number[]): QueryValue | null {
+    return positions ? {
+      selectedOption: 'positions',
+      value: positions,
+      valueLabel: positions.join('-'),
+    } : null;
   }
 }
