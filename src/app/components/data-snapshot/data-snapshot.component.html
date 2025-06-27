@@ -1,0 +1,141 @@
+<div #dataSnapshot class="flex flex-col justify-center items-center pt-4 pb-4">
+  @if (summary.status === 'loaded'
+  && chartConfigs['pieChart']['data']['ec'].status === 'loaded'
+  && chartConfigs['barChart']['data'].status === 'loaded') {
+  <p-panel class="w-full">
+    <ng-template pTemplate="header">
+      <span class="grow">Statistics</span>
+    </ng-template>
+
+    <div class="flex flex-col">
+      <div class="flex gap-2 p-2">
+        <div>
+          <div class="rounded-md border border-solid border-[--surface-d] py-2 flex flex-col gap-2 bg-white min-w-[100px]">
+            <div class="font-semibold px-2">EC Classes</div>
+            <hr>
+            <div class="flex flex-col">
+              @for (color of chartConfigs['pieChart']['styleConfig']['backgroundColor']; track color; let i = $index) {
+              <button title="EC {{ i + 1 }}" type="button" class="flex items-center gap-2 cursor-pointer px-2 py-1"
+                [class.bg-[#F5F9FF]]="chartState.state === 'focused' && chartState.payload === i"
+                (click)="chartState = { state: 'focused', payload: i }; $event.stopPropagation()"
+                (mouseover)="chartState = { state: 'hovering-ec', payload: i }; $event.stopPropagation()"
+                (mouseout)="chartState = { state: 'mouseout-ec', payload: i }; $event.stopPropagation()">
+                @if (currentChart === 'pieChart') {
+                <div class="w-4 h-4 rounded-full" [style.background-color]="color"></div>
+                }
+                <div>{{ ecSummary[i].label }}</div>
+              </button>
+              }
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-col gap-2 w-full">
+          <div class="flex justify-end w-full pr-8 gap-2">
+            @if (currentChart === 'pieChart') {
+              @let isShowingTotal = !(chartState.state === 'hovering' || chartState.state === 'hovering-ec');
+              @let currentStats =  isShowingTotal ? totalStatistics : ecClassStatistics[chartState.payload];
+            <div class="rounded-md border border-solid border-[--surface-d] p-2 flex flex-col gap-2 bg-white grow">
+              <div class="font-semibold flex items-center gap-2">
+                @if (!isShowingTotal) {
+                <div class="w-4 h-4 rounded-full"
+                  [style.background-color]="chartConfigs[currentChart]['styleConfig']['backgroundColor'][chartState.payload]">
+                </div>
+                }
+                <div class="font-semibold">{{ isShowingTotal ? 'All EC Classes' : ecSummary[chartState.payload].longLabel + ':'}}<span
+                    class="font-normal ml-1">{{ isShowingTotal ? '' : ecSummary[chartState.payload].description }}</span></div>
+              </div>
+              <hr>
+              <div class="flex justify-between">
+                <div class="flex flex-col gap-2">
+                  <div class="font-semibold">Total Dataset</div>
+                  <div class="text-[#6C757D]">No. Entries: <span class="font-semibold text-[--text-color]">{{
+                      currentStats.entries | number
+                    }}</span></div>
+                  <div class="text-[#6C757D]">% Entries: <span class="font-semibold text-[--text-color]">{{
+                      (currentStats.entries / totalStatistics.entries * 100).toFixed(1) }}%</span>
+                  </div>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <div class="font-semibold">Detailed Breakdown</div>
+                  <div class="text-[#6C757D]">EC Numbers: <span class="font-semibold text-[--text-color]">{{
+                      currentStats.ecNumbers / 1000 | number: '1.1-1'
+                    }}k</span></div>
+                  <div class="text-[#6C757D]">Proteins: <span class="font-semibold text-[--text-color]">{{
+                      currentStats.proteins / 1000 | number: '1.1-1'
+                    }}k</span>
+                  </div>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <div class="font-semibold">&nbsp;</div>
+                  <div class="text-[#6C757D]">Accession: <span class="font-semibold text-[--text-color]">{{
+                      currentStats.accessions / 1000 | number: '1.1-1'
+                    }}k</span></div>
+                  <div class="text-[#6C757D]">Genes: <span class="font-semibold text-[--text-color]">{{
+                      currentStats.genes / 1000 | number: '1.1-1'
+                    }}k</span>
+                  </div>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <div class="font-semibold">&nbsp;</div>
+                  <div class="text-[#6C757D]">Organisms: <span class="font-semibold text-[--text-color]">{{
+                      currentStats.organisms / 1000 | number: '1.1-1'
+                    }}k</span></div>
+                </div>
+              </div>
+            </div>
+            } @else {
+            <div class="h-[116px] w-full"></div>
+            }
+            <p-dropdown [options]="dropdownOptions" [(ngModel)]="currentChart" optionValue="value"
+              (onChange)="currentChart = $event.value"></p-dropdown>
+          </div>
+          @switch (currentChart) {
+          <!-- Pie Charts -->
+          @case ('pieChart') {
+          <div class="flex justify-center gap-4 p-8">
+            @if (chartConfigs['pieChart']['data']['ec'].status === 'loaded') {
+            <div class="w-[200px]">
+              <div class="font-semibold"><span
+                  class="pb-1">Data Summary</span></div>
+              <p-chart type="pie" [data]="chartConfigs['pieChart']['data']['ec'].data"
+                [options]="chartConfigs['pieChart']['data']['ec'].options"
+                [plugins]="chartConfigs['pieChart']['data']['ec'].plugins"></p-chart>
+            </div>
+            } @else {
+            <div class="flex justify-center items-center h-full">
+              <p-skeleton width="100px" height="100px"></p-skeleton>
+            </div>
+            }
+
+          </div>
+          }
+
+          <!-- Bar Charts -->
+          @case ('barChart') {
+          @if (chartConfigs['barChart']['data'].status === 'loaded') {
+          <div class="p-8">
+            <div class="flex justify-center w-full">
+              <div id="legend-container"></div>
+            </div>
+            <p-chart type="bar" #histogramChart styleClass="w-full" [data]="chartConfigs['barChart']['data'].data"
+              [options]="chartConfigs['barChart']['data'].options" [plugins]="chartConfigs['barChart']['data'].plugins">
+            </p-chart>
+          </div>
+          }
+          }
+          }
+        </div>
+      </div>
+    </div>
+
+    <hr />
+
+  </p-panel>
+  }
+
+  @else {
+  <div class="flex justify-center items-center h-full">
+    <p-progressSpinner ariaLabel="loading" />
+  </div>
+  }
+</div>

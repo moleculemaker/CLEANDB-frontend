@@ -1,0 +1,131 @@
+<div class="flex flex-col h-full px-4 xl:w-full w-content-xl">
+  <div class="w-full flex mt-20">
+    <div class="max-w-[820px] inline-block">
+      <h1 class="font-bold leading-xl">Welcome to CLEAN Database!</h1>
+      <h5 class="mt-5 leading-xl text-[#495057]">
+        The CLEAN Database (CLEAN DB) is an open-access, comprehensive resource of high-accuracy enzyme function predictions. Powered by the in-house <a rel="noopener" class="text-[#0080FF]" href="https://www.science.org/doi/10.1126/science.adf2465" target="_blank">CLEAN AI</a> tool, it has enabled an unprecedented expansion of enzyme function coverage based on the known protein sequence space. This release of CLEAN DB provides free access to over 55 million predicted enzyme functions spanning 1,098,305 organisms. By leveraging state-of-the-art protein language models (i.e., ESM v2), CLEAN DB also supports user-friendly prediction of mutation effects.
+      </h5>
+      <h5 class="mt-5 leading-xl text-[#495057]">
+        Learn more about the CLEAN Database below and get started using this powerful resource today to transform your research.
+      </h5>
+    </div>
+  </div>
+
+  <div class="mt-8">
+    <div class="flex justify-start">
+      <a routerLink="/database-search" routerLinkActive="active" id="btn-start-using-clean">
+        <p-button label="Start Using CLEAN Database" styleClass="bg-[#224063]" iconPos="right"
+          icon="pi pi-arrow-right"></p-button>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="flex flex-col items-center col-span-12 py-8 bg-gray-50 w-full mt-16">
+  <h4 class="my-4 text-bold">Which tool should I use?</h4>
+  <div class="flex items-center justify-between gap-4">
+    <h5 class="mt-0 italic">I have -> I need</h5>
+    <p-dropdown class="dropdown-intention text-center md:w-[480px]" styleClass="md:w-[480px]" [options]="researchNeeds"
+      [ngModel]="selectedResearchNeed$.value" (onChange)="selectedResearchNeed$.next($event.value)"
+      placeholder="(Select a goal)">
+      <ng-template pTemplate="selectedItem" let-item>
+        <div class="font-[Inter]">{{ item.label }}</div>
+      </ng-template>
+    </p-dropdown>
+    <p-button label="Recommend" styleClass="bg-[#224063] pl-10 pr-10" iconPos="right" icon="pi pi-arrow-down"
+      (onClick)="displayedResearchNeed$.next(selectedResearchNeed$.value)"></p-button>
+  </div>
+</div>
+
+<div class="flex flex-col h-full px-4 xl:w-full w-content-xl mt-16">
+  <h4 class="pb-6 text-bold m-0">Common Workflow</h4>
+  <div class="pb-10 flex gap-8 justify-center">
+    <a [href]="CLEAN_TOOLS.DB_SEARCH" class="w-1/2">
+      <p-card [styleClass]="
+                      'rounded-none shadow-none border-2 border-solid border-bluegray-100 cursor-pointer '
+                      + (displayedResearchNeed$.value === CLEAN_TOOLS.DB_SEARCH ? 'bg-gray-50': '')
+                  " (mouseenter)="displayedResearchNeed$.next(CLEAN_TOOLS.DB_SEARCH)"
+        (mouseleave)="displayedResearchNeed$.next(CLEAN_TOOLS.NA)">
+        <ng-template pTemplate="header">
+          <div class="flex items-center justify-center p-2 pb-0">
+            <div class="relative flex grow">
+              <div class="bg-[#D5618C] h-[200px] w-full flex items-center justify-center">
+                <svg width="65" height="64" viewBox="0 0 65 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M25.5957 10.4971C28.9746 9.82496 32.4693 10.1062 35.6904 11.3027L36.3311 11.5537C39.5138 12.8721 42.2629 15.0477 44.2764 17.832L44.6689 18.3975C46.7105 21.4529 47.8008 25.045 47.8008 28.7197C47.8008 31.0072 47.3778 33.2735 46.5557 35.4053L46.3867 35.8301C45.453 38.0843 44.0837 40.1321 42.3584 41.8574C40.7409 43.4749 38.8398 44.779 36.751 45.7051L36.3311 45.8857C34.0769 46.8195 31.6606 47.2998 29.2207 47.2998C25.7757 47.2998 22.4032 46.3419 19.4775 44.54L18.8984 44.168C16.034 42.254 13.7616 39.5845 12.3301 36.4609L12.0547 35.8301C10.6484 32.435 10.2811 28.6989 10.998 25.0947C11.6702 21.7159 13.2674 18.5951 15.6055 16.0771L16.083 15.582C18.6814 12.9836 21.9916 11.214 25.5957 10.4971ZM29.2207 11.166C25.976 11.166 22.7996 12.0685 20.0439 13.7656L19.498 14.1152C16.8001 15.9179 14.6599 18.4329 13.3115 21.375L13.0527 21.9697C11.8111 24.9674 11.429 28.2471 11.9424 31.4424L12.0566 32.0801C12.6897 35.2626 14.1943 38.2026 16.3965 40.5742L16.8467 41.041C19.1411 43.3353 22.0252 44.943 25.1738 45.6914L25.8066 45.8301C28.9891 46.4631 32.2806 46.1983 35.3145 45.0713L35.918 44.834C38.9156 43.5922 41.505 41.5433 43.4014 38.9209L43.7715 38.3887C45.6943 35.5108 46.7207 32.1271 46.7207 28.666C46.7206 24.17 44.9901 19.8526 41.8984 16.6035L41.5947 16.292C38.3129 13.0102 33.8619 11.166 29.2207 11.166Z"
+                    stroke="white" stroke-opacity="0.54" stroke-width="3" />
+                  <path
+                    d="M53.8345 55.3326C53.5718 55.3338 53.3114 55.2826 53.0687 55.1818C52.826 55.0811 52.6059 54.9329 52.4212 54.7459L41.4079 43.7326C41.0546 43.3534 40.8623 42.852 40.8714 42.3339C40.8805 41.8157 41.0904 41.3214 41.4569 40.9549C41.8233 40.5885 42.3177 40.3786 42.8358 40.3695C43.3539 40.3603 43.8554 40.5526 44.2345 40.9059L55.2479 51.9192C55.6224 52.2942 55.8328 52.8026 55.8328 53.3326C55.8328 53.8626 55.6224 54.3709 55.2479 54.7459C55.0632 54.9329 54.8431 55.0811 54.6004 55.1818C54.3577 55.2826 54.0973 55.3338 53.8345 55.3326Z"
+                    fill="white" fill-opacity="0.54" />
+                  <path
+                    d="M42.8623 41.8691C42.988 41.8669 43.1094 41.9127 43.2031 41.9961L54.1865 52.9785V52.9795C54.2801 53.0732 54.333 53.2006 54.333 53.333C54.3329 53.4321 54.3031 53.5281 54.249 53.6094L54.1865 53.6855L54.1807 53.6914C54.1586 53.7138 54.1344 53.7345 54.1084 53.752L54.0254 53.7969C53.9673 53.821 53.9047 53.8333 53.8418 53.833H53.8271C53.7956 53.8331 53.7642 53.8293 53.7334 53.8232L53.6436 53.7969C53.6144 53.7848 53.5866 53.7695 53.5605 53.752L53.4883 53.6914L53.4814 53.6855L42.498 42.7012C42.4361 42.6315 42.3949 42.5468 42.3789 42.4561L42.3711 42.3604C42.3728 42.2632 42.4026 42.1693 42.4561 42.0898L42.5176 42.0156C42.5863 41.9469 42.6729 41.8999 42.7666 41.8799L42.8623 41.8691Z"
+                    stroke="white" stroke-opacity="0.54" stroke-width="3" />
+                </svg>
+
+              </div>
+            </div>
+          </div>
+        </ng-template>
+        <ng-template pTemplate="footer">
+          <div class="flex">
+            <button pButton class="justify-center mt-2 -mb-2 grow" @fadeIn
+              *ngIf="displayedResearchNeed$.value === CLEAN_TOOLS.DB_SEARCH">
+              Start Using
+            </button>
+          </div>
+        </ng-template>
+
+        <h5 class="mt-0 font-bold opacity-100 leading-lg">Database Search</h5>
+        <small class="opacity-60"> Enzyme Sequence & Function Prediction </small>
+        <ul class="mt-2 ml-6 list-disc">
+          <li class="pl-2 leading-normal">
+            Search by UniProt accession, protein name, gene name, organism, or EC number to access the entity results page featuring CLEAN predictions and enzyme annotations
+          </li>
+          <li class="pt-2 pl-2 leading-normal">
+            Explore detailed enzymatic information, including amino acids, associated functions, reactions, and more
+          </li>
+        </ul>
+      </p-card>
+    </a>
+
+    <a [href]="CLEAN_TOOLS.EFFECT_PREDICTION" class="w-1/2">
+      <p-card [styleClass]="
+                          'rounded-none shadow-none border-2 border-solid border-bluegray-100 cursor-pointer '
+                          + (displayedResearchNeed$.value === CLEAN_TOOLS.EFFECT_PREDICTION ? 'bg-gray-50': '')
+                      " (mouseenter)="displayedResearchNeed$.next(CLEAN_TOOLS.EFFECT_PREDICTION)"
+        (mouseleave)="displayedResearchNeed$.next(CLEAN_TOOLS.NA)">
+        <ng-template pTemplate="header">
+          <div class="flex items-center justify-center p-2 pb-0">
+            <div class="bg-[#5689F5] h-[200px] w-full flex items-center justify-center">
+              <svg width="63" height="64" viewBox="0 0 63 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M37.9275 36.4337C36.163 38.4451 34.0144 40.0908 31.5961 41.284V48.1411C31.5961 48.7473 31.3553 49.3287 30.9266 49.7574C30.498 50.186 29.9166 50.4268 29.3104 50.4268H15.5961C14.9899 50.4268 14.4085 50.186 13.9799 49.7574C13.5512 49.3287 13.3104 48.7473 13.3104 48.1411V41.284C8.4937 38.8797 4.81139 34.6831 3.05368 29.5947C1.29598 24.5064 1.60295 18.9317 3.90872 14.0671C6.21449 9.2025 10.3353 5.43557 15.3869 3.57471C20.4384 1.71386 26.0182 1.90735 30.9287 4.11368M13.3104 61.7137H31.5961" stroke="white" stroke-opacity="0.54" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M33.3057 17.9839C31.7012 17.705 31.7012 15.401 33.3057 15.1222C36.1468 14.6277 38.7762 13.2984 40.8589 11.3037C42.9415 9.30898 44.3829 6.73928 44.9994 3.92217L45.0954 3.47417C45.4429 1.88788 47.7012 1.87874 48.0623 3.46046L48.1812 3.97703C48.8214 6.78138 50.2759 9.33407 52.362 11.3145C54.4482 13.2949 57.073 14.6148 59.9069 15.1085C61.5206 15.3919 61.5206 17.705 59.9069 17.9885C57.0739 18.4829 54.45 19.8031 52.3647 21.7835C50.2794 23.7639 48.8256 26.3162 48.1857 29.1199L48.0669 29.6365C47.7057 31.2182 45.4474 31.209 45.1 29.6227L45.0086 29.1793C44.3915 26.361 42.9487 23.7904 40.8643 21.7955C38.7799 19.8007 36.1485 18.4767 33.3057 17.9839Z" stroke="white" stroke-opacity="0.54" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>                
+
+            </div>
+          </div>
+        </ng-template>
+        <ng-template pTemplate="footer">
+          <div @fadeIn *ngIf="displayedResearchNeed$.value === CLEAN_TOOLS.EFFECT_PREDICTION" class="mt-[-12px]">
+            <div class="flex">
+              <button pButton class="justify-center mt-2 -mx-1 -mb-2 grow">
+                Start Using
+              </button>
+            </div>
+          </div>
+        </ng-template>
+
+        <h5 class="mt-0 font-bold opacity-100 leading-lg">Mutation Effect Prediction</h5>
+        <small class="opacity-60">ESM-2</small>
+        <ul class="mt-2 ml-6 list-disc">
+          <li class="pl-2 leading-normal">
+            Generate mutation effect predictions using state-of-the-art protein language models (i.e., ESM-2) for enzyme sequences of interest
+          </li>
+          <li class="pt-2 pl-2 leading-normal">
+            Explore residue-specific results through interactive heatmap, and tabular data visualizations
+          </li>
+        </ul>
+      </p-card>
+    </a>
+  </div>
+</div>
