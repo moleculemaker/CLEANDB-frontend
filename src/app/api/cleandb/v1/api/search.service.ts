@@ -107,7 +107,7 @@ export class SearchService {
      * @param protein Protein Name
      * @param geneName Gene Name
      * @param ecNumber CLEAN predicted EC number
-     * @param uniprot CLEAN predicted EC number
+     * @param uniprot Uniprot ID
      * @param cleanEcConfidence Minimum confidence for CLEAN predicted EC number
      * @param sequenceLength Minimum sequence length
      * @param format Response format (json or csv)

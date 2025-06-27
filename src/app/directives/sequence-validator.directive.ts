@@ -1,4 +1,4 @@
-import { Directive, forwardRef } from '@angular/core';
+import { Directive, forwardRef, Input } from '@angular/core';
 import { AbstractControl, NG_VALIDATORS, ValidationErrors, Validator } from '@angular/forms';
 
 @Directive({
@@ -13,7 +13,7 @@ import { AbstractControl, NG_VALIDATORS, ValidationErrors, Validator } from '@an
   standalone: true
 })
 export class SequenceValidatorDirective implements Validator {
-  private maxSeqNum: number = 20;
+  @Input() maxSeqNum: number = 20;
   private validAminoAcid = new RegExp("[^GPAVLIMCFYWHKRQNEDST]", "i");
   private validDNA = new RegExp("[^ACTG]", "i");
 
@@ -25,7 +25,7 @@ export class SequenceValidatorDirective implements Validator {
     const sequenceData = control.value;
     const splitString: string[] = sequenceData.split('>').slice(1);
     const headers: string[] = [];
-    const errors: ValidationErrors[] = [];
+    const errors: ValidationErrors = {};
 
     // Check if sequence is empty
     if (splitString.length === 0) {
@@ -38,9 +38,9 @@ export class SequenceValidatorDirective implements Validator {
     }
 
     // Check for whitespace after >
-    if (splitString[0].charAt(0) === ' ') {
-      return { containsWhitespace: true };
-    }
+    // if (splitString[0].charAt(0) === ' ') {
+    //   return { containsWhitespace: true };
+    // }
 
     // Validate each sequence
     splitString.forEach((seq: string, index: number) => {
@@ -55,21 +55,21 @@ export class SequenceValidatorDirective implements Validator {
 
       // Check for empty header
       if (aminoHeader.length === 0) {
-        errors.push({ headerCannotBeEmpty: index });
+        errors['headerCannotBeEmpty'] = true;
       }
 
       // Check for invalid sequence
       if (this.isInvalidFasta(aminoSeq)) {
-        errors.push({ invalidSequence: aminoHeader });
+        errors['invalidSequence'] = aminoHeader;
       }
 
       // Check sequence length
       if (aminoSeq.length > 1022) {
-        errors.push({ sequenceLengthGreaterThan1022: aminoHeader });
+        errors['sequenceLengthGreaterThan1022'] = aminoHeader;
       }
 
       if (aminoSeq.length === 0) {
-        errors.push({ sequenceLengthIs0: aminoHeader });
+        errors['sequenceLengthIs0'] = aminoHeader;
       }
 
       headers.push(aminoHeader);
@@ -81,8 +81,8 @@ export class SequenceValidatorDirective implements Validator {
     }
 
     // Return all validation errors if any exist
-    if (errors.length > 0) {
-      return { errors };
+    if (Object.keys(errors).length > 0) {
+      return errors;
     }
 
     return null;

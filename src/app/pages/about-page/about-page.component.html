@@ -68,30 +68,16 @@
                 <main *ngIf="activePanel$.value === ActiveAboutPanel.ABOUT" class="w-full h-full pb-12 pl-16">
                     <h1 class="mb-4 font-bold">About</h1>
                     <h5 class="leading-xl">
-                        Enzymes serve as the molecular machines of life and essential biocatalysts for numerous
-                        biotechnological and biomedical applications. Open Enzyme Database (OED) is a community-driven,
-                        open-access repository and infrastructure for sharing enzyme data. The database serves as a
-                        critical resource for researchers and practitioners in biochemistry, molecular biology,
-                        enzymology, protein and metabolic engineering, and related fields, currently offering quantities
-                        of <button class="text-[#0080FF] cursor-pointer"
-                            (click)="activePanel$.next(ActiveAboutPanel.STATISTICS)">curated data on enzyme kinetics
-                            parameters with experimental
-                            support.</button> The development of the
-                        maximum common substructure (MCS) algorithm, along with chemical similarity and fragment
-                        algorithms, has also been completed. These tools will be instrumental in identifying potential
-                        enzymes capable of catalyzing new substrates. </h5>
+                        Trained on high-quality datasets from UniProt, we developed a machine learning model named CLEAN (Contrastive Learning–Enabled Enzyme Annotation) for enzyme function prediction. CLEAN takes an amino acid sequence as input and outputs a ranked list of predicted enzyme functions represented by Enzyme Commission (EC) numbers. Published in <a class="text-[#0080FF] underline" target="_blank" rel="noopener" href="https://www.science.org/doi/10.1126/science.adj0000">Science (2023)</a>, the CLEAN AI tool combines contrastive learning with pre-trained protein language models to achieve high accuracy predictions, even for enzymes with low sequence similarity to known proteins. CLEAN can confidently (i) annotate understudied enzymes, (ii) correct mislabeled enzymes, and (iii) identify promiscuous enzymes that possess multiple catalytic functions.
+                    </h5>
 
-                    <h5 class="leading-xl">Looking ahead, OED plans to expand its scope to encompass a wide array of
-                        enzyme-related
-                        information, including data on enzyme solubility, stability, specificity, selectivity, functions
-                        and associated enzymatic reactions, thereby becoming a comprehensive resource for the scientific
-                        community. </h5>
+                    <h5 class="leading-xl">
+                        Built on top of this powerful tool, the CLEAN Database (CLEAN DB) is an open-access, comprehensive resource containing over 55 million enzyme function predictions and annotations. It offers a user-friendly platform for searching, browsing, and downloading annotations at scale. In addition to function predictions, CLEAN DB enables researchers to assess the effects of mutations using cutting-edge protein language models, making it a powerful tool for both computational and experimental enzyme discovery.
+                    </h5>
 
-                    <h5 class="leading-xl">With a focus on providing access to extensive enzyme data, OED is committed to
-                        serving as an indispensable resource not only for experimental scientists in diverse fields like
-                        drug discovery, metabolic engineering, synthetic biology, and synthetic chemistry, but also for
-                        machine learning experts who are interested in enzyme property and function prediction and
-                        enzyme engineering. </h5>
+                    <h5 class="leading-xl">
+                        CLEAN DB supports a broad range of scientific applications, including enzyme engineering, synthetic biology, drug discovery, metabolic modeling, and functional genomics. Whether you're identifying candidate biocatalysts or studying the functional impact of mutations, CLEAN DB empowers you to extract meaningful insights from protein sequences at unprecedented scale and accuracy.
+                    </h5>
                 </main>
 
                 <!-- Tutorial -->
@@ -115,65 +101,31 @@
                 <main *ngIf="activePanel$.value === ActiveAboutPanel.GITHUB" class="w-full h-full pb-12 pl-16">
                     <h1 class="mb-4 font-bold">Github</h1>
                     <h5 class="leading-xl">
-                        Open Enzyme Database (OED) is a community-driven, open-access repository and infrastructure,
-                        committed to broadening access to enzymatic data and related models and algorithms. Explore
-                        OED’s
-                        public code repositories below.</h5>
+                        The CLEAN Database (CLEAN DB) is a comprehensive digital repository of predicted enzyme functions, equipped with computational tools for mutation effect prediction. Explore the associated public code repositories below.</h5>
 
-                    <h5><b class="font-bold">Frontend: </b><a class="text-[#0080FF] underline" target="_blank"
-                            href="https://github.com/moleculemaker/OpenEnzymeDB-frontend"><i
-                                class="mx-2 pi pi-external-link"></i>https://github.com/moleculemaker/OpenEnzymeDB-frontend</a>
+                    <h5><b class="font-bold">Frontend: </b><a rel="noopener" class="text-[#0080FF] underline" target="_blank"
+                            href="https://github.com/moleculemaker/cleandb-frontend"><i
+                                class="mx-2 pi pi-external-link"></i>https://github.com/moleculemaker/CLEANDB-frontend</a>
                     </h5>
-                    <h5><b class="font-bold">API: </b><a class="text-[#0080FF] underline" target="_blank"
-                            href="https://github.com/moleculemaker/oed-api"><i
-                                class="mx-2 pi pi-external-link"></i>https://github.com/moleculemaker/oed-api</a></h5>
+                    <h5><b class="font-bold">CLEAN: </b><a rel="noopener" class="text-[#0080FF] underline" target="_blank"
+                            href="https://github.com/tttianhao/CLEAN"><i
+                                class="mx-2 pi pi-external-link"></i>https://github.com/tttianhao/CLEAN</a></h5>
                 </main>
 
                 <!-- Publications -->
                 <main *ngIf="activePanel$.value === ActiveAboutPanel.PUBLICATIONS" class="w-full h-full pb-12 pl-16">
                     <h1 class="mb-4 font-bold">Publications</h1>
                     <h5 class="leading-xl">
-                        Learn more about the advanced AI models that have been integrated into Open Enzyme Database
+                        Learn more about the in-house CLEAN AI tool that powered the creation of the CLEAN Database.
                     </h5>
 
                     <ul class="mt-8">
                         <li class="items-center mt-4">
-                            <h5 class="mt-0 leading-xl"><b class="font-semibold">DLKcat:</b> Li, F., Yuan, L., Lu, H. et
-                                al.
-                                Deep learning-based kcat prediction enables improved enzyme-constrained model
-                                reconstruction. Nat Catal 5, 662–672 (2022).</h5>
+                            <h5 class="mt-0 leading-xl"><b class="font-semibold">CLEAN AI:</b> Tianhao Yu et al., Enzyme function prediction using contrastive learning. Science 379, 1358-1363 (2023).</h5>
                             <h5 class="mt-0 leading-xl">
-                                <a class="text-[#0080FF] underline" target="_blank"
-                                    href="https://doi.org/10.1038/s41929-022-00798-z"><i
-                                        class="mx-2 pi pi-external-link"></i>DOI:
-                                    https://doi.org/10.1038/s41929-022-00798-z</a>
-                            </h5>
-                        </li>
-                        <li class="items-center mt-4">
-                            <h5 class="mt-0 leading-xl"><b class="font-semibold"> UniKP:</b> Yu, H., Deng, H., He, J. et
-                                al.
-                                UniKP: a unified framework for the prediction of enzyme kinetic parameters. Nat Commun
-                                <b class="font-bold">14</b>, 8211 (2023).</h5>
-                            <h5 class="mt-0 leading-xl">
-                                <a class="text-[#0080FF] underline" target="_blank"
-                                    href="https://doi.org/10.1038/s41467-023-44113-1"><i
-                                        class="mx-2 pi pi-external-link"></i>DOI:
-                                    https://doi.org/10.1038/s41467-023-44113-1</a>
-                            </h5>
-                        </li>
-                        <li class="items-center mt-4">
-                            <h5 class="mt-0 leading-xl"><b class="font-semibold">CatPred:</b> Boorla, V.S., Maranas,
-                                C.D.
-                                CatPred: a comprehensive framework for deep learning in vitro enzyme kinetic parameters.
-                                Nat
-                                Commun <b class="font-bold">16</b>, 2072 (2025).
-                                https://doi.org/10.1038/s41467-025-57215-9
-                            </h5>
-                            <h5 class="mt-0 leading-xl">
-                                <a class="text-[#0080FF] underline" target="_blank"
-                                    href="https://doi.org/10.1038/s41467-025-57215-9"><i
-                                        class="mx-2 pi pi-external-link"></i>DOI:
-                                    https://doi.org/10.1038/s41467-025-57215-9</a>
+                                <a rel="noopener" class="text-[#0080FF] underline" target="_blank"
+                                    href="https://doi.org/10.1126/science.adf2465"><i
+                                        class="mx-2 pi pi-external-link"></i>DOI:https://doi.org/10.1126/science.adf2465</a>
                             </h5>
                         </li>
                     </ul>
@@ -183,24 +135,24 @@
                 <main *ngIf="activePanel$.value === ActiveAboutPanel.TEAM" class="w-full h-full pb-12 pl-16">
                     <h1 class="mb-4 font-bold">Team</h1>
                     <h5 class="leading-xl">
-                        Meet the team behind Open Enzyme Database.
+                        Meet the team behind CLEAN Database.
                     </h5>
 
                     <div class="flex mt-8">
-                        <img src="assets/team1.png" class="w-[96px] h-[96px] bg-white rounded-full" />
+                        <img src="assets/team1.png" class="w-[96px] h-[96px] bg-white rounded-full" alt="Huimin Zhao" />
                         <div class="ml-8">
-                            <h5 class="mt-0 font-bold leading-xl">Huiming Zhao</h5>
+                            <h5 class="mt-0 font-bold leading-xl">Huimin Zhao</h5>
                             <h6 class="mt-1 leading-xl font-semibold text-[#6C757D]">Project Director</h6>
                             <h6 class="mt-2 leading-xl">
-                                Dr. Huimin Zhao <a class="text-[#0080FF]" href="https://chbe.illinois.edu/people/profile/zhao5"
-                                target="_blank">(https://chbe.illinois.edu/people/profile/zhao5)</a> is the Steven L. Miller Chair Professor at the University of Illinois at Urbana-Champaign (UIUC). He is currently the director of NSF AI Research Institute for Molecule Synthesis <a class="text-[#0080FF]"
+                                Dr. Huimin Zhao <a rel="noopener" class="text-[#0080FF]" href="https://chbe.illinois.edu/people/profile/zhao5"
+                                target="_blank">(https://chbe.illinois.edu/people/profile/zhao5)</a> is the Steven L. Miller Chair Professor at the University of Illinois at Urbana-Champaign (UIUC). He is currently the director of NSF AI Research Institute for Molecule Synthesis <a rel="noopener" class="text-[#0080FF]"
                                 href="https://moleculemaker.org" target="_blank">(https://moleculemaker.org)</a>, the director of NSF iBioFoundry, and the director of NSF Global Center for Reliable and Scalable Biofoundries. He received his Ph.D. degree in Chemistry from the California Institute of Technology in 1998 under the guidance of Nobel Laureate Dr. Frances Arnold. Dr. Zhao has authored and co-authored over 453 research articles and over 30 issued and pending patent applications with several being licensed by industry. Dr. Zhao is the Editor-in-Chief of ACS Synthetic Biology and the Founding Associate Editor of ACS Catalysis (2011-2022). His primary research interests are in the development and applications of synthetic biology, machine learning, and laboratory automation tools to address society’s most daunting challenges in health, energy, and sustainability.
                             </h6>
                         </div>
                     </div>
 
                     <div class="flex mt-8">
-                        <img src="assets/team2.png" class="w-[96px] h-[96px] object-cover rounded-full bg-white" />
+                        <img src="assets/team2.png" class="w-[96px] h-[96px] object-cover rounded-full bg-white" alt="Le Yuan" />
                         <div class="ml-8">
                             <h5 class="mt-0 font-bold leading-xl">Le Yuan</h5>
                             <h6 class="mt-1 leading-xl font-semibold text-[#6C757D]">Postdoc UIUC</h6>
@@ -218,7 +170,7 @@
                     </div>
 
                     <div class="flex mt-8">
-                        <img src="assets/david.jpg" class="w-[96px] h-[96px] object-cover rounded-full bg-white" />
+                        <img src="assets/david.jpg" class="w-[96px] h-[96px] object-cover rounded-full bg-white" alt="David Bianchi"/>
                         <div class="ml-8">
                             <h5 class="mt-0 font-bold leading-xl">David Bianchi</h5>
                             <h6 class="mt-1 leading-xl font-semibold text-[#6C757D]">Research Scientist</h6>
@@ -227,7 +179,7 @@
                     </div>
 
                     <div class="flex mt-8">
-                        <img src="assets/MattBerry1.jpg" class="w-[96px] h-[96px] object-cover rounded-full bg-white" />
+                        <img src="assets/MattBerry1.jpg" class="w-[96px] h-[96px] object-cover rounded-full bg-white" alt="Matt Berry"/>
                         <div class="ml-8">
                             <h5 class="mt-0 font-bold leading-xl">Matt Berry</h5>
                             <h6 class="mt-1 leading-xl font-semibold text-[#6C757D]">Lead Software Engineer</h6>
@@ -236,7 +188,7 @@
                     </div>
 
                     <div class="flex mt-8">
-                        <img src="assets/bingji.jpg" class="w-[96px] h-[96px] object-cover rounded-full bg-white" />
+                        <img src="assets/bingji.jpg" class="w-[96px] h-[96px] object-cover rounded-full bg-white" alt="Bingji Guo"/>
                         <div class="ml-8">
                             <h5 class="mt-0 font-bold leading-xl">Bingji Guo</h5>
                             <h6 class="mt-1 leading-xl font-semibold text-[#6C757D]">Research Software Engineer</h6>
@@ -245,7 +197,7 @@
                     </div>
 
                     <div class="flex mt-8">
-                        <img src="assets/Sara.png" class="w-[96px] h-[96px] object-cover rounded-full bg-white" />
+                        <img src="assets/Sara.png" class="w-[96px] h-[96px] object-cover rounded-full bg-white" alt="Sara Lambert"/>
                         <div class="ml-8">
                             <h5 class="mt-0 font-bold leading-xl">Sara Lambert</h5>
                             <h6 class="mt-1 leading-xl font-semibold text-[#6C757D]">Research Programmer</h6>
@@ -254,7 +206,7 @@
                     </div>
 
                     <div class="flex mt-8">
-                        <img src="assets/chris.jpg" class="w-[96px] h-[96px] object-cover rounded-full bg-white" />
+                        <img src="assets/chris.jpg" class="w-[96px] h-[96px] object-cover rounded-full bg-white" alt="Chris Pond"/>
                         <div class="ml-8">
                             <h5 class="mt-0 font-bold leading-xl">Chris Pond</h5>
                             <h6 class="mt-1 leading-xl font-semibold text-[#6C757D]">Engineering Manager</h6>
@@ -263,7 +215,7 @@
                     </div>
 
                     <div class="flex mt-8">
-                        <img src="assets/stephens.jpeg" class="w-[96px] h-[96px] object-cover rounded-full bg-white" />
+                        <img src="assets/stephens.jpeg" class="w-[96px] h-[96px] object-cover rounded-full bg-white" alt="Chris Stephens"/>
                         <div class="ml-8">
                             <h5 class="mt-0 font-bold leading-xl">Chris Stephens</h5>
                             <h6 class="mt-1 leading-xl font-semibold text-[#6C757D]">Research Data Engineer</h6>
@@ -274,7 +226,7 @@
                     </div>
 
                     <div class="flex mt-8">
-                        <img src="assets/Kate.jpeg" class="w-[96px] h-[96px] object-cover rounded-full bg-white" />
+                        <img src="assets/Kate.jpeg" class="w-[96px] h-[96px] object-cover rounded-full bg-white" alt="Kate Arneson"/>
                         <div class="ml-8">
                             <h5 class="mt-0 font-bold leading-xl">Kate Arneson</h5>
                             <h6 class="mt-1 leading-xl font-semibold text-[#6C757D]">Research UIX Designer</h6>
@@ -283,16 +235,7 @@
                     </div>
 
                     <div class="flex mt-8">
-                        <img src="assets/yash.jpg" class="w-[96px] h-[96px] object-cover rounded-full bg-white" />
-                        <div class="ml-8">
-                            <h5 class="mt-0 font-bold leading-xl">Yash Wasnik</h5>
-                            <h6 class="mt-1 leading-xl font-semibold text-[#6C757D]">Associate Research Data Engineer</h6>
-                            <h6 class="mt-2 leading-xl">Yash Wasnik worked as a Research Data Engineer at the National Center for Supercomputing Applications (NCSA) at the University of Illinois Urbana-Champaign. He contributed to the development of AI-ready data infrastructure supporting the Open Enzyme Database, a key component of the NSF-funded Molecule Maker Lab Institute. His work focused on designing scalable ingestion pipelines and structuring enzyme data to enable high-throughput analysis, and predictive modeling for downstream bioinformatics research, accelarating enzyme discovery. He also provided data engineering support to projects like Forensic Anthropology Database for Assessing Methods Accuracy (FADAMA), iRisk Lab at the Gies College of Business.</h6>
-                        </div>
-                    </div>
-
-                    <div class="flex mt-8">
-                        <img src="assets/Chenxin.jpg" class="w-[96px] h-[96px] object-cover rounded-full bg-white" />
+                        <img src="assets/Chenxin.jpg" class="w-[96px] h-[96px] object-cover rounded-full bg-white" alt="Chenxin Wang"/>
                         <div class="ml-8">
                             <h5 class="mt-0 font-bold leading-xl">Chenxin Wang</h5>
                             <h6 class="mt-1 leading-xl font-semibold text-[#6C757D]">Academic Hourly</h6>
@@ -301,7 +244,7 @@
                     </div>
 
                     <div class="flex mt-8s">
-                        <img src="assets/LeighFu.png" class="w-[96px] h-[96px] object-cover rounded-full bg-white" />
+                        <img src="assets/LeighFu.jpg" class="w-[96px] h-[96px] object-cover rounded-full bg-white" alt="Leigh Fu"/>
                         <div class="ml-8">
                             <h5 class="mt-0 font-bold leading-xl">Leigh Fu</h5>
                             <h6 class="mt-1 leading-xl font-semibold text-[#6C757D]">Research UIX Designer</h6>
@@ -314,14 +257,11 @@
                 <main *ngIf="activePanel$.value === ActiveAboutPanel.GET_INVOLVED" class="w-full h-full pb-12 pl-16">
                     <h1 class="mb-4 font-bold">Get involved</h1>
                     <h5 class="leading-xl">
-                        We welcome your questions, suggestions, feedback, and collaboration! Get in touch with us via
-                        email
-                        to share your perspective or join the Open Enzyme Database community through a data
-                        contribution:
+                        We welcome your questions, suggestions, and feedback! Get in touch with us via email:
                     </h5>
                     <h5 class="mt-0 leading-xl">
                         <a class="text-[#0080FF] underline"
-                            href="mailto:oed-feedback@moleculemaker.org">oed-feedback&#64;moleculemaker.org</a>
+                            href="mailto:cleandb-feedback@moleculemaker.org">cleandb-feedback&#64;moleculemaker.org</a>
                     </h5>
                 </main>
             </div>
