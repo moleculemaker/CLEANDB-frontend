@@ -48,19 +48,15 @@ export class EffectPredictionResultComponent implements OnDestroy {
   @ViewChild('heatmap') heatmap: HeatmapComponent;
   @ViewChild('resultTable') resultTable: Table;
 
-  columns                                   = [
+  columns = [
     { field: 'position', header: 'Position' },
     { field: 'mutationLabelExport', header: 'Mutation (Export)' },
     { field: 'score', header: 'Score' }
   ];
-  currentPage                               = 'result';
-  exportOptions: MenuItem[]                 = [
-    {
-      label: 'Table (CSV)',
-      command: () => this.resultTable.exportCSV()
-    },
-    {
-      label: 'Heatmap',
+  currentPage = 'result';
+  exportOptions: MenuItem[] = [
+    { label: 'Table (CSV)', command: () => this.resultTable.exportCSV() },
+    { label: 'Heatmap',
       items: [
         // { label: 'SVG', command: () => this.heatmap.exportAs('svg') },
         { label: 'PNG', command: () => this.heatmap.exportAs('png') },
@@ -75,8 +71,18 @@ export class EffectPredictionResultComponent implements OnDestroy {
   mutedCells: HeatmapCellLocations          = [];
   mutedPositions: number[]                  = [];
   numColumns                                = 20;
-  requestOptions: MenuItem[]                = [
-    
+  requestOptions: MenuItem[] = [
+    {
+      label: "Modify and Resubmit Request",
+      icon: "pi pi-refresh",
+      command: () => this.currentPage = 'input'
+    },
+    {
+      label: "Run a New Request",
+      icon: "pi pi-plus",
+      url: "/effect-prediction",
+      target: "_blank"
+    }
   ];
   result: EffectPredictionResult;
   selectedCells: HeatmapCellLocations       = [];
