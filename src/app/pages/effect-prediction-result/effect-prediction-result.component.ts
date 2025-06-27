@@ -34,7 +34,7 @@ import { MenuItem } from 'primeng/api';
 
 
     EffectPredictionComponent,
-    // HeatmapComponent,
+    HeatmapComponent,
     JobTabComponent,
     LoadingComponent,
     SequencePositionSelectorComponent,
