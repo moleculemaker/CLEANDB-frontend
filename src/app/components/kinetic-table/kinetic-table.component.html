@@ -127,7 +127,7 @@
                       <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'ID', value: row.id }"></ng-container>
                       <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Gene', value: row.gene_id }"></ng-container>
                       <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'NCBI Tax ID', value: row.ncbi_tax_id }"></ng-container>
-                      <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'EC Number (Uniprot)', value: row.ec_uniprot.join(', ') }"></ng-container>
+                      <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'EC Number (Uniprot)', value: row.ec_uniprot ? row.ec_uniprot.join(', ') : '' }"></ng-container>
                       <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Amino Acids', value: row.amino_acids }"></ng-container>
                       <div class="flex flex-col gap-2">
                         <div class="text-[--text-secondary-color]">Enzyme Sequence</div>
@@ -199,7 +199,7 @@
 
 <ng-template #rowInfo let-label="label" let-value="value">
 @if (value) {
-  <div class="flex flex-col gap-1">
+  <div class="flex flex-col gap-1" [class.opacity-25]="!value">
     <div class="text-[--text-secondary-color]">{{ label }}</div>
     <div class="font-semibold" [class.opacity-25]="!value">{{ value || 'N/A' }}</div>
   </div>
