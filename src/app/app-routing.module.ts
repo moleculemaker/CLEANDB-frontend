@@ -8,14 +8,17 @@ import { DatabaseSearchComponent } from "./pages/database-search/database-search
 import { EffectPredictionComponent } from "~/app/pages/effect-prediction/effect-prediction.component";
 import { EffectPredictionResultComponent } from "~/app/pages/effect-prediction-result/effect-prediction-result.component";
 import { CenterLayoutComponent } from "./components/center-layout/center-layout.component";
+import { LandingPageComponent } from "./pages/landing-page/landing-page.component";
 
 
 const routes: Routes = [
+  { path: '', redirectTo: '/home', pathMatch: 'full' },
   { 
     path: "", 
     component: CenterLayoutComponent,
     children: [
       { path: 'about', component: AboutPageComponent },
+      { path: 'home', component: LandingPageComponent },
     ]
   },
   { 
