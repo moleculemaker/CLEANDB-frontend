@@ -7,9 +7,17 @@ import { AboutPageComponent } from "./pages/about-page/about-page.component";
 import { DatabaseSearchComponent } from "./pages/database-search/database-search.component";
 import { EffectPredictionComponent } from "~/app/pages/effect-prediction/effect-prediction.component";
 import { EffectPredictionResultComponent } from "~/app/pages/effect-prediction-result/effect-prediction-result.component";
+import { CenterLayoutComponent } from "./components/center-layout/center-layout.component";
 
 
 const routes: Routes = [
+  { 
+    path: "", 
+    component: CenterLayoutComponent,
+    children: [
+      { path: 'about', component: AboutPageComponent },
+    ]
+  },
   { 
     path: "", 
     component: MainLayoutComponent,
