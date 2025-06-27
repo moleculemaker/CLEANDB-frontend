@@ -1,0 +1,38 @@
+<div class="flex gap-1 justify-around p-1 items-end">
+  @for (reactant of reactionSchema.reactants; track reactant; let index = $index) {
+  @if (index !== 0) {
+    <span>&nbsp;+&nbsp;</span>
+  }
+  <ng-container *ngTemplateOutlet="chemicalBlock; context: { 
+    $implicit: { 
+      name: reactant.name, 
+      smiles: reactant.smiles,
+    } 
+  }"></ng-container>
+  }
+  <span>&nbsp;-&gt;;&nbsp;</span>
+  @for (product of reactionSchema.products; track product; let index = $index) {
+    @if (index !== 0) {
+      <span>&nbsp;+&nbsp;</span>
+    }
+  <ng-container *ngTemplateOutlet="chemicalBlock; context: { 
+      $implicit: { 
+        name: product.name, 
+        smiles: product.smiles,
+      }
+    }"></ng-container>
+  }
+</div>
+
+<ng-template #chemicalBlock let-data>
+  <div class="flex flex-col gap-1">
+    <div class="flex flex-col gap-1">
+      <app-molecule-image 
+        [smiles]="data.smiles"
+        [width]="160"
+        [height]="160"
+      />
+    </div>
+    <div class="font-bold text-center">{{ data.name }}</div>
+  </div>
+</ng-template>

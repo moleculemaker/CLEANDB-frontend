@@ -7,16 +7,108 @@
       }
 
       <div>
-        <div class="my-6 flex items-center justify-between">
+        <div class="mb-6 flex items-center justify-between">
           <div>
-            <h5 class="mb-2 font-bold opacity-100 leading-lg">Title Here</h5>
-            <h6 class="leading-lg">
-              Description Here
+            <h5 class="mb-2 font-bold opacity-100 leading-lg">Mutation Effect Prediction</h5>
+            <h6 class="leading-lg text-text-secondary">
+              Please input an enzyme sequence and position(s) to get a mutation effect prediction.
             </h6>
           </div>
         </div>
 
-        <!-- TODO: Add content here -->
+        <p-panel>
+          <ng-template pTemplate="header">
+            <h6 class="grow">Input</h6>
+            <div class="flex gap-2 -my-1">
+              <button 
+                type="button" 
+                class="flex items-center btn-outline" 
+                (click)="useExample(example)" 
+                [disabled]="!example"
+              >
+                <i class="mr-2 pi pi-box"></i>
+                Use an Example
+              </button>
+              <button type="button" class="flex items-center btn-outline" (click)="clearAll()">
+                Reset Input
+              </button>
+            </div>
+          </ng-template>
+          <ng-template pTemplate="content">
+            <div class="p-4 flex flex-col gap-4">
+              <div class="flex flex-col gap-2">
+                <span class="flex justify-between mt-2 text-sm">
+                  <div class="flex gap-4 items-center">
+                    <small class="font-semibold leading-xl">
+                      Enzyme (FASTA)
+                    </small>
+                  </div>
+                  <small class="leading-xl text-text-secondary">
+                    Example:
+                    <button type="button" class="text-sm font-semibold underline cursor-pointer"
+                      [disabled]="!example"
+                      (click)="form.controls['sequence'].setValue(example.sequence)">
+                      {{ example ? example.sequence_name : 'Loading...' }}
+                    </button>
+                  </small>
+                </span>
+                <div class="flex p-[5px] border rounded-lg border-solid gap-2 border-[--surface-d]">
+                  <textarea pInputTextarea autoResize class="w-full border-none h-8" type="text"
+                    formControlName="sequence" title="Enter an Enzyme Sequence (FASTA)" appSequenceOrUniprotValidator
+                    placeholder="Enter an Enzyme Sequence (FASTA)"></textarea>
+                </div>
+
+                @let sequenceControl = form.controls['sequence'];
+                @if (sequenceControl.invalid && sequenceControl.dirty) {
+                <div class="flex flex-col gap-1 px-1">
+                  @if (sequenceControl.hasError('invalid')) {
+                  <div class="text-red-500">invalid name</div>
+                  }
+                  @if (sequenceControl.hasError('required')) {
+                  <div class="text-red-500">field is required</div>
+                  }
+                  @if (sequenceControl.hasError('headerCannotBeEmpty')) {
+                  <div class="text-red-500">header cannot be empty</div>
+                  }
+                  @if (sequenceControl.hasError('invalidSequence')) {
+                  <div class="text-red-500">invalid sequence</div>
+                  }
+                  @if (sequenceControl.hasError('sequenceLengthGreaterThan1022')) {
+                  <div class="text-red-500">sequence length greater than 1022</div>
+                  }
+                  @if (sequenceControl.hasError('sequenceLengthIs0')) {
+                  <div class="text-red-500">sequence length is 0</div>
+                  }
+
+                </div>
+                }
+
+              </div>
+              <!-- TODO: update to enable positions -->
+              <!-- <div class="flex flex-col gap-2">
+                <app-query-input
+                  [multiple]="false"
+                  [searchConfigs]="searchConfigs"
+                  formControlName="positions"
+                  [showSelectButton]="false"
+                >
+                  <small class="italic text-text-secondary leading-xl" ngProjectAs="tips">
+                    Tip: You may specify an amino acid residue or range if you know what position(s) you are interested in analyzing. This may help to reduce processing time. If you do so, you will also have the option to generate predictions for the entire sequence later on when accessing model results.
+                  </small>
+                </app-query-input>
+
+                @let positionsControl = form.controls['positions'];
+                @if (positionsControl.invalid && positionsControl.dirty) {
+                <div class="flex flex-col gap-1 px-1">
+                  @if (positionsControl.hasError('invalid')) {
+                  <div class="text-red-500">invalid Position</div>
+                  }
+                </div>
+                }
+              </div> -->
+            </div>
+          </ng-template>
+        </p-panel>
       </div>
     </div>
 
@@ -41,13 +133,22 @@
         </div>
         <div class="py-4">
           <p-checkbox name="subscription" styleClass="subscription-checkbox"
-            label="Agree to receive email notifications and updates about EffectPrediction."
-            [binary]="true" [formControl]="form.controls['agreeToSubscription']"></p-checkbox>
+            label="Agree to receive email notifications and updates about EffectPrediction." [binary]="true"
+            [formControl]="form.controls['agreeToSubscription']"></p-checkbox>
         </div>
       </div>
-      <!-- TODO: update button -->
-      <p-button label="Generating routes using ACERetro" type="submit" styleClass="bg-[#224063]"
-        [disabled]="form.invalid" iconPos="right" icon="pi pi-arrow-right"></p-button>
+      <!-- exampleUsed: {{ exampleUsed$ | async | json }}
+      example: {{ example$ | async | json }} -->
+      <div class="flex flex-col items-end gap-2">
+        <p-button label="Get Mutation Effect Prediction" type="submit" styleClass="bg-[#224063]" [disabled]="form.invalid"
+        iconPos="right" icon="pi pi-arrow-right"></p-button>
+        @if (exampleUsed) {
+        <span class="text-sm opacity-75">
+            <i class="pi pi-exclamation-triangle text-yellow-400"></i>
+            A precomputed result will be returned for the example values.
+        </span>
+        }
+      </div>
     </div>
   </form>
 </div>

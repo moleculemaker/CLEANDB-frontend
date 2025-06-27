@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, map, catchError, of } from 'rxjs';
-import { Loadable, LoadingStatus } from './openenzymedb.service';
+import { Loadable, LoadingStatus } from '../models/Loadable';
 import { SharedService } from '../api/mmli-backend/v1';
 
 @Injectable({

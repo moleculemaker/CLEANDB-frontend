@@ -4,6 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --muted-cell-gradient: linear-gradient(45deg, #bababa 12.50%, #ffffff 12.50%, #ffffff 50%, #bababa 50%, #bababa 62.50%, #ffffff 62.50%, #ffffff 100%);
+  --na-cell-gradient: linear-gradient(45deg, #8aaecc 12.50%, #ffffff 12.50%, #ffffff 50%, #8aaecc 50%, #8aaecc 62.50%, #ffffff 62.50%, #ffffff 100%);
+}
+
 @layer base {
   input[type="number"]::-webkit-inner-spin-button,
   input[type="number"]::-webkit-outer-spin-button {
@@ -50,6 +55,16 @@
   width: 0.8rem;
   border-radius: 50%;
   @apply bg-orange-500;
+}
+
+.cell-muted {
+  background: var(--muted-cell-gradient) !important;
+  background-size: 5.66px 5.66px !important;
+}
+
+.cell-na {
+  background: var(--na-cell-gradient) !important;
+  background-size: 5.66px 5.66px !important;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
