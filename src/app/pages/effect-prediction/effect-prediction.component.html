@@ -52,20 +52,32 @@
                     </button>
                   </small>
                 </span>
-                <div class="flex p-[5px] border rounded-lg border-solid gap-2 border-[--surface-d]">
+
+                @let sequenceControl = form.controls['sequence'];
+                <div class="flex p-[5px] border rounded-lg border-solid gap-2"
+                  [ngClass]="{
+                    'border-[--surface-d]': !sequenceControl.hasError('exceedsMaxSeqNum'),
+                    'border-red-500': sequenceControl.invalid && sequenceControl.dirty
+                  }"
+                >
                   <textarea pInputTextarea autoResize class="w-full border-none h-8" type="text"
-                    formControlName="sequence" title="Enter an Enzyme Sequence (FASTA)" appSequenceOrUniprotValidator
+                    formControlName="sequence"
+                    title="Enter an Enzyme Sequence (FASTA)"
+                    appSequenceValidator
+                    [maxSeqNum]="maxSeqNum"
                     placeholder="Enter an Enzyme Sequence (FASTA)"></textarea>
                 </div>
 
-                @let sequenceControl = form.controls['sequence'];
                 @if (sequenceControl.invalid && sequenceControl.dirty) {
                 <div class="flex flex-col gap-1 px-1">
-                  @if (sequenceControl.hasError('invalid')) {
-                  <div class="text-red-500">invalid name</div>
+                  @if (sequenceControl.hasError('noSequence')) {
+                  <div class="text-red-500">invalid sequence format (FASTA)</div>
                   }
                   @if (sequenceControl.hasError('required')) {
                   <div class="text-red-500">field is required</div>
+                  }
+                  @if (sequenceControl.hasError('exceedsMaxSeqNum')) {
+                  <div class="text-red-500">exceeds max sequence number (max {{ maxSeqNum }})</div>
                   }
                   @if (sequenceControl.hasError('headerCannotBeEmpty')) {
                   <div class="text-red-500">header cannot be empty</div>

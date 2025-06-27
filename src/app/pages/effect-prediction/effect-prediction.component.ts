@@ -13,8 +13,9 @@ import { QueryValue, RangeSearchOption, SearchOption } from "~/app/models/search
 import { InputTextareaModule } from "primeng/inputtextarea";
 import { JobType } from "~/app/api/mmli-backend/v1";
 import { combineLatestWith, map, Subscription, tap } from "rxjs";
-import { getFasta, getSeq } from "~/app/utils/fasta";
+import { getFasta, getSingleSeq } from "~/app/utils/fasta";
 import { InputTextModule } from "primeng/inputtext";
+import { SequenceValidatorDirective } from "~/app/directives/sequence-validator.directive";
 
 @Component({
   selector: 'app-effect-prediction',
@@ -32,6 +33,7 @@ import { InputTextModule } from "primeng/inputtext";
 
     JobTabComponent,
     QueryInputComponent,
+    SequenceValidatorDirective,
   ],
   host: {
     class: "flex flex-col h-full"
@@ -50,6 +52,7 @@ export class EffectPredictionComponent implements OnChanges, OnDestroy {
     positions: new FormControl<QueryValue | null>(null),
     agreeToSubscription: new FormControl(false),
   });
+  maxSeqNum = 1;
   searchConfigs: SearchOption[] = [
     new RangeSearchOption({
       key: 'positions',
@@ -116,20 +119,18 @@ export class EffectPredictionComponent implements OnChanges, OnDestroy {
       return;
     }
 
-    console.log('to submit', this.form.value);
-
     if (this.exampleUsed) {
       this.router.navigate(['effect-prediction', 'result', 'precomputed']);
       return;
     } 
 
-    const { sequenceName, sequence } = getSeq(this.form.value.sequence || '');
+    const { sequenceName, sequence } = getSingleSeq(this.form.value.sequence || '');
     this.subscriptions.push(
       this.service.createAndRunJob(
         JobType.CleandbMepesm,
         { 
           job_info: JSON.stringify({
-            sequence,
+            sequence: sequence,
             sequence_name: sequenceName,
             positions: this.form.value.positions?.value || [],
           }),
