@@ -3,6 +3,7 @@ export * from './cLEANECLookupMatch';
 export * from './cLEANECLookupResponse';
 export * from './cLEANSearchResponse';
 export * from './cLEANTypeaheadResponse';
+export * from './eCNumberConfidence';
 export * from './hTTPValidationError';
 export * from './responseFormat';
 export * from './validationError';

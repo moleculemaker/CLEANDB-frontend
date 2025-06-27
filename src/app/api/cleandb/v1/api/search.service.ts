@@ -104,9 +104,10 @@ export class SearchService {
      * Get enzyme kinetic data with filtering options.
      * @param accession Uniprot Accession
      * @param organism Organism Name
-     * @param proteinName Protein Name
+     * @param protein Protein Name
      * @param geneName Gene Name
-     * @param cleanEcNumber CLEAN predicted EC number
+     * @param ecNumber CLEAN predicted EC number
+     * @param uniprot Uniprot ID
      * @param cleanEcConfidence Minimum confidence for CLEAN predicted EC number
      * @param sequenceLength Minimum sequence length
      * @param format Response format (json or csv)
@@ -115,10 +116,10 @@ export class SearchService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getDataApiV1SearchGet(accession?: any, organism?: any, proteinName?: any, geneName?: any, cleanEcNumber?: any, cleanEcConfidence?: any, sequenceLength?: any, format?: ResponseFormat, limit?: any, offset?: any, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<CLEANSearchResponse>;
-    public getDataApiV1SearchGet(accession?: any, organism?: any, proteinName?: any, geneName?: any, cleanEcNumber?: any, cleanEcConfidence?: any, sequenceLength?: any, format?: ResponseFormat, limit?: any, offset?: any, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpResponse<CLEANSearchResponse>>;
-    public getDataApiV1SearchGet(accession?: any, organism?: any, proteinName?: any, geneName?: any, cleanEcNumber?: any, cleanEcConfidence?: any, sequenceLength?: any, format?: ResponseFormat, limit?: any, offset?: any, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpEvent<CLEANSearchResponse>>;
-    public getDataApiV1SearchGet(accession?: any, organism?: any, proteinName?: any, geneName?: any, cleanEcNumber?: any, cleanEcConfidence?: any, sequenceLength?: any, format?: ResponseFormat, limit?: any, offset?: any, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<any> {
+    public getDataApiV1SearchGet(accession?: any, organism?: any, protein?: any, geneName?: any, ecNumber?: any, uniprot?: any, cleanEcConfidence?: any, sequenceLength?: any, format?: ResponseFormat, limit?: any, offset?: any, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<CLEANSearchResponse>;
+    public getDataApiV1SearchGet(accession?: any, organism?: any, protein?: any, geneName?: any, ecNumber?: any, uniprot?: any, cleanEcConfidence?: any, sequenceLength?: any, format?: ResponseFormat, limit?: any, offset?: any, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpResponse<CLEANSearchResponse>>;
+    public getDataApiV1SearchGet(accession?: any, organism?: any, protein?: any, geneName?: any, ecNumber?: any, uniprot?: any, cleanEcConfidence?: any, sequenceLength?: any, format?: ResponseFormat, limit?: any, offset?: any, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpEvent<CLEANSearchResponse>>;
+    public getDataApiV1SearchGet(accession?: any, organism?: any, protein?: any, geneName?: any, ecNumber?: any, uniprot?: any, cleanEcConfidence?: any, sequenceLength?: any, format?: ResponseFormat, limit?: any, offset?: any, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
         if (accession !== undefined && accession !== null) {
@@ -129,17 +130,21 @@ export class SearchService {
           localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
             <any>organism, 'organism');
         }
-        if (proteinName !== undefined && proteinName !== null) {
+        if (protein !== undefined && protein !== null) {
           localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
-            <any>proteinName, 'protein_name');
+            <any>protein, 'protein');
         }
         if (geneName !== undefined && geneName !== null) {
           localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
             <any>geneName, 'gene_name');
         }
-        if (cleanEcNumber !== undefined && cleanEcNumber !== null) {
+        if (ecNumber !== undefined && ecNumber !== null) {
           localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
-            <any>cleanEcNumber, 'clean_ec_number');
+            <any>ecNumber, 'ec_number');
+        }
+        if (uniprot !== undefined && uniprot !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>uniprot, 'uniprot');
         }
         if (cleanEcConfidence !== undefined && cleanEcConfidence !== null) {
           localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
