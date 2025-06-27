@@ -52,9 +52,9 @@ module.exports = {
         }
       },
       spacing: {
-        "sidebar": "180px",
-        "sidebar-sm": "52px",
-        "content-xl": "1180px",
+        "sidebar": `${sidebarWidth}px`,
+        "sidebar-sm": `${sidebarWidthSm}px`,
+        "content-xl": `${maxContentWidth}px`,
       },
       screens: {
         'xl-sidebar-sm': { max: `${maxContentWidth + 2 * sidebarWidthSm}px` },

@@ -1,0 +1,55 @@
+@let score = score$ | async;
+@if (score) {
+
+  <!-- LLR ≤ –2: Strongly Deleterious
+  –2 < LLR ≤ –1: Deleterious
+  –1 < LLR < 1: Neutral / Uncertain
+  1 ≤ LLR < 2: Beneficial
+  LLR ≥ 2: Strongly Beneficial -->
+
+  @let isStronglyDeleterious = score <= -2;
+  @let isDeleterious = score > -2 && score <= -1;
+  @let isNeutral = score > -1 && score < 1;
+  @let isBeneficial = score >= 1 && score < 2;
+  @let isStronglyBeneficial = score >= 2;
+
+  @let label
+      = isStronglyDeleterious ? 'Strongly Deleterious'
+      : (isDeleterious ? 'Deleterious'
+      : (isNeutral ? 'Neutral / Uncertain'
+      : (isBeneficial ? 'Beneficial'
+      : 'Strongly Beneficial')));
+
+  @let classNames = [
+    'px-2 py-1 rounded-sm text-[#495057] inline-flex items-center justify-center gap-2',
+    isStronglyDeleterious ? 'bg-[#CF81843A]' : '',
+    isDeleterious ? 'bg-[#EAD0CF3A]' : '',
+    isNeutral ? 'bg-[#E3E3E33A]' : '',
+    isBeneficial ? 'bg-[#E3E2EB3A]' : '',
+    isStronglyBeneficial ? 'bg-[#A9ADDB3A]' : '',
+  ].join(' ');
+
+  @let arrowClassNames = [
+    'pi',
+    isStronglyDeleterious ? 'pi-arrow-down' : '',
+    isDeleterious ? 'pi-arrow-down-right' : '',
+    isNeutral ? 'pi-arrow-right' : '',
+    isBeneficial ? 'pi-arrow-up-right' : '',
+    isStronglyBeneficial ? 'pi-arrow-up' : '',
+  ].join(' ');
+
+  @let textClassNames = [
+    isStronglyBeneficial ? 'text-[#3F4CBD]' : '',
+    isStronglyDeleterious ? 'text-[#B1242B]' : '',
+    isBeneficial ? 'text-[#A9ADDB]' : '',
+    isNeutral ? 'text-[#9c9c9c]' : '',
+    isDeleterious ? 'text-[#CF8184]' : '',
+  ].join(' ');
+
+  <div [class]="classNames">
+    <i [class]="[arrowClassNames, textClassNames].join(' ')"></i>
+    <span>
+      {{ label }} ({{ score | number:'1.1-4' }})
+    </span>
+  </div>
+}

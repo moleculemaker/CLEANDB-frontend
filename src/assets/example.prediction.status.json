@@ -1,17 +1,15 @@
-[
-    {
-        "phase": "completed",
-        "email": "",
-        "job_id": "precomputed",
-        "type": "effect-prediction",
-        "command": "python ./main.py --oed",
-        "time_start": 0,
-        "deleted": 0,
-        "job_info": "{\"query_smiles\":\"COC1=C(C=CC(=C1)CCN)O\",\"query_value\":{\"selectedOption\":\"smiles\",\"value\":\"COC1=C(C=CC(=C1)CCN)O\",\"inputType\":\"smiles\",\"inputValue\":\"COC1=C(C=CC(=C1)CCN)O\"}}",
-        "run_id": null,
-        "image": "moleculemaker/mmli-cheminfo-service",
-        "time_created": 1750437676,
-        "time_end": 0,
-        "user_agent": ""
-    }
-]
+{
+    "phase": "completed",
+    "email": "",
+    "job_id": "precomputed",
+    "type": "cleandb-mepesm",
+    "command": "python ./main.py --oed",
+    "time_start": 0,
+    "deleted": 0,
+    "job_info": "{\"sequence\":\"MAKSPEVEHPVKAFGWAARDTSGHLSPFHFSRRATGEHDVQFKVLYCGICHSDLHMIKNEWGFTKYPIVPGHEIVGIVTEVGSKVEKFKVGDKVGVGCLVGSCRKCDMCTKDLENYCPGQILTYSATYTDGTTTYGGYSDLMVADEHFVIRWPENLPMDIGAPLLCAGITTYSPLRYFGLDKPGTHVGVVGLGGLGHVAVKFAKAFGAKVTVISTSESKKQEALEKLGADSFLVSRDPEQMKAAAASLDGIIDTVSAIHPIMPLLSILKSHGKLILVGAPEKPLELPSFPLIAGRKIIAGSAIGGLKETQEMIDFAAKHNVLPDVELVSMDYVNTAMERLLKADVKYRFVIDVANTLKSA\",\"sequence_name\":\"Q6V4H0 (8-hydroxygeraniol dehydrogenase)\",\"positions\":[]}",
+    "run_id": null,
+    "image": "moleculemaker/mmli-cheminfo-service",
+    "time_created": 1750437676,
+    "time_end": 0,
+    "user_agent": ""
+}
