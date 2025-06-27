@@ -9,7 +9,7 @@ import { EnvironmentService } from "./environment.service";
 import { CleanDbRecord, cleanDbRecordRawToCleanDbRecord } from "../models/CleanDbRecord";
 import { loadGzippedJson } from "../utils/loadGzippedJson";
 import { ReactionSchemaRecord, ReactionSchemaRecordRaw, reactionSchemaRecordRawToReactionSchemaRecord } from "../models/ReactionSchemaRecord";
-import { SearchService } from "../api/cleandb/v1"; // TODO: use the correct service
+import { CLEANTypeaheadResponse, SearchService } from "../api/cleandb/v1"; // TODO: use the correct service
 
 
 /* -------------------------------- File Imports -------------------------------- */
@@ -64,12 +64,12 @@ export class CleanDbService {
       .pipe(map((jobs) => jobs[0]));
   }
 
-  getResult(jobType: JobType, jobID: string): Observable<any> {
-    if (this.shouldUsePrecomputedResult(jobID)) {
-      return from(exampleSearch).pipe(map((records => records.map(cleanDbRecordRawToCleanDbRecord))))
-    }
-    return this.filesService.getResultsBucketNameResultsJobIdGet(jobType, jobID);
-  }
+  // getResult(jobType: JobType, jobID: string): Observable<any> {
+  //   if (this.shouldUsePrecomputedResult(jobID)) {
+  //     return from(exampleSearch).pipe(map((records => records.map(cleanDbRecordRawToCleanDbRecord))))
+  //   }
+  //   return this.filesService.getResultsBucketNameResultsJobIdGet(jobType, jobID);
+  // }
 
   getEffectPredictionResult(jobID: string): Observable<EffectPredictionResult> {
     const observable$
@@ -82,9 +82,16 @@ export class CleanDbService {
     );
   }
 
+  getAutoComplete(type: string, query: string): Observable<CLEANTypeaheadResponse> {
+    return this.searchService.getTypeaheadApiV1TypeaheadGet(type, query)
+  }
+
   getData(query: any): Observable<any> {
     if (this.frontendOnly) {
-      return from(exampleSearch).pipe(map((records => records.map(cleanDbRecordRawToCleanDbRecord))))
+      return from(exampleSearch).pipe(map((recordsResponse => ({
+        ...recordsResponse,
+        data: recordsResponse.data.map(cleanDbRecordRawToCleanDbRecord)
+      }))))
     }
     // TODO: get data from backend
     return this.searchService.getDataApiV1SearchGet(query);
