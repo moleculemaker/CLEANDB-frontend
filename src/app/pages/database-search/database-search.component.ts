@@ -171,10 +171,10 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     new StringSearchOption({
       key: 'protein_name',
       label: 'Protein Name',
-      placeholder: 'Free fatty acid receptor 2',
+      placeholder: 'Catabolic 3-dehydroquinase',
       example: {
-        label: 'Free fatty acid receptor 2',
-        value: 'Free fatty acid receptor 2'
+        label: 'Catabolic 3-dehydroquinase',
+        value: 'Catabolic 3-dehydroquinase'
       }
     }),
     new StringSearchOption({
@@ -182,8 +182,8 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       label: 'Gene',
       placeholder: 'Enter Gene Name',
       example: {
-        label: 'FAR2',
-        value: 'FAR2'
+        label: 'nbaC',
+        value: 'nbaC'
       }
     }),
     new StringSearchOption({
@@ -191,8 +191,8 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       label: 'Uniprot ID',
       placeholder: 'Enter Uniprot ID',
       example: {
-        label: 'P05655',
-        value: 'P05655'
+        label: 'Q9S9U6',
+        value: 'Q9S9U6'
       }
     }),
     new StringSearchOption({
@@ -200,8 +200,8 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       label: 'Organism',
       placeholder: 'Enter organism name',
       example: {
-        label: 'Lentzea aerocolonigenes',
-        value: 'Lentzea aerocolonigenes'
+        label: 'Saccharomyces cerevisiae',
+        value: 'Saccharomyces cerevisiae'
       }
     }),
     new StringSearchOption({
@@ -209,8 +209,8 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       label: 'EC Number',
       placeholder: 'Enter EC Number',
       example: {
-        label: '5.1.1.1',
-        value: '5.1.1.1'
+        label: '4.1.1.6',
+        value: '4.1.1.6'
       },
     }),
   ];
