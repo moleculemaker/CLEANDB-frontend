@@ -49,7 +49,7 @@ export class QueryInputComponent implements ControlValueAccessor {
   @Input() showSelectButton = true;
 
   selectedSearchOption: SearchOption | null = null;
-  searchSuggestions: string[] = [];
+  searchSuggestions: { label: string, value: string }[] = [];
 
   searchOptions = this.searchConfigs.map((config) => ({
     ...config,
@@ -195,8 +195,6 @@ export class QueryInputComponent implements ControlValueAccessor {
     this.service.getTypeahead(params)
     .subscribe({
       next: (data) => {   
-        console.log(data);
-             
         this.searchSuggestions = data;
       },
       error: (error) => {

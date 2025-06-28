@@ -96,18 +96,18 @@ export class CleanDbService {
     return this.searchService.getDataApiV1SearchGet(query);
   }
 
-  getTypeahead(query: {field_name: string, search :string}) : Observable<any> {
+  getTypeahead(query: {field_name: string, search :string}) : Observable<{ label: string; value: string; }[]> {
     if (this.frontendOnly) {
       return of([]);
     }
     if (query.field_name == 'ec_number') {
       return this.searchService.getEcLookupApiV1EcLookupGet(query).pipe(
         map(({matches}) => 
-          matches.map((match: { ec_number: string; }) => match.ec_number)
+          matches.map((match: { ec_number: string, ec_name: string }) => ({ label: match.ec_number + ' ' + match.ec_name, value: match.ec_number }))
         )
       )
     }
-    return this.searchService.getTypeaheadApiV1TypeaheadGet(query).pipe(map(({matches}) => matches));
+    return this.searchService.getTypeaheadApiV1TypeaheadGet(query).pipe(map(({matches}) => matches.map((match: string) => ({ label: match, value: match}))));
   }
 
   getReactionSchemaForEc(ec: string): Observable<ReactionSchemaRecord | null> {
