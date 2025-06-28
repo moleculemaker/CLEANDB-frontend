@@ -171,7 +171,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     new StringSearchOption({
       key: 'protein_name',
       label: 'Protein Name',
-      placeholder: 'Catabolic 3-dehydroquinase',
+      placeholder: 'Enter Protein Name (minimum 3 characters)',
       example: {
         label: 'Catabolic 3-dehydroquinase',
         value: 'Catabolic 3-dehydroquinase'
@@ -180,7 +180,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     new StringSearchOption({
       key: 'gene_name',
       label: 'Gene',
-      placeholder: 'Enter Gene Name',
+      placeholder: 'Enter Gene Name (minimum 3 characters)',
       example: {
         label: 'nbaC',
         value: 'nbaC'
@@ -189,7 +189,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     new StringSearchOption({
       key: 'uniprot_id',
       label: 'Uniprot ID',
-      placeholder: 'Enter Uniprot ID',
+      placeholder: 'Enter Uniprot ID (minimum 3 characters)',
       example: {
         label: 'Q9S9U6',
         value: 'Q9S9U6'
@@ -198,7 +198,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     new StringSearchOption({
       key: 'organism',
       label: 'Organism',
-      placeholder: 'Enter organism name',
+      placeholder: 'Enter Organism Name (minimum 3 characters)',
       example: {
         label: 'Saccharomyces cerevisiae',
         value: 'Saccharomyces cerevisiae'
@@ -207,7 +207,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     new StringSearchOption({
       key: 'ec_number',
       label: 'EC Number',
-      placeholder: 'Enter EC Number',
+      placeholder: 'Enter EC Number or EC Name (minimum 3 characters)',
       example: {
         label: '4.1.1.6',
         value: '4.1.1.6'
