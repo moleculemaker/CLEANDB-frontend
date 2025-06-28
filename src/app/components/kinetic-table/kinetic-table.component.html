@@ -3,7 +3,7 @@
     <p-panel>
       <ng-template pTemplate="header">
         <span class="grow">Enzyme Function Predictions</span>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 hidden"> <!-- FIXME temporarily hiding filter controls because they need to be updated to work with the API -->
           <button class="btn-outline !flex items-center gap-2" (click)="showFilter = !showFilter">
             <i class="pi pi-filter"></i>
             <h6 class="inline leading-lg">Filter</h6>
@@ -180,7 +180,7 @@
                 <td colspan="11" class="text-center">
                   <div class="flex flex-col items-center justify-center h-full gap-4 p-8">
                     <h5 class="font-semibold text-center">Empty</h5>
-                    <p class="text-center">No kinetic data found. Please try a new search.</p>
+                    <p class="text-center">No results available in CLEAN DB.</p>
                   </div>
                 </td>
               </tr>

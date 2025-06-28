@@ -444,6 +444,8 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
 
   // Helper method to match a row against all criteria
   private matchesSearchCriteria(row: CleanDbRecord, criteriaArray: FormArray): boolean {    
+    // FIXME temporarily disabling frontend searching, because it needs to be updated to work with the API
+    return true;
     let matches = true;
     let prevMatch = true;
     
