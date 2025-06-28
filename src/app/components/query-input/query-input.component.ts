@@ -6,12 +6,15 @@ import { DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
 import { MenuModule } from 'primeng/menu';
 import { RadioButtonModule } from 'primeng/radiobutton';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 
 import { MarvinjsInputComponent } from '../marvinjs-input/marvinjs-input.component';
 import { MoleculeImageComponent } from '../molecule-image/molecule-image.component';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { SkeletonModule } from 'primeng/skeleton';
 import { SearchOption, QueryValue } from '../../models/search-options';
+import { AutoCompleteCompleteEvent } from 'primeng/autocomplete';
+import { CleanDbService } from '~/app/services/clean-db.service';
 
 @Component({
   selector: 'app-query-input',
@@ -28,6 +31,7 @@ import { SearchOption, QueryValue } from '../../models/search-options';
     MoleculeImageComponent,
     ProgressSpinnerModule,
     SkeletonModule,
+    AutoCompleteModule
   ],
   templateUrl: './query-input.component.html',
   styleUrl: './query-input.component.scss',
@@ -45,6 +49,7 @@ export class QueryInputComponent implements ControlValueAccessor {
   @Input() showSelectButton = true;
 
   selectedSearchOption: SearchOption | null = null;
+  searchSuggestions: string[] = [];
 
   searchOptions = this.searchConfigs.map((config) => ({
     ...config,
@@ -60,7 +65,8 @@ export class QueryInputComponent implements ControlValueAccessor {
     return acc;
   }, {} as Record<string, typeof this.searchConfigs[0]>);
 
-  constructor() { }
+  constructor(public service: CleanDbService) {
+  }
 
   ngOnInit() {
     // Subscribe to value changes for all search configs
@@ -177,5 +183,34 @@ export class QueryInputComponent implements ControlValueAccessor {
       acc[config.key] = config;
       return acc;
     }, {} as Record<string, typeof this.searchConfigs[0]>);
+  }
+
+  public search(key: string , event: AutoCompleteCompleteEvent) {
+    if (!this.selectedSearchOption) return;
+    const params = {
+      field_name: key,
+      search: event.query,
+    }
+
+    this.service.getTypeahead(params)
+    .subscribe({
+      next: (data) => {   
+        console.log(data);
+             
+        this.searchSuggestions = data;
+      },
+      error: (error) => {
+        this.searchSuggestions = [];
+      }
+    });
+  }
+
+  onSuggestionSelect(event: any) {
+    if (this.selectedSearchOption) {
+      this.selectedSearchOption.formGroup.patchValue({
+        value: event.value,
+      });
+      this.emitValue();
+    }
   }
 }

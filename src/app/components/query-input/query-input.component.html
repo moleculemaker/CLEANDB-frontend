@@ -32,27 +32,98 @@
 
     <!-- Actual Input -->
     @if (selectedSearchOption) {
-    <div class="grow h-8" [formGroup]="selectedSearchOption.formGroup">
+    <div class="grow pt-1 h-8" [formGroup]="selectedSearchOption.formGroup">
       @switch (selectedSearchOption.key) {
       @case ('ec_number') {
-      <input pInputText type="text" title="{{selectedSearchOption.placeholder}}"
-        [placeholder]="selectedSearchOption.placeholder" formControlName="value" class="w-full border-none h-8" />
+        <p-autoComplete 
+          pInputText 
+          type="text" 
+          title="{{selectedSearchOption.placeholder}}"
+          [placeholder]="selectedSearchOption.placeholder"
+          formControlName="value" 
+          inputStyleClass="w-full border-none"
+          styleClass="w-full h-5"
+          class="w-full border-none p-0"
+          [suggestions]="searchSuggestions" 
+          (completeMethod)="search(selectedSearchOption.key, $event)"
+          [forceSelection]="true"
+          [minLength]="3"
+          [delay]="300"
+          (onSelect)="onSuggestionSelect($event)"
+      ></p-autoComplete>
       }
-      @case ('protein_name') {
-      <input pInputText type="text" title="{{selectedSearchOption.placeholder}}"
-        [placeholder]="selectedSearchOption.placeholder" formControlName="value" class="w-full border-none h-8" />
+      @case ('protein_name')
+       {
+        <p-autoComplete 
+          pInputText 
+          type="text" 
+          title="{{selectedSearchOption.placeholder}}"
+          [placeholder]="selectedSearchOption.placeholder"
+          formControlName="value" 
+          inputStyleClass="w-full border-none"
+          styleClass="w-full h-5"
+          class="w-full border-none p-0"
+          [suggestions]="searchSuggestions" 
+          (completeMethod)="search(selectedSearchOption.key, $event)"
+          [forceSelection]="true"
+          [minLength]="3"
+          [delay]="300"
+          (onSelect)="onSuggestionSelect($event)"
+      ></p-autoComplete>
       }
       @case ('organism') {
-      <input pInputText type="text" title="{{selectedSearchOption.placeholder}}"
-        [placeholder]="selectedSearchOption.placeholder" formControlName="value" class="w-full border-none h-8" />
+        <p-autoComplete 
+          pInputText 
+          type="text" 
+          title="{{selectedSearchOption.placeholder}}"
+          [placeholder]="selectedSearchOption.placeholder"
+          formControlName="value" 
+          inputStyleClass="w-full border-none"
+          styleClass="w-full h-5"
+          class="w-full border-none p-0"
+          [suggestions]="searchSuggestions" 
+          (completeMethod)="search(selectedSearchOption.key, $event)"
+          [forceSelection]="true"
+          [minLength]="3"
+          [delay]="300"
+          (onSelect)="onSuggestionSelect($event)"
+      ></p-autoComplete>
       }
-      @case ('uniprot') {
-      <input pInputText type="text" title="{{selectedSearchOption.placeholder}}"
-        [placeholder]="selectedSearchOption.placeholder" formControlName="value" class="w-full border-none h-8" />
+      @case ('uniprot_id') {
+        <p-autoComplete 
+          pInputText 
+          type="text" 
+          title="{{selectedSearchOption.placeholder}}"
+          [placeholder]="selectedSearchOption.placeholder"
+          formControlName="value" 
+          inputStyleClass="w-full border-none"
+          styleClass="w-full h-5"
+          class="w-full border-none p-0"
+          [suggestions]="searchSuggestions" 
+          (completeMethod)="search(selectedSearchOption.key, $event)"
+          [forceSelection]="true"
+          [minLength]="3"
+          [delay]="300"
+          (onSelect)="onSuggestionSelect($event)"
+      ></p-autoComplete>
       }
-      @case ('gene_id') {
-      <input pInputText type="text" title="{{selectedSearchOption.placeholder}}"
-        [placeholder]="selectedSearchOption.placeholder" formControlName="value" class="w-full border-none h-8" />
+      @case ('gene_name') {
+        <p-autoComplete 
+          pInputText 
+          type="text" 
+          title="{{selectedSearchOption.placeholder}}"
+          [placeholder]="selectedSearchOption.placeholder"
+          formControlName="value" 
+          inputStyleClass="w-full border-none"
+          styleClass="w-full h-5"
+          class="w-full border-none p-0"
+          [suggestions]="searchSuggestions" 
+          (completeMethod)="search(selectedSearchOption.key, $event)"
+          [forceSelection]="true"
+          [minLength]="3"
+          [delay]="300"
+          (onSelect)="onSuggestionSelect($event)"
+      ></p-autoComplete>
       }
       @case ('positions') {
       <input pInputText type="text" title="{{selectedSearchOption.placeholder}}"

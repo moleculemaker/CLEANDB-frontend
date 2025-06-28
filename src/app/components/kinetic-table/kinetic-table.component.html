@@ -125,7 +125,7 @@
                     class="rounded-md border border-[--surface-d] border-solid bg-white p-2 flex flex-col gap-2 w-full">
                     <div class="flex gap-16 flex-wrap">
                       <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'ID', value: row.id }"></ng-container>
-                      <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Gene', value: row.gene_id }"></ng-container>
+                      <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Gene', value: row.gene_name }"></ng-container>
                       <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'NCBI Tax ID', value: row.ncbi_tax_id }"></ng-container>
                       <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'EC Number (Uniprot)', value: row.ec_uniprot ? row.ec_uniprot.join(', ') : '' }"></ng-container>
                       <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Amino Acids', value: row.amino_acids }"></ng-container>

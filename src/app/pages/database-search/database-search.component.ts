@@ -178,7 +178,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       }
     }),
     new StringSearchOption({
-      key: 'gene_id',
+      key: 'gene_name',
       label: 'Gene',
       placeholder: 'Enter Gene Name',
       example: {
@@ -187,7 +187,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       }
     }),
     new StringSearchOption({
-      key: 'uniprot',
+      key: 'uniprot_id',
       label: 'Uniprot ID',
       placeholder: 'Enter Uniprot ID',
       example: {
@@ -356,7 +356,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
             protein: search.value,
           };
           break;
-        case 'uniprot':
+        case 'uniprot_id':
           criteriaQuery = {
             uniprot: search.value,
           };
@@ -366,7 +366,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
             organism: search.value,
           };
           break;
-        case 'gene_id':
+        case 'gene_name':
           criteriaQuery = {
             gene_name: search.value,
           };
@@ -471,7 +471,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
         case 'uniprot':
           currentMatch = row.uniprot.toLowerCase() === search.value.toLowerCase();
           break;
-        case 'gene_id':
+        case 'gene_name':
           currentMatch = row.gene_name.toLowerCase() === search.value.toLowerCase();
           break;
         default:

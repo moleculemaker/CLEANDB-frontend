@@ -93,8 +93,21 @@ export class CleanDbService {
         data: recordsResponse.data.map(cleanDbRecordRawToCleanDbRecord)
       }))))
     }
-    // TODO: get data from backend
     return this.searchService.getDataApiV1SearchGet(query);
+  }
+
+  getTypeahead(query: {field_name: string, search :string}) : Observable<any> {
+    if (this.frontendOnly) {
+      return of([]);
+    }
+    if (query.field_name == 'ec_number') {
+      return this.searchService.getEcLookupApiV1EcLookupGet(query).pipe(
+        map(({matches}) => 
+          matches.map((match: { ec_number: string; }) => match.ec_number)
+        )
+      )
+    }
+    return this.searchService.getTypeaheadApiV1TypeaheadGet(query).pipe(map(({matches}) => matches));
   }
 
   getReactionSchemaForEc(ec: string): Observable<ReactionSchemaRecord | null> {
