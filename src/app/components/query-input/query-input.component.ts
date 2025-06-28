@@ -6,7 +6,7 @@ import { DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
 import { MenuModule } from 'primeng/menu';
 import { RadioButtonModule } from 'primeng/radiobutton';
-import { AutoCompleteModule } from 'primeng/autocomplete';
+import { AutoCompleteModule, AutoCompleteSelectEvent } from 'primeng/autocomplete';
 
 import { MarvinjsInputComponent } from '../marvinjs-input/marvinjs-input.component';
 import { MoleculeImageComponent } from '../molecule-image/molecule-image.component';
@@ -203,10 +203,10 @@ export class QueryInputComponent implements ControlValueAccessor {
     });
   }
 
-  onSuggestionSelect(event: any) {
+  onSuggestionSelect(event: AutoCompleteSelectEvent) {
     if (this.selectedSearchOption) {
       this.selectedSearchOption.formGroup.patchValue({
-        value: event.value,
+        value: event.value.value,
       });
       this.emitValue();
     }
