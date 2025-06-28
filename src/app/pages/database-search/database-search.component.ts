@@ -8,8 +8,7 @@ import { CommonModule } from "@angular/common";
 import { CleanDbService } from '~/app/services/clean-db.service';
 import { PanelModule } from "primeng/panel";
 import { QueryInputComponent } from "~/app/components/query-input/query-input.component";
-import { QueryValue, SearchOption, SmilesSearchOption } from '~/app/models/search-options';
-import { RangeSearchOption } from '~/app/models/search-options/RangeSearchOption';
+import { QueryValue, SearchOption } from '~/app/models/search-options';
 import { StringSearchOption } from '~/app/models/search-options/StringSearchOption';
 import { TableModule } from "primeng/table";
 import { ChipModule } from "primeng/chip";
@@ -172,46 +171,46 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     new StringSearchOption({
       key: 'protein_name',
       label: 'Protein Name',
-      placeholder: 'Free fatty acid receptor 2',
+      placeholder: 'Enter Protein Name (minimum 3 characters)',
       example: {
-        label: 'Free fatty acid receptor 2',
-        value: 'Free fatty acid receptor 2'
+        label: 'Catabolic 3-dehydroquinase',
+        value: 'Catabolic 3-dehydroquinase'
       }
     }),
     new StringSearchOption({
-      key: 'gene_id',
+      key: 'gene_name',
       label: 'Gene',
-      placeholder: 'Enter Gene Name',
+      placeholder: 'Enter Gene Name (minimum 3 characters)',
       example: {
-        label: 'FAR2',
-        value: 'FAR2'
+        label: 'nbaC',
+        value: 'nbaC'
       }
     }),
     new StringSearchOption({
-      key: 'uniprot',
+      key: 'uniprot_id',
       label: 'Uniprot ID',
-      placeholder: 'Enter Uniprot ID',
+      placeholder: 'Enter Uniprot ID (minimum 3 characters)',
       example: {
-        label: 'P05655',
-        value: 'P05655'
+        label: 'Q9S9U6',
+        value: 'Q9S9U6'
       }
     }),
     new StringSearchOption({
       key: 'organism',
       label: 'Organism',
-      placeholder: 'Enter organism name',
+      placeholder: 'Enter Organism Name (minimum 3 characters)',
       example: {
-        label: 'Lentzea aerocolonigenes',
-        value: 'Lentzea aerocolonigenes'
+        label: 'Saccharomyces cerevisiae',
+        value: 'Saccharomyces cerevisiae'
       }
     }),
     new StringSearchOption({
       key: 'ec_number',
       label: 'EC Number',
-      placeholder: 'Enter EC Number',
+      placeholder: 'Enter EC Number or EC Name (minimum 3 characters)',
       example: {
-        label: '5.1.1.1',
-        value: '5.1.1.1'
+        label: '4.1.1.6',
+        value: '4.1.1.6'
       },
     }),
   ];
@@ -357,7 +356,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
             protein: search.value,
           };
           break;
-        case 'uniprot':
+        case 'uniprot_id':
           criteriaQuery = {
             uniprot: search.value,
           };
@@ -367,9 +366,9 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
             organism: search.value,
           };
           break;
-        case 'gene_id':
+        case 'gene_name':
           criteriaQuery = {
-            gene_id: search.value,
+            gene_name: search.value,
           };
           break;
         default:
@@ -409,9 +408,9 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     // In a real implementation, this would send the query to the backend first
 
     // TODO: implement this
-    this.service.getData()
+    this.service.getData(query)
       .pipe(
-        map((response: CleanDbRecord[]) => 
+        map(({data: response} : {data: CleanDbRecord[]}) => 
           response
             .filter((row) => {
               // Process multi-criteria filtering client-side
@@ -444,7 +443,9 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
   }
 
   // Helper method to match a row against all criteria
-  private matchesSearchCriteria(row: any, criteriaArray: FormArray): boolean {
+  private matchesSearchCriteria(row: CleanDbRecord, criteriaArray: FormArray): boolean {    
+    // FIXME temporarily disabling frontend searching, because it needs to be updated to work with the API
+    return true;
     let matches = true;
     let prevMatch = true;
     
@@ -472,8 +473,8 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
         case 'uniprot':
           currentMatch = row.uniprot.toLowerCase() === search.value.toLowerCase();
           break;
-        case 'gene_id':
-          currentMatch = row.gene_id.toLowerCase() === search.value.toLowerCase();
+        case 'gene_name':
+          currentMatch = row.gene_name.toLowerCase() === search.value.toLowerCase();
           break;
         default:
           currentMatch = true;

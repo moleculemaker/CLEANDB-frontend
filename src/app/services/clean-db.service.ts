@@ -6,10 +6,11 @@ import { scaleLinear } from 'd3';
 import { BodyCreateJobJobTypeJobsPost, FilesService, Job, JobType, JobsService } from "../api/mmli-backend/v1";
 import { EnvironmentService } from "./environment.service";
 
-// import { CleanDbService as CleanDbApiService } from "../api/mmli-backend/v1"; // TODO: use the correct service
 import { CleanDbRecord, cleanDbRecordRawToCleanDbRecord } from "../models/CleanDbRecord";
 import { loadGzippedJson } from "../utils/loadGzippedJson";
 import { ReactionSchemaRecord, ReactionSchemaRecordRaw, reactionSchemaRecordRawToReactionSchemaRecord } from "../models/ReactionSchemaRecord";
+import { CLEANTypeaheadResponse, SearchService } from "../api/cleandb/v1"; // TODO: use the correct service
+
 
 /* -------------------------------- File Imports -------------------------------- */
 const exampleSearch = import('../../assets/example.db.json').then((module) => module.default);
@@ -40,6 +41,7 @@ export class CleanDbService {
     private jobsService: JobsService,
     private filesService: FilesService,
     private environmentService: EnvironmentService,
+    private searchService: SearchService
 
     // private apiService: CleanDbApiService,
   ) {
@@ -62,12 +64,12 @@ export class CleanDbService {
       .pipe(map((jobs) => jobs[0]));
   }
 
-  getResult(jobType: JobType, jobID: string): Observable<any> {
-    if (this.shouldUsePrecomputedResult(jobID)) {
-      return from(exampleSearch).pipe(map((records => records.map(cleanDbRecordRawToCleanDbRecord))))
-    }
-    return this.filesService.getResultsBucketNameResultsJobIdGet(jobType, jobID);
-  }
+  // getResult(jobType: JobType, jobID: string): Observable<any> {
+  //   if (this.shouldUsePrecomputedResult(jobID)) {
+  //     return from(exampleSearch).pipe(map((records => records.map(cleanDbRecordRawToCleanDbRecord))))
+  //   }
+  //   return this.filesService.getResultsBucketNameResultsJobIdGet(jobType, jobID);
+  // }
 
   getEffectPredictionResult(jobID: string): Observable<EffectPredictionResult> {
     const observable$
@@ -80,12 +82,32 @@ export class CleanDbService {
     );
   }
 
-  getData(): Observable<CleanDbRecord[]> {
+  getAutoComplete(type: string, query: string): Observable<CLEANTypeaheadResponse> {
+    return this.searchService.getTypeaheadApiV1TypeaheadGet(type, query)
+  }
+
+  getData(query: any): Observable<any> {
     if (this.frontendOnly) {
-      return from(exampleSearch).pipe(map((records => records.map(cleanDbRecordRawToCleanDbRecord))))
+      return from(exampleSearch).pipe(map((recordsResponse => ({
+        ...recordsResponse,
+        data: recordsResponse.data.map(cleanDbRecordRawToCleanDbRecord)
+      }))))
     }
-    // TODO: get data from backend
-    return of([]);
+    return this.searchService.getDataApiV1SearchGet(query);
+  }
+
+  getTypeahead(query: {field_name: string, search :string}) : Observable<{ label: string; value: string; }[]> {
+    if (this.frontendOnly) {
+      return of([]);
+    }
+    if (query.field_name == 'ec_number') {
+      return this.searchService.getEcLookupApiV1EcLookupGet(query).pipe(
+        map(({matches}) => 
+          matches.map((match: { ec_number: string, ec_name: string }) => ({ label: match.ec_number + ' ' + match.ec_name, value: match.ec_number }))
+        )
+      )
+    }
+    return this.searchService.getTypeaheadApiV1TypeaheadGet(query).pipe(map(({matches}) => matches.map((match: string) => ({ label: match, value: match}))));
   }
 
   getReactionSchemaForEc(ec: string): Observable<ReactionSchemaRecord | null> {
