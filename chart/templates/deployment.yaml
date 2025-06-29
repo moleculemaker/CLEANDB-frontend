@@ -33,6 +33,18 @@ spec:
                 name: {{ .Release.Name }}-config
                 key: basePath
 
+          - name: CLEANDB_API_HOSTNAME
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-config
+                key: cleandbHostname
+
+          - name: CLEANDB_API_BASEPATH
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-config
+                key: cleandbBasePath
+
           - name: OAUTH_SIGNIN_URL
             valueFrom:
               configMapKeyRef:
