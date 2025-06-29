@@ -9,6 +9,8 @@ controller:
 config:
   hostname: "https://mmli.fastapi.staging.mmli1.ncsa.illinois.edu"
   basePath: ""
+  cleandbHostname: "https://fastapi.cleandb.mmli1.ncsa.illinois.edu"
+  cleandbBasePath: ""
   signInUrl: "https://mmli1.ncsa.illinois.edu/oauth2/start?rd=https%3A%2F%2Fcleandb.proxy.localhost%2Fconfiguration"
   signOutUrl: "https://mmli1.ncsa.illinois.edu/oauth2/sign_out?rd=https%3A%2F%2Fcleandb.proxy.localhost%2Fconfiguration"
   userInfoUrl: "https://mmli1.ncsa.illinois.edu/oauth2/userinfo"
