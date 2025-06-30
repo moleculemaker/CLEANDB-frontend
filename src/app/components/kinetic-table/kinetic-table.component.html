@@ -38,7 +38,7 @@
         }
 
         <div class="flex w-full">
-          <p-table #resultsTable [value]="result.data" [loading]="result.status !== 'loaded'"
+          <p-table #resultsTable [value]="result.data" [loading]="result.status === 'loading'"
             [rows]="10" [rowsPerPageOptions]="[10, 20, 50]"
             [paginator]="true" dataKey="accession" class="w-full h-full" tableStyleClass="w-full" styleClass="w-full"
             [columns]="columns" (onRowExpand)="onRowExpand($event)">
