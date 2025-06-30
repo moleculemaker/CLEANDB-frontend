@@ -52,8 +52,9 @@
         {{ userInfo.email }}
     </div>
 
+    <!-- hiding sign in button for now -->
     <a
-        class="login_button"
+        class="login_button hidden"
         href="#"
         *ngIf="!userInfo"
         (click)="$event.preventDefault();$event.stopPropagation();login()"
