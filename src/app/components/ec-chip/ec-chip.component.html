@@ -2,5 +2,5 @@
   [class.bg-[#2400EF1A]]="ec.score > 0.8" [class.bg-[#00C4EF1A]]="ec.score >= 0.5 && ec.score < 0.8"
   [class.bg-[#EFAC001A]]="ec.score >= 0.2 && ec.score < 0.5">
   <app-ec-arrow [score]="ec.score" />
-  <span class="underline">{{ ec.ec_number }}</span> ({{ ec.score | number:'1.1-3' }})
+  <a [href]="'https://www.brenda-enzymes.org/enzyme.php?ecno=' + ec.ec_number" target="_blank" class="text-[#495057] underline cursor-pointer">EC:{{ ec.ec_number }}</a> ({{ ec.score | number:'1.1-3' }})
 </div>

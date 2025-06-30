@@ -83,8 +83,7 @@
                   }
                 @case ('ec_number') {
                 <td class="align-middle">
-                  <a [routerLink]="['/query/ec', row.ec_number]" class="text-blue-500 cursor-pointer">{{ row.ec_number
-                    }}</a>
+                  <a [href]="'https://www.brenda-enzymes.org/enzyme.php?ecno=' + row.ec_number" target="_blank" class="text-blue-500 cursor-pointer">{{ row.ec_number }}</a>
                 </td>
                 }
                 @case('predicted_ec') {
