@@ -9,6 +9,7 @@ import { EffectPredictionComponent } from "~/app/pages/effect-prediction/effect-
 import { EffectPredictionResultComponent } from "~/app/pages/effect-prediction-result/effect-prediction-result.component";
 import { CenterLayoutComponent } from "./components/center-layout/center-layout.component";
 import { LandingPageComponent } from "./pages/landing-page/landing-page.component";
+import { TutorialPageComponent } from "./pages/tutorial-page/tutorial-page.component";
 
 
 const routes: Routes = [
@@ -19,6 +20,7 @@ const routes: Routes = [
     children: [
       { path: 'about', component: AboutPageComponent },
       { path: 'home', component: LandingPageComponent },
+      { path: 'tutorial', component: TutorialPageComponent },
     ]
   },
   { 
