@@ -210,8 +210,8 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       label: 'EC Number',
       placeholder: 'Enter EC Number or EC Name (minimum 3 characters)',
       example: {
-        label: '4.1.1.6',
-        value: '4.1.1.6'
+        label: '4.1.1.1',
+        value: '4.1.1.1'
       },
     }),
   ];
