@@ -61,6 +61,7 @@
                                             class="w-full"
                                             formControlName="search" 
                                             [searchConfigs]="searchConfigs"
+                                            (autocompleteSelected)="onAutocompleteSelected()"
                                         />
                                     </div>
                                 </div>
@@ -74,11 +75,11 @@
                                     <i class="mr-2 pi pi-plus"></i>
                                     Add Search Criteria
                                 </button> -->
-                                <button type="submit" [disabled]="form.invalid" class="rounded-lg 
+                                <button type="submit" [disabled]="form.invalid || result.status === 'loading'" class="rounded-lg 
                                         border border-[--surface-d] p-3 px-8 bg-[--primary-color] text-white font-semibold
                                         disabled:opacity-50
                                     ">
-                                    Search CLEAN DB
+                                    {{ result.status === 'loading' ? 'Searching...' : 'Search CLEAN DB' }}
                                 </button>
                             </div>
                         </div>
@@ -88,7 +89,7 @@
         </div>
     </form>
 
-    @if (result.status === 'loaded') {
+    @if (result.status !== 'na') {
     <app-kinetic-table #kineticTable [result]="result" [filters]="filters"></app-kinetic-table>
     }
 </div>
