@@ -4,6 +4,7 @@ import { Router, ActivatedRoute } from "@angular/router";
 import { CheckboxModule } from "primeng/checkbox";
 import { ButtonModule } from "primeng/button";
 import { CommonModule } from "@angular/common";
+import { MenuItem } from "primeng/api";
 
 import { CleanDbService } from '~/app/services/clean-db.service';
 import { PanelModule } from "primeng/panel";
@@ -200,8 +201,8 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       label: 'Organism',
       placeholder: 'Enter Organism Name (minimum 3 characters)',
       example: {
-        label: 'Saccharomyces cerevisiae',
-        value: 'Saccharomyces cerevisiae'
+        label: '<span style="font-style: italic">Saccharomyces cerevisiae</span>',
+        value: 'Saccharomyces cerevisiae',
       }
     }),
     new StringSearchOption({
@@ -217,7 +218,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
 
   columns: any[] = [];
 
-  exampleRecords: any[] = [];
+  exampleRecords: MenuItem[] = [];
   readonly filterRecordsByCategory = Object.entries(this.filters)
     .reduce((acc, [key, filter]) => {
       if (!acc[filter.category]) {
@@ -270,6 +271,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
         .filter((option) => option.example)
         .map((option) => ({
           label: `${option.label} (${option.example['label']})`,
+          escape: false,
           command: () => this.queryInputComponent.useExample(option.key)
         }));
     });

@@ -15,6 +15,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { SearchOption, QueryValue } from '../../models/search-options';
 import { AutoCompleteCompleteEvent } from 'primeng/autocomplete';
 import { CleanDbService } from '~/app/services/clean-db.service';
+import { SafePipe } from '~/app/pipes/safe.pipe';
 
 @Component({
   selector: 'app-query-input',
@@ -31,7 +32,8 @@ import { CleanDbService } from '~/app/services/clean-db.service';
     MoleculeImageComponent,
     ProgressSpinnerModule,
     SkeletonModule,
-    AutoCompleteModule
+    AutoCompleteModule,
+    SafePipe
   ],
   templateUrl: './query-input.component.html',
   styleUrl: './query-input.component.scss',

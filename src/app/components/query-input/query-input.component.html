@@ -8,8 +8,7 @@
     </div>
     <small class="leading-xl text-text-secondary">
       Example:
-      <small class="font-semibold underline cursor-pointer" (click)="useExample(option.key)">
-        {{ option.example['label'] }}
+      <small class="font-semibold underline cursor-pointer" (click)="useExample(option.key)" [innerHTML]="option.example['label'] | safe:'html'">
       </small>
     </small>
   </span>
