@@ -39,7 +39,7 @@
 
         <div class="flex w-full">
           <p-table #resultsTable [value]="result.data" [rows]="10" [rowsPerPageOptions]="[10, 20, 50]"
-            [paginator]="true" dataKey="iid" class="w-full h-full" tableStyleClass="w-full" styleClass="w-full"
+            [paginator]="true" dataKey="accession" class="w-full h-full" tableStyleClass="w-full" styleClass="w-full"
             [columns]="columns" (onRowExpand)="onRowExpand($event)">
             <ng-template pTemplate="header">
               <tr>
@@ -71,7 +71,7 @@
                 <td class="align-middle">
                   <div class="flex flex-col gap-1">
                     <!-- @for (id of row.uniprot; track id) { -->
-                    <a class="block" [routerLink]="['/query/uniprot', row.uniprot]" class="text-blue-500 cursor-pointer">{{ row.uniprot}}</a>
+                    <a class="block" [href]="'https://www.uniprot.org/uniprotkb/' + row.accession" target="_blank" class="text-blue-500 cursor-pointer">{{ row.accession }}</a>
                     <!-- } -->
                   </div>
                 </td>
@@ -83,8 +83,7 @@
                   }
                 @case ('ec_number') {
                 <td class="align-middle">
-                  <a [routerLink]="['/query/ec', row.ec_number]" class="text-blue-500 cursor-pointer">{{ row.ec_number
-                    }}</a>
+                  <a [href]="'https://www.brenda-enzymes.org/enzyme.php?ecno=' + row.ec_number" target="_blank" class="text-blue-500 cursor-pointer">{{ row.ec_number }}</a>
                 </td>
                 }
                 @case('predicted_ec') {
@@ -127,7 +126,7 @@
                       <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'ID', value: row.id }"></ng-container>
                       <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Gene', value: row.gene_name }"></ng-container>
                       <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'NCBI Tax ID', value: row.ncbi_tax_id }"></ng-container>
-                      <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'EC Number (Uniprot)', value: row.ec_uniprot ? row.ec_uniprot.join(', ') : '' }"></ng-container>
+                      <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'EC Number (UniProt)', value: row.ec_uniprot ? row.ec_uniprot.join(', ') : '' }"></ng-container>
                       <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Amino Acids', value: row.amino_acids }"></ng-container>
                       <div class="flex flex-col gap-2">
                         <div class="text-[--text-secondary-color]">Enzyme Sequence</div>

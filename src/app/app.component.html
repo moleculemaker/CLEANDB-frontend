@@ -52,8 +52,9 @@
         {{ userInfo.email }}
     </div>
 
+    <!-- hiding sign in button for now -->
     <a
-        class="login_button"
+        class="login_button hidden"
         href="#"
         *ngIf="!userInfo"
         (click)="$event.preventDefault();$event.stopPropagation();login()"
@@ -85,7 +86,7 @@
 
 <div class="page_container tool_header">
     <div class="container">
-        <div class="clean_logo">CLEAN DB</div>
+        <div class="clean_logo"><a href="/">CLEAN DB</a></div>
 
         <div class="tagline">
             Enzyme function, sequence, and mutation effect prediction database
@@ -121,10 +122,10 @@
             </a>
         </div> -->
         <div class="flex link">
-            <a class="flex items-center m-1 cursor-pointer" disabled>
+            <a class="flex items-center m-1 cursor-pointer" [routerLink]="['/tutorial']">
                 <i class="mr-1 pi pi-question-circle"></i> Tutorial
             </a>
-            <a class="flex items-center m-1 ml-3 cursor-pointer" href="/about">
+            <a class="flex items-center m-1 ml-3 cursor-pointer" [routerLink]="['/about']">
                 <i class="mr-1 pi pi-info-circle"></i> About CLEAN DB
             </a>
         </div>
