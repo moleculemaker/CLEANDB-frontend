@@ -201,8 +201,8 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       label: 'Organism',
       placeholder: 'Enter Organism Name (minimum 3 characters)',
       example: {
-        label: '<span style="font-style: italic">Saccharomyces cerevisiae</span>',
-        value: 'Saccharomyces cerevisiae',
+        label: '<span style="font-style: italic">Escherichia coli</span>',
+        value: 'Escherichia coli',
       }
     }),
     new StringSearchOption({
