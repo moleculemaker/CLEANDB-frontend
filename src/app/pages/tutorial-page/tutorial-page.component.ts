@@ -6,7 +6,7 @@ import { TutorialComponent } from "../../components/tutorial/tutorial.component"
   standalone: true,
   imports: [TutorialComponent],
   templateUrl: './tutorial-page.component.html',
-  styleUrl: './tutorial-page.component.scss'
+  styleUrls: ['./tutorial-page.component.scss']
 })
 export class TutorialPageComponent {
 
