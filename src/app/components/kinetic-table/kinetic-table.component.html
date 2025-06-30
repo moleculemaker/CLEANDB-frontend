@@ -44,10 +44,13 @@
             [columns]="columns" (onRowExpand)="onRowExpand($event)">
             <ng-template pTemplate="header">
               <tr>
+                <!-- TODO revisit after troubleshooting missing protein names:
                 @for (filter of filters.entries(); track filter[0]) {
                 @let value = filter[1];
+                -->
+                @for (value of columns; track value.field) {
                 <th class="align-middle relative group text-center" pSortableColumn="{{ value.field }}">
-                  <div [innerHTML]="value.label.value"></div>
+                  <div [innerHTML]="value.header"></div>
                   <p-sortIcon
                     class="absolute top-0 right-0 p-2 text-[#6C757D] [.p-highlight_&]:!visible invisible group-hover:visible"
                     [field]="value.field" />
@@ -57,8 +60,11 @@
             </ng-template>
             <ng-template pTemplate="body" let-row let-expanded="expanded">
               <tr class="table-row">
+                <!-- TODO revisit after troubleshooting missing protein names:
                 @for (filter of filters.entries(); track filter[0]) {
-                @let value = filter[1];
+                @let value = column[1];
+                -->
+                @for (value of columns; track value.field) {
                 @switch (value.field) {
                   @case("protein") {
                   <td class="align-middle">
@@ -70,11 +76,19 @@
                   }
                 @case ('accession') {
                 <td class="align-middle">
-                  <div class="flex flex-col gap-1">
-                    <!-- @for (id of row.uniprot; track id) { -->
-                    <a class="block" [href]="'https://www.uniprot.org/uniprotkb/' + row.accession" target="_blank" class="text-blue-500 cursor-pointer">{{ row.accession }}</a>
-                    <!-- } -->
-                  </div>
+                  <!-- TODO revisit after troubleshooting missing protein names -->
+                  <button title="Expand" type="button" [pRowToggler]="row">
+                    <i [class]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"></i>
+                  </button>
+                  <!-- @for (id of row.uniprot; track id) { -->
+                  <a [href]="'https://www.uniprot.org/uniprotkb/' + row.accession" target="_blank" class="text-blue-500 cursor-pointer p-2">{{ row.accession }}</a>
+                  <!-- } -->
+                </td>
+                }
+                <!-- TODO revisit this column after troubleshooting missing protein names -->
+                @case ('amino_acids') {
+                <td class="align-middle">
+                  <span class="font-semibold">{{ row.amino_acids }}</span>
                 </td>
                 }
                 @case ('organism') {
@@ -126,9 +140,10 @@
                     <div class="flex gap-16 flex-wrap">
                       <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'ID', value: row.id }"></ng-container>
                       <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Gene', value: row.gene_name }"></ng-container>
+                      <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Protein Name', value: row.protein }"></ng-container>
                       <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'NCBI Tax ID', value: row.ncbi_tax_id }"></ng-container>
                       <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'EC Number (UniProt)', value: row.ec_uniprot ? row.ec_uniprot.join(', ') : '' }"></ng-container>
-                      <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Amino Acids', value: row.amino_acids }"></ng-container>
+                      <!-- TODO revisit after troubleshooting missing protein names <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Amino Acids', value: row.amino_acids }"></ng-container> -->
                       <div class="flex flex-col gap-2">
                         <div class="text-[--text-secondary-color]">Enzyme Sequence</div>
                         <button class="flex items-center gap-1 text-[#64748B] font-semibold" title="Download Sequence" (click)="copySequence(row.sequence)">

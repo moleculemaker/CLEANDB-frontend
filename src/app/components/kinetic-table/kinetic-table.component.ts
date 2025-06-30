@@ -75,7 +75,15 @@ export class KineticTableComponent implements OnChanges {
 
   @ViewChild(Table) resultsTable!: Table;
 
-  columns: any[] = [];
+  // TODO revisit after we troubleshoot missing protein names
+  // columns: any[] = [];
+  columns = [
+    { field: 'accession', header: 'UniProt Accession' },
+    { field: 'amino_acids', header: 'Amino Acids' },
+    { field: 'organism', header: 'Organism' },
+    { field: 'curation_status', header: 'Curation Status' },
+    { field: 'predicted_ec', header: 'Predicted EC Number (Score)' },
+  ];
   reactionSchemaCache: Record<string, {
     status: LoadingStatus;
     data: ReactionSchemaRecord | null;
@@ -223,9 +231,17 @@ export class KineticTableComponent implements OnChanges {
       }
     });
     
-    this.columns = Array.from(this.filters.values()).map((filter) => ({
-      field: filter.field,
-      header: filter.label.rawValue,
-    }));
+    // TODO revisit after we troubleshoot missing protein names
+    //this.columns = Array.from(this.filters.values()).map((filter) => ({
+    //  field: filter.field,
+    //  header: filter.label.rawValue,
+    //}));
+    this.columns = [
+      { field: 'accession', header: 'UniProt Accession' },
+      { field: 'amino_acids', header: 'Amino Acids' },
+      { field: 'organism', header: 'Organism' },
+      { field: 'curation_status', header: 'Curation Status' },
+      { field: 'predicted_ec', header: 'Predicted EC Number (Score)' },
+    ];
   }
 }
