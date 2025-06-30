@@ -120,14 +120,14 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       options: [],
       value: [],
     })],
-    ['uniprot_ids', new MultiselectFilterConfig({
+    ['accession', new MultiselectFilterConfig({
       category: 'parameter',
       label: {
         value: 'UniProt Accession',
         rawValue: 'UniProt Accession',
       },
       placeholder: 'Select UniProt accession',
-      field: 'uniprot',
+      field: 'accession',
       options: [],
       value: [],
       matchMode: 'subset',
@@ -188,7 +188,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       }
     }),
     new StringSearchOption({
-      key: 'uniprot_id',
+      key: 'accession',
       label: 'UniProt Accession',
       placeholder: 'Enter UniProt Accession (minimum 3 characters)',
       example: {
@@ -358,9 +358,9 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
             protein: search.value,
           };
           break;
-        case 'uniprot_id':
+        case 'accession':
           criteriaQuery = {
-            uniprot: search.value,
+            accession: search.value,
           };
           break;
         case 'organism':
