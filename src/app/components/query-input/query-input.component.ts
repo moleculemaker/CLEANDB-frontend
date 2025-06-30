@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, SimpleChanges, TemplateRef } from '@angular/core';
+import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 
 import { DropdownModule } from 'primeng/dropdown';
@@ -26,10 +26,8 @@ import { SafePipe } from '~/app/pipes/safe.pipe';
     InputTextModule,
     MenuModule,
     CommonModule,
-    MarvinjsInputComponent,
     ReactiveFormsModule,
     RadioButtonModule,
-    MoleculeImageComponent,
     ProgressSpinnerModule,
     SkeletonModule,
     AutoCompleteModule,
@@ -49,6 +47,7 @@ export class QueryInputComponent implements ControlValueAccessor {
   @Input() searchConfigs: SearchOption[] = [];
   @Input() multiple = true;
   @Input() showSelectButton = true;
+  @Output() autocompleteSelected = new EventEmitter<void>();
 
   selectedSearchOption: SearchOption | null = null;
   searchSuggestions: { label: string, value: string }[] = [];
@@ -211,6 +210,7 @@ export class QueryInputComponent implements ControlValueAccessor {
         value: event.value.value,
       });
       this.emitValue();
+      this.autocompleteSelected.emit();
     }
   }
 }

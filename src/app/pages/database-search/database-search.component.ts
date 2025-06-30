@@ -315,6 +315,11 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     this.submit(true);
   }
 
+  onAutocompleteSelected() {
+    // When an autocomplete option is selected, we can submit the form immediately
+    this.submit(true);
+  }
+
   submit(force: boolean = false) {
     if (this.form.invalid && !force) {
       return;
@@ -604,7 +609,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
 
     // Clear result before submitting
     this.clearResult();
-    
+
     // Submit the search
     this.submit(true);
   }
