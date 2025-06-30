@@ -111,10 +111,10 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     ['protein', new MultiselectFilterConfig({
       category: 'parameter',
       label: {
-        value: 'Proteins',
+        value: 'Protein Name',
         rawValue: 'Proteins',
       },
-      placeholder: 'Select protein',
+      placeholder: 'Select protein name',
       field: 'protein',
       options: [],
       value: [],
@@ -122,10 +122,10 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     ['uniprot_ids', new MultiselectFilterConfig({
       category: 'parameter',
       label: {
-        value: 'Uniprot',
-        rawValue: 'Uniprot',
+        value: 'UniProt Accession',
+        rawValue: 'UniProt Accession',
       },
-      placeholder: 'Select Uniprot ID',
+      placeholder: 'Select UniProt accession',
       field: 'uniprot',
       options: [],
       value: [],
@@ -188,8 +188,8 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     }),
     new StringSearchOption({
       key: 'uniprot_id',
-      label: 'Uniprot ID',
-      placeholder: 'Enter Uniprot ID (minimum 3 characters)',
+      label: 'UniProt Accession',
+      placeholder: 'Enter UniProt Accession (minimum 3 characters)',
       example: {
         label: 'Q9S9U6',
         value: 'Q9S9U6'

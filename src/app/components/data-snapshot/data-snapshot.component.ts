@@ -345,7 +345,7 @@ export class DataSnapshotComponent {
     const dataset = [
       { label: 'Unique Substrates', kcat: kcatSummary.substrates, km: kmSummary.substrates, kcat_km: kcatKmSummary.substrates },
       { label: 'Unique Organisms', kcat: kcatSummary.organisms, km: kmSummary.organisms, kcat_km: kcatKmSummary.organisms },
-      { label: 'Unique Uniprot IDs', kcat: kcatSummary.uniprotIds, km: kmSummary.uniprotIds, kcat_km: kcatKmSummary.uniprotIds },
+      { label: 'Unique UniProt Accessions', kcat: kcatSummary.uniprotIds, km: kmSummary.uniprotIds, kcat_km: kcatKmSummary.uniprotIds },
       { label: 'Unique EC Numbers', kcat: kcatSummary.ecNumbers, km: kmSummary.ecNumbers, kcat_km: kcatKmSummary.ecNumbers },
       { label: 'Unique Literature', kcat: kcatSummary.pubmedIds, km: kmSummary.pubmedIds, kcat_km: kcatKmSummary.pubmedIds },
       { label: 'Total Entries', kcat: kcatSummary.total, km: kmSummary.total, kcat_km: kcatKmSummary.total },
