@@ -75,14 +75,16 @@
                   </td>
                   }
                 @case ('accession') {
-                <td class="align-middle">
-                  <!-- TODO revisit after troubleshooting missing protein names -->
-                  <button title="Expand" type="button" [pRowToggler]="row">
-                    <i [class]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"></i>
-                  </button>
-                  <!-- @for (id of row.uniprot; track id) { -->
-                  <a [href]="'https://www.uniprot.org/uniprotkb/' + row.accession" target="_blank" class="text-blue-500 cursor-pointer p-2">{{ row.accession }}</a>
-                  <!-- } -->
+                <td>
+                  <div class="flex flex-nowrap items-center gap-2">
+                    <!-- TODO revisit after troubleshooting missing protein names -->
+                    <button title="Expand" type="button" [pRowToggler]="row">
+                      <i [class]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"></i>
+                    </button>
+                    <!-- @for (id of row.uniprot; track id) { -->
+                    <a [href]="'https://www.uniprot.org/uniprotkb/' + row.accession" target="_blank" class="text-blue-500 cursor-pointer p-2">{{ row.accession }}</a>
+                    <!-- } -->
+                  </div>
                 </td>
                 }
                 <!-- TODO revisit this column after troubleshooting missing protein names -->
