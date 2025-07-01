@@ -64,6 +64,7 @@
                     formControlName="sequence"
                     title="Enter an Enzyme Sequence (FASTA)"
                     appSequenceValidator
+                    [allowEmptyHeader]="true"
                     [maxSeqNum]="maxSeqNum"
                     placeholder="Enter an Enzyme Sequence (FASTA)"></textarea>
                 </div>

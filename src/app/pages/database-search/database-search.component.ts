@@ -300,7 +300,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     setTimeout(() => {
       this.addCriteria();
     });
-    this.submit(true);
+    // this.submit(true); TODO revisit this later--was this something we wanted?
     
     // Clear URL parameters
     this.router.navigate([], {
