@@ -14,6 +14,7 @@ import { AbstractControl, NG_VALIDATORS, ValidationErrors, Validator } from '@an
 })
 export class SequenceValidatorDirective implements Validator {
   @Input() maxSeqNum: number = 20;
+  @Input() allowEmptyHeader: boolean = false; // for now, this has only been tested with maxSeqNum = 1
   private validAminoAcid = new RegExp("[^GPAVLIMCFYWHKRQNEDST]", "i");
   private validDNA = new RegExp("[^ACTG]", "i");
 
@@ -23,7 +24,11 @@ export class SequenceValidatorDirective implements Validator {
     }
 
     const sequenceData = control.value;
-    const splitString: string[] = sequenceData.split('>').slice(1);
+    let splitString: string[] = sequenceData.split('>').slice(1);
+    if (splitString.length === 0 && this.allowEmptyHeader && sequenceData.trim().length > 0) {
+      splitString = ['Pasted value\n' + sequenceData.trim()];
+      control.setValue('>Pasted value\n' + sequenceData.trim()); // TODO consider other ways to handle this
+    }
     const headers: string[] = [];
     const errors: ValidationErrors = {};
 
