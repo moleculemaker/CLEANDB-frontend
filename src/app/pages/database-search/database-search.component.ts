@@ -11,7 +11,7 @@ import { PanelModule } from "primeng/panel";
 import { QueryInputComponent } from "~/app/components/query-input/query-input.component";
 import { QueryValue, SearchOption } from '~/app/models/search-options';
 import { StringSearchOption } from '~/app/models/search-options/StringSearchOption';
-import { TableModule } from "primeng/table";
+import { ExportCSVOptions, TableModule } from "primeng/table";
 import { ChipModule } from "primeng/chip";
 import { DialogModule } from "primeng/dialog";
 import { MultiSelectModule } from "primeng/multiselect";
@@ -25,9 +25,11 @@ import { TooltipModule } from "primeng/tooltip";
 import { DividerModule } from "primeng/divider";
 import { FilterConfig, MultiselectFilterConfig, RangeFilterConfig } from "~/app/models/filters";
 import { Subscription, map } from "rxjs";
+import { saveAs } from "file-saver";
 import { KineticTableComponent } from "~/app/components/kinetic-table/kinetic-table.component";
 import { CactusService } from "~/app/services/cactus.service";
 import { CleanDbPredictedEC, CleanDbRecord } from "~/app/models/CleanDbRecord";
+import { format } from 'd3';
 
 @Component({
   selector: 'app-database-search',
@@ -75,7 +77,6 @@ import { CleanDbPredictedEC, CleanDbRecord } from "~/app/models/CleanDbRecord";
 })
 export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy {
   @ViewChild(QueryInputComponent) queryInputComponent!: QueryInputComponent;
-  @ViewChild(KineticTableComponent) kineticTable!: KineticTableComponent;
 
   logicalOperators = [
     { label: 'AND', value: 'AND' },
@@ -216,7 +217,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     }),
   ];
 
-  columns: any[] = [];
+  columns: { field: string, header: string }[] = [];
 
   exampleRecords: MenuItem[] = [];
   readonly filterRecordsByCategory = Object.entries(this.filters)
@@ -447,6 +448,36 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
           this.cdr.detectChanges();
         }
       });
+  }
+
+  exportTable() {
+    if (this.result.status !== 'loaded' || this.result.data.length === 0) {
+      console.warn('Export called when no data available');
+      return;
+    }
+
+    const exportColumns = [
+      { field: 'protein', header: 'Protein Name' },
+      { field: 'accession', header: 'UniProt Accession' },
+      { field: 'amino_acids', header: 'Amino Acids' },
+      { field: 'organism', header: 'Organism' },
+      { field: 'curation_status', header: 'Curation Status' },
+      { field: 'predicted_ec', header: 'Predicted EC Numbers (Scores)' }
+    ];
+    const exportData = [
+      exportColumns.map(col => col.header).join(','),
+      ...this.result.data.map((row: CleanDbRecord) => {
+        return exportColumns.map((col) => {
+          if (col.field === 'predicted_ec') {
+            return row[col.field].map((ec: CleanDbPredictedEC) => `${ec.ec_number} (${format('.4f')(ec.score)})`).join(' / ');
+          }
+          return row[col.field as keyof CleanDbRecord] as string;
+        }).join(',');
+      })
+    ].join('\n');
+
+    const blob = new Blob([exportData], { type: 'text/csv;charset=utf-8;' });
+    saveAs(blob, 'cleandb_export.csv');
   }
 
   // Helper method to match a row against all criteria

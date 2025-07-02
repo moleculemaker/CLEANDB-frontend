@@ -13,7 +13,7 @@
                 @if (result.status === 'loaded') {
                 <div class="flex flex-col justify-center">
                     <button class="p-3 px-4 text-white border rounded-md bg-primary" title="Export" type="button"
-                        (click)="kineticTable.export()">
+                        (click)="exportTable()">
                         <i class="mr-2 pi pi-download"></i>
                         <span class="font-semibold">Export</span>
                     </button>
@@ -90,6 +90,6 @@
     </form>
 
     @if (result.status !== 'na') {
-    <app-kinetic-table #kineticTable [result]="result" [filters]="filters"></app-kinetic-table>
+    <app-kinetic-table [result]="result" [filters]="filters"></app-kinetic-table>
     }
 </div>

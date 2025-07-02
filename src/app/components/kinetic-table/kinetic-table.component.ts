@@ -2,7 +2,7 @@ import { Component, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/
 import { CommonModule } from '@angular/common';
 
 import { PanelModule } from 'primeng/panel';
-import { ExportCSVOptions, Table, TableModule, TableRowExpandEvent } from 'primeng/table';
+import { Table, TableModule, TableRowExpandEvent } from 'primeng/table';
 import { FilterConfig, MultiselectFilterConfig, RangeFilterConfig } from '~/app/models/filters';
 import { FilterService, MessageService } from 'primeng/api';
 import { animate } from '@angular/animations';
@@ -130,9 +130,6 @@ export class KineticTableComponent implements OnChanges {
     }
   }
 
-  export(options?: ExportCSVOptions) {
-    this.resultsTable.exportCSV(options);
-  }
 
   clearAllFilters() {
     this.showFilter = false;
