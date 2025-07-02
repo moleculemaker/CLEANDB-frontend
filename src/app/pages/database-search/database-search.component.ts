@@ -11,7 +11,7 @@ import { PanelModule } from "primeng/panel";
 import { QueryInputComponent } from "~/app/components/query-input/query-input.component";
 import { QueryValue, SearchOption } from '~/app/models/search-options';
 import { StringSearchOption } from '~/app/models/search-options/StringSearchOption';
-import { ExportCSVOptions, TableModule } from "primeng/table";
+import { TableModule } from "primeng/table";
 import { ChipModule } from "primeng/chip";
 import { DialogModule } from "primeng/dialog";
 import { MultiSelectModule } from "primeng/multiselect";
