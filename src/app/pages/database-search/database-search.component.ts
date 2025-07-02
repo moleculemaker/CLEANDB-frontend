@@ -26,10 +26,10 @@ import { DividerModule } from "primeng/divider";
 import { FilterConfig, MultiselectFilterConfig, RangeFilterConfig } from "~/app/models/filters";
 import { Subscription, map } from "rxjs";
 import { saveAs } from "file-saver";
+import { format } from 'd3';
 import { KineticTableComponent } from "~/app/components/kinetic-table/kinetic-table.component";
 import { CactusService } from "~/app/services/cactus.service";
 import { CleanDbPredictedEC, CleanDbRecord } from "~/app/models/CleanDbRecord";
-import { format } from 'd3';
 
 @Component({
   selector: 'app-database-search',
