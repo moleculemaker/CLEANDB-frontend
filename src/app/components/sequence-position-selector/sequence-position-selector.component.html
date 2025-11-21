@@ -13,7 +13,7 @@
 @let cellClassName 
     = 'text-xs border-b-2 border-solid px-1 ' + (
         isSelected
-        ? 'border-pink-500' 
+        ? 'border-[#38001B]' 
         : (isMuted
             ? 'opacity-25 border-transparent'
             : 'border-transparent'
@@ -29,8 +29,8 @@
     <div [class]="cellClassName">{{ cell.value }}</div>
     <svg width="16" height="7" viewBox="0 0 8 7" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M7.1377 6.5H0.862305L4 1.00781L7.1377 6.5Z" 
-            [attr.fill]="shouldShowIndicator ? '#EC4899' : 'transparent'" 
-            [attr.stroke]="shouldShowIndicator ? '#EC4899' : 'transparent'"
+            [attr.fill]="shouldShowIndicator ? '#2E0017' : 'transparent'" 
+            [attr.stroke]="shouldShowIndicator ? '#2E0017' : 'transparent'"
         />
     </svg>
 </div>
