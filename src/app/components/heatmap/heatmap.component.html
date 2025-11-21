@@ -30,6 +30,7 @@
   @let isColKey = type === 'colKey';
   @let isRowKey = type === 'rowKey';
   @let isKey = isColKey || isRowKey;
+  @let isCell = type === 'cell';
   @let isMuted = interactable.state === InteractableState.MUTED;
   @let isNA = interactable.value === 0;
   @let isSelected = interactable.state === InteractableState.SELECTED;
@@ -39,6 +40,7 @@
   @let mutedClassName = 'cell-muted';
   @let naClassName = 'cell-na';
   @let selectedClassName = 'z-[9] border-solid border-[#38001B]';
+  @let interactiveClassName = isCell ? 'cursor-pointer heatmap-cell--interactive' : '';
   @let topBorderClassName
     = (interactable.state === InteractableState.SELECTED
     && (interactable.above ? interactable.above.state !== InteractableState.SELECTED : true))
@@ -65,6 +67,7 @@
     isSelected ? selectedClassName : '',
     isMuted ? mutedClassName : '',
     isNA ? naClassName : '',
+    interactiveClassName,
     topBorderClassName,
     leftBorderClassName,
     bottomBorderClassName,
@@ -74,12 +77,45 @@
   <td
     [class]="classNames"
     [style.background-color]="interactable.color"
-    (mousedown)="onInteractableMouseDown(interactable, $event)"
-    (mouseover)="onInteractableMouseOver(interactable, $event)"
-    (mouseup)="onInteractableMouseUp(interactable, $event)"
+    (click)="onInteractableClick(interactable, type, $event)"
+    (keydown)="onInteractableKeyDown(interactable, type, $event)"
     [attr.data-col-index]="interactable.column"
     [attr.data-row-index]="interactable.row"
+    [attr.role]="isCell ? 'button' : null"
+    [attr.tabindex]="isCell ? 0 : null"
+    [attr.aria-pressed]="isCell ? isSelected : null"
+    [attr.aria-label]="isCell ? getCellHoverTitle(interactable) : null"
+    [attr.title]="isCell ? getCellHoverTitle(interactable) : null"
   >
-    {{ type === 'cell' ? '' : interactable.value }}
+    {{ isCell ? '' : interactable.value }}
   </td>
 </ng-template>
+
+<p-overlayPanel
+  #cellTooltip
+  [dismissable]="true"
+  [showCloseIcon]="true"
+  styleClass="rounded-xl shadow-2xl max-w-xs p-2 bg-[#343A40] text-white border border-white/10"
+  (onHide)="onTooltipHide()"
+>
+  <ng-container *ngIf="tooltipContext as tooltip">
+    <span class="text-base font-semibold tracking-tight">{{ tooltip.displayLabel }}</span>
+    <div class="h-px bg-white/20 my-1"></div>
+
+    <div class="flex items-center justify-between text-sm">
+      <span class="uppercase text-xs tracking-[0.08em] text-white/70">LLR</span>
+      <div class="flex items-center gap-2">
+        <span class="inline-block h-2.5 w-2.5 rounded-full shadow-[0_0_0_2px_rgba(255,255,255,0.2)]" [style.backgroundColor]="tooltip.accentColor"></span>
+        <span class="font-semibold text-white">{{ tooltip.llrFormatted }}</span>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between text-sm">
+      <span class="uppercase text-xs tracking-[0.08em] text-white/70">Predicted Effect</span>
+      <div class="flex items-center gap-2 font-semibold" [ngClass]="tooltip.accentClass">
+        <i class="pi text-sm" [ngClass]="tooltip.arrowIcon"></i>
+        <span>{{ tooltip.predictedEffectLabel }}</span>
+      </div>
+    </div>
+  </ng-container>
+</p-overlayPanel>

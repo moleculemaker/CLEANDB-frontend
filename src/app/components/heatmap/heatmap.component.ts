@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { BehaviorSubject, combineLatestWith, filter, Subscription, tap } from 'rxjs';
+import { OverlayPanel, OverlayPanelModule } from 'primeng/overlaypanel';
 import { CleanDbService, EffectPredictionResult } from '~/app/services/clean-db.service';
 
 import { toPng, toJpeg, toSvg } from 'html-to-image';
@@ -14,11 +15,6 @@ export type HeatmapCellOperation = {
   cells: HeatmapCellLocations;
   state: InteractableState;
 }
-export enum HeatmapState {
-  DEFAULT,
-  SELECTING,
-}
-
 enum InteractableState {
   DEFAULT,
   SELECTED,
@@ -65,11 +61,25 @@ export class Interactable {
   }
 }
 
+type HeatmapCellTooltipContext = {
+  accentClass: string;
+  accentColor: string;
+  arrowIcon: string;
+  displayLabel: string;
+  fromResidue: string;
+  llr: number | null;
+  llrFormatted: string;
+  positionLabel: string;
+  predictedEffectLabel: string;
+  toResidue: string;
+}
+
 @Component({
   selector: 'app-heatmap',
   standalone: true,
   imports: [
     CommonModule,
+    OverlayPanelModule,
   ],
   templateUrl: './heatmap.component.html',
   styleUrl: './heatmap.component.scss'
@@ -81,9 +91,9 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
   @Output() selectedCellsChange: EventEmitter<HeatmapCellLocations> = new EventEmitter();
 
   @ViewChild('heatmapTable') heatmapTable: ElementRef<HTMLTableElement>;
+  @ViewChild('cellTooltip') cellTooltip: OverlayPanel;
 
   columnKeys: Interactable[];
-  heatmapState: HeatmapState = HeatmapState.DEFAULT;
   rowKeys: Interactable[];
   subscriptions: Subscription[] = [];
   values: Interactable[][];
@@ -93,6 +103,17 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
   selectedCells$ = new BehaviorSubject<HeatmapCellLocations | null>(null);
 
   public InteractableState = InteractableState;
+  private manualSelectedCell: Interactable | null = null;
+  private currentMutedCells: HeatmapCellLocations = [];
+  private currentSelectedCells: HeatmapCellLocations = [];
+  private scoreFormatter = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+  private tooltipTarget: HTMLElement | null = null;
+  private suppressTooltipHideHandler = false;
+
+  tooltipContext: HeatmapCellTooltipContext | null = null;
 
   public scrollToCol(col: number) {
     const cell = this.heatmapTable.nativeElement.querySelector(`td[data-col-index="${col}"][data-row-index="1"]`);
@@ -123,34 +144,27 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
           this.rowKeys = rowKeys;
           this.columnKeys = columnKeys;
           this.values = values;
+          this.clearManualSelection({ hideTooltip: true, skipRefresh: true });
         }),
         combineLatestWith(
           this.mutedCells$,
           this.selectedCells$
         )
       ).subscribe(([data, mutedCells, selectedCells]) => {
+        this.currentMutedCells = Array.isArray(mutedCells) ? mutedCells : [];
+        this.currentSelectedCells = Array.isArray(selectedCells) ? selectedCells : [];
 
-        const cellOperations = [];
-        if (!Object.is(mutedCells, null)) {
-          this.validateCellLocations(this.values, mutedCells!);
-          cellOperations.push({
-            type: 'update',
-            cells: mutedCells!,
-            state: InteractableState.MUTED,
-          } as HeatmapCellOperation);
+        if (this.values) {
+          if (mutedCells && mutedCells.length) {
+            this.validateCellLocations(this.values, mutedCells);
+          }
+
+          if (selectedCells && selectedCells.length) {
+            this.validateCellLocations(this.values, selectedCells);
+          }
+
+          this.refreshCellStates();
         }
-
-        if (!Object.is(selectedCells, null)) {
-          this.validateCellLocations(this.values, selectedCells!);
-          cellOperations.push({
-            type: 'update',
-            cells: selectedCells!,
-            state: InteractableState.SELECTED,
-          } as HeatmapCellOperation);
-        }
-
-        this.resetCellStates();
-        this.applyCellOperations(cellOperations);
       })
     )
   }
@@ -174,6 +188,10 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
   }
 
   applyCellOperations(cellOperations: HeatmapCellOperation[]): void {
+    if (!this.values || !cellOperations || !cellOperations.length) {
+      return;
+    }
+
     cellOperations.forEach((operation) => {
       operation.cells.forEach((cell) => {
         this.values[cell[0]][cell[1]].state = operation.state;
@@ -321,73 +339,63 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
   }
 
   /* ------------------------------ Interactable Events ------------------------------ */
-  onInteractableMouseDown(x: Interactable, event: MouseEvent) {
-    // Disable cell interaction for first release
-    // if (x.state !== InteractableState.MUTED) {
-    //   this.heatmapState = HeatmapState.SELECTING;
-    // }
+  onInteractableClick(interactable: Interactable, type: string, event: Event): void {
+    if (type !== 'cell') {
+      return;
+    }
 
-    // switch (x.state) {
-    //   case InteractableState.DEFAULT:
-    //     x.state = InteractableState.PENDING_SELECTED;
-    //     break;
-    //   case InteractableState.SELECTED:
-    //     x.state = InteractableState.PENDING_DEFAULT;
-    //     break;
-    //   case InteractableState.PENDING_SELECTED:
-    //   case InteractableState.PENDING_DEFAULT:
-    //     break;
-    // }
-  }
+    const targetElement = event.currentTarget as HTMLElement | null;
+    if (!targetElement) {
+      return;
+    }
 
-  onInteractableMouseOver(x: Interactable, event: MouseEvent) {
-    switch (this.heatmapState) {
-      case (HeatmapState.SELECTING):
-        switch (x.state) {
-          case InteractableState.DEFAULT:
-            x.state = InteractableState.PENDING_SELECTED;
-            break;
-          case InteractableState.SELECTED:
-            x.state = InteractableState.PENDING_DEFAULT;
-            break;
-          case InteractableState.MUTED:
-          case InteractableState.PENDING_DEFAULT:
-          case InteractableState.PENDING_SELECTED:
-          default:
-            break;
-        }
-        break;
-      
-      case (HeatmapState.DEFAULT):
-      default:  
-        return;
+    const isSameCell = this.manualSelectedCell?.id === interactable.id;
+    if (isSameCell && this.cellTooltip?.overlayVisible) {
+      this.clearManualSelection({ hideTooltip: true });
+      return;
+    }
+
+    const context = this.buildTooltipContext(interactable);
+    this.tooltipContext = context;
+
+    this.tooltipTarget = targetElement;
+    this.manualSelectedCell = interactable;
+    this.refreshCellStates();
+
+    const newCells: HeatmapCellLocations = [[interactable.row, interactable.column]];
+    if (this.shouldEmitCellChanges(newCells)) {
+      this.selectedCellsChange.emit(newCells);
+    }
+
+    if (this.cellTooltip && context) {
+      this.openTooltip(event, targetElement);
     }
   }
 
-  onInteractableMouseUp(x: Interactable, event: MouseEvent) {
-    // Disable cell interaction for first release
-    // this.heatmapState = HeatmapState.DEFAULT;
-    // const newCells = this.values.flat().map((cell) => {
-    //   if (cell.state === InteractableState.PENDING_DEFAULT) {
-    //     cell.state = InteractableState.DEFAULT;
-    //   } 
+  onInteractableKeyDown(interactable: Interactable, type: string, event: KeyboardEvent): void {
+    if (type !== 'cell') {
+      return;
+    }
 
-    //   else if (cell.state === InteractableState.PENDING_SELECTED) {
-    //     cell.state = InteractableState.SELECTED;
-    //   }
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      this.onInteractableClick(interactable, type, event);
+    }
+  }
 
-    //   return cell.state === InteractableState.SELECTED ? cell : null;
-    // }).filter((cell) => !!cell)
-    //   .map((cell) => [cell!.row, cell!.column]) as HeatmapCellLocations;
+  onTooltipHide(): void {
+    if (this.suppressTooltipHideHandler) {
+      this.suppressTooltipHideHandler = false;
+      return;
+    }
 
-    // if (this.shouldEmitCellChanges(newCells)) {
-    //   this.selectedCellsChange.emit(newCells);
-    // }
+    this.clearManualSelection({ skipRefresh: false });
   }
 
   /* ---------------------------------- Utils --------------------------------- */
   shouldEmitCellChanges(cellsToUpdate: HeatmapCellLocations): boolean {
-    const oldCells = new Set(this.selectedCells.map(this.getCellLocationId));
+    const currentCells = Array.isArray(this.selectedCells) ? this.selectedCells : [];
+    const oldCells = new Set(currentCells.map(this.getCellLocationId));
     const newCells = new Set(cellsToUpdate.map(this.getCellLocationId));
 
     if (oldCells.size !== newCells.size) {
@@ -405,5 +413,221 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
 
   getCellLocationId(location: HeatmapCellLocation): string {
     return location.join('-');
+  }
+
+  getCellHoverTitle(interactable: Interactable): string | null {
+    const context = this.buildTooltipContext(interactable);
+    if (!context) {
+      return null;
+    }
+
+    const parts = [
+      context.displayLabel,
+      context.llr !== null ? `LLR ${context.llrFormatted}` : 'LLR N/A',
+      context.predictedEffectLabel,
+    ];
+
+    return parts.filter(Boolean).join(' • ');
+  }
+
+  private buildTooltipContext(interactable: Interactable): HeatmapCellTooltipContext | null {
+    if (!this.data || interactable.row === undefined || interactable.column === undefined) {
+      return null;
+    }
+
+    const fromResidue = this.data.colKeys?.[interactable.column] ?? '';
+    const toResidue = this.data.rowKeys?.[interactable.row] ?? '';
+    const position = interactable.column + 1;
+    const rawValue = typeof interactable.value === 'number'
+      ? interactable.value
+      : Number(interactable.value);
+
+    const isNoData = interactable.value === 0 || Number.isNaN(rawValue);
+    const llr = isNoData ? null : rawValue;
+    const predictedEffect = this.getPredictedEffect(llr);
+
+    return {
+      accentClass: predictedEffect.accentClass,
+      accentColor: predictedEffect.accentColor,
+      arrowIcon: predictedEffect.arrowIcon,
+      displayLabel: `${fromResidue}${position}${toResidue}`,
+      fromResidue,
+      llr,
+      llrFormatted: llr !== null ? this.formatScore(llr) : 'N/A',
+      positionLabel: `${position}`,
+      predictedEffectLabel: predictedEffect.label,
+      toResidue,
+    };
+  }
+
+  private getPredictedEffect(score: number | null): { label: string; arrowIcon: string; accentClass: string; accentColor: string } {
+    if (score === null) {
+      return {
+        accentClass: 'text-[#CED4DA]',
+        accentColor: '#CED4DA',
+        arrowIcon: 'pi-minus',
+        label: 'No prediction available',
+      };
+    }
+
+    if (score <= -2) {
+      return {
+        accentClass: 'text-[#F28B94]',
+        accentColor: '#F28B94',
+        arrowIcon: 'pi-arrow-down',
+        label: 'Strongly Deleterious',
+      };
+    }
+
+    if (score > -2 && score <= -1) {
+      return {
+        accentClass: 'text-[#FFB3B8]',
+        accentColor: '#FFB3B8',
+        arrowIcon: 'pi-arrow-down-right',
+        label: 'Likely Deleterious',
+      };
+    }
+
+    if (score > -1 && score < 1) {
+      return {
+        accentClass: 'text-[#E9ECEF]',
+        accentColor: '#E9ECEF',
+        arrowIcon: 'pi-arrow-right',
+        label: 'Neutral / Uncertain',
+      };
+    }
+
+    if (score >= 1 && score < 2) {
+      return {
+        accentClass: 'text-[#9CB3FF]',
+        accentColor: '#9CB3FF',
+        arrowIcon: 'pi-arrow-up-right',
+        label: 'Likely Beneficial',
+      };
+    }
+
+    return {
+      accentClass: 'text-[#6F8BFF]',
+      accentColor: '#6F8BFF',
+      arrowIcon: 'pi-arrow-up',
+      label: 'Strongly Beneficial',
+    };
+  }
+
+  private formatScore(score: number): string {
+    return this.scoreFormatter.format(score);
+  }
+
+  private refreshCellStates(): void {
+    if (!this.values) {
+      return;
+    }
+
+    this.resetCellStates();
+
+    const operations: HeatmapCellOperation[] = [];
+
+    if (this.currentMutedCells?.length) {
+      operations.push({
+        type: 'update',
+        cells: this.currentMutedCells,
+        state: InteractableState.MUTED,
+      });
+    }
+
+    if (this.currentSelectedCells?.length) {
+      operations.push({
+        type: 'update',
+        cells: this.currentSelectedCells,
+        state: InteractableState.SELECTED,
+      });
+    }
+
+    if (operations.length) {
+      this.applyCellOperations(operations);
+    }
+
+    if (this.manualSelectedCell) {
+      this.manualSelectedCell.state = InteractableState.SELECTED;
+      this.repositionTooltip();
+    }
+  }
+
+  private clearManualSelection(options: { hideTooltip?: boolean; skipRefresh?: boolean } = {}): void {
+    const { hideTooltip = false, skipRefresh = false } = options;
+
+    if (hideTooltip && this.cellTooltip?.overlayVisible) {
+      this.cellTooltip?.hide();
+    }
+
+    if (!this.manualSelectedCell && !this.tooltipContext) {
+      return;
+    }
+
+    this.manualSelectedCell = null;
+    this.tooltipContext = null;
+    this.tooltipTarget = null;
+
+    if (!skipRefresh) {
+      this.refreshCellStates();
+    }
+  }
+
+  private openTooltip(event: Event | null, targetElement: HTMLElement): void {
+    if (!this.cellTooltip) {
+      return;
+    }
+
+    const showOverlay = () => {
+      const overlayEvent = this.resolveOverlayEvent(event, targetElement);
+      this.cellTooltip!.show(overlayEvent, targetElement);
+    };
+
+    if (this.cellTooltip.overlayVisible) {
+      this.suppressTooltipHideHandler = true;
+      this.cellTooltip.hide();
+      setTimeout(showOverlay);
+    } else {
+      showOverlay();
+    }
+  }
+
+  private repositionTooltip(): void {
+    if (!this.cellTooltip || !this.cellTooltip.overlayVisible || !this.manualSelectedCell) {
+      return;
+    }
+
+    const targetElement = this.getCellElement(this.manualSelectedCell.row, this.manualSelectedCell.column);
+    if (!targetElement) {
+      return;
+    }
+
+    this.tooltipTarget = targetElement;
+    this.openTooltip(null, targetElement);
+  }
+
+  private getCellElement(row: number, column: number): HTMLElement | null {
+    if (!this.heatmapTable) {
+      return null;
+    }
+
+    return this.heatmapTable.nativeElement.querySelector(
+      `td[data-row-index="${row}"][data-col-index="${column}"]`
+    ) as HTMLElement | null;
+  }
+
+  private resolveOverlayEvent(event: Event | null, targetElement: HTMLElement): Event {
+    if (event instanceof MouseEvent) {
+      return event;
+    }
+
+    const rect = targetElement.getBoundingClientRect();
+    return new MouseEvent('click', {
+      view: window,
+      bubbles: false,
+      cancelable: false,
+      clientX: rect.left + rect.width / 2,
+      clientY: rect.top + rect.height / 2,
+    });
   }
 }
