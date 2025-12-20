@@ -1,0 +1,20 @@
+ingress:
+  hostname: cleandb.frontend.staging.mmli2.ncsa.illinois.edu
+  tls: true
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    kubernetes.io/tls-acme: "true"
+    traefik.ingress.kubernetes.io/router.tls: "true"
+
+controller:
+  image: moleculemaker/cleandb-frontend:staging
+
+config:
+  hostname: "https://mmli.fastapi.staging.mmli2.ncsa.illinois.edu"
+  basePath: ""
+  cleandbHostname: "https://fastapi.cleandb.mmli2.ncsa.illinois.edu"
+  cleandbBasePath: ""
+  signInUrl: "https://mmli2.ncsa.illinois.edu/oauth2/start?rd=https%3A%2F%2Fcleandb.frontend.staging.mmli2.ncsa.illinois.edu%2Fconfiguration"
+  signOutUrl: "https://mmli2.ncsa.illinois.edu/oauth2/sign_out?rd=https%3A%2F%2Fcleandb.frontend.staging.mmli2.ncsa.illinois.edu%2Fconfiguration"
+  userInfoUrl: "https://mmli2.ncsa.illinois.edu/oauth2/userinfo"
+  frontendOnly: "false"
