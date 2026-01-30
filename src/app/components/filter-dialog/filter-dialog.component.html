@@ -1,53 +1,134 @@
-<p-dialog 
-    [(visible)]="visible" 
-    [modal]="true" 
-    styleClass="w-[800px] h-[800px]"
-    (onHide)="visibleChange.emit(false)"
+<p-dialog
+    [(visible)]="visible"
+    [modal]="true"
+    styleClass="w-[800px]"
+    (onHide)="onClose()"
 >
     <ng-template pTemplate="header">
         <div class="flex items-center gap-2 font-semibold">
             <i class="px-2 pi pi-filter"></i>
-            Filter
+            Filters
         </div>
     </ng-template>
-    <div class="mx-4 h-full">
-        <div class="flex w-full h-full grow gap-4">
-            <div class="w-1/2 flex flex-col gap-4 p-3">
-                <div class="font-bold">Experimental Parameters</div>
-                @for (filter of filterRecordsByCategory['parameter']; track filter.label) {
-                <div class="flex flex-col gap-2">
-                    <div [innerHTML]="filter.label.value"></div>
-                    <app-filter [filter]="filter" (filterChange)="filterChange.emit(filter)"></app-filter>
+
+    <div class="mx-4 py-4">
+        <div class="flex gap-6">
+            <!-- Left Column: Identifiers -->
+            <div class="w-1/2 flex flex-col gap-4">
+                <h6 class="font-bold text-gray-700">Identifiers</h6>
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-sm font-medium text-gray-600">Protein Name</label>
+                    <app-typeahead-multiselect
+                        fieldName="protein_name"
+                        placeholder="Search protein names..."
+                        [selectedValues]="draft.protein"
+                        (selectedValuesChange)="draft.protein = $event"
+                        [searchContext]="searchContext"
+                    />
                 </div>
-                }
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-sm font-medium text-gray-600">Organism</label>
+                    <app-typeahead-multiselect
+                        fieldName="organism"
+                        placeholder="Search organisms..."
+                        [selectedValues]="draft.organism"
+                        (selectedValuesChange)="draft.organism = $event"
+                        [searchContext]="searchContext"
+                    />
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-sm font-medium text-gray-600">Curation Status</label>
+                    <p-multiSelect
+                        [options]="curationStatusOptions"
+                        [(ngModel)]="draft.curation_status"
+                        placeholder="Select curation status"
+                        styleClass="w-full"
+                        [showClear]="true"
+                    />
+                </div>
             </div>
-            <div class="w-1/2 border-l border-solid border-[--surface-d] p-3 pl-7 flex flex-col gap-4">
-                <div class="font-bold">Enzyme Kinetics</div>
-                @for (filter of filterRecordsByCategory['enzyme']; track filter.label) {
-                <div class="flex flex-col gap-2">
-                    <div [innerHTML]="filter.label.value"></div>
-                    <app-filter [filter]="filter" (filterChange)="filterChange.emit(filter)"></app-filter>
+
+            <!-- Right Column: Predictions -->
+            <div class="w-1/2 flex flex-col gap-4 border-l border-solid border-gray-200 pl-6">
+                <h6 class="font-bold text-gray-700">Predictions</h6>
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-sm font-medium text-gray-600">Predicted EC Number</label>
+                    <app-typeahead-multiselect
+                        fieldName="predicted_ec"
+                        placeholder="Search EC numbers..."
+                        [selectedValues]="draft.ec_number"
+                        (selectedValuesChange)="draft.ec_number = $event"
+                        [searchContext]="searchContext"
+                    />
                 </div>
-                }
-                <hr class="-mx-7" />
-                <div class="font-bold">Literature</div>
-                @for (filter of filterRecordsByCategory['literature']; track filter.label) {
-                <div class="flex flex-col gap-2">
-                    <div [innerHTML]="filter.label.value"></div>
-                    <app-filter [filter]="filter" (filterChange)="filterChange.emit(filter)"></app-filter>
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-sm font-medium text-gray-600">Confidence Score Category</label>
+                    <p-dropdown
+                        [options]="confidenceCategories"
+                        [(ngModel)]="draft.confidence_category"
+                        (onChange)="onCategoryChange($event)"
+                        placeholder="Select category"
+                        styleClass="w-full"
+                        [showClear]="true"
+                    />
                 </div>
-                }
-                <hr class="-mx-7" />
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-sm font-medium text-gray-600">Confidence Score Range</label>
+                    <div class="flex gap-2 items-center">
+                        <p-inputNumber
+                            [(ngModel)]="draft.confidence_min"
+                            (ngModelChange)="onRangeChange()"
+                            [min]="0"
+                            [max]="1"
+                            [minFractionDigits]="1"
+                            [maxFractionDigits]="2"
+                            mode="decimal"
+                            placeholder="Min"
+                            styleClass="w-full"
+                            inputStyleClass="w-full"
+                        />
+                        <span class="text-gray-500">to</span>
+                        <p-inputNumber
+                            [(ngModel)]="draft.confidence_max"
+                            (ngModelChange)="onRangeChange()"
+                            [min]="0"
+                            [max]="1"
+                            [minFractionDigits]="1"
+                            [maxFractionDigits]="2"
+                            mode="decimal"
+                            placeholder="Max"
+                            styleClass="w-full"
+                            inputStyleClass="w-full"
+                        />
+                    </div>
+                    @if (rangeError) {
+                        <div class="text-red-500 text-sm mt-1">{{ rangeError }}</div>
+                    }
+                </div>
             </div>
         </div>
     </div>
+
     <ng-template pTemplate="footer">
         <div class="flex items-center justify-between pt-4">
-            <button class="rounded-lg border border-solid border-[--primary-color] py-3 px-5 bg-white text-[--primary-color] text-[1rem]" (click)="clearAllFilters.emit()">
+            <button
+                class="rounded-lg border border-solid border-[--primary-color] py-3 px-5 bg-white text-[--primary-color] text-[1rem] hover:bg-gray-50"
+                (click)="resetFilters()"
+            >
                 Reset Filters
             </button>
-            <button class="rounded-lg border border-solid border-[--primary-color] py-3 px-5 bg-[--primary-color] text-white text-[1rem]" (click)="applyFilters.emit()">
-                Show {{ numberResults }} Result{{ numberResults !== 1 ? 's' : '' }}
+            <button
+                class="rounded-lg border border-solid border-[--primary-color] py-3 px-5 bg-[--primary-color] text-white text-[1rem] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                (click)="onApply()"
+                [disabled]="!!rangeError"
+            >
+                Apply Filters
             </button>
         </div>
     </ng-template>
