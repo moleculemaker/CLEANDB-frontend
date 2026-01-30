@@ -451,72 +451,6 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       });
   }
 
-  private buildQueryParams(): Record<string, any> {
-    const params: Record<string, any> = {};
-    const criteriaArray = this.form.get('searchCriteria') as FormArray;
-
-    for (let i = 0; i < criteriaArray.length; i++) {
-      const criteria = criteriaArray.at(i).value;
-      const search: QueryValue | null = criteria.search;
-
-      if (!search?.value) {
-        continue;
-      }
-
-      const field = this.searchOptionFieldMap[search.selectedOption];
-      if (!field) {
-        continue;
-      }
-
-      if (!params[field]) {
-        params[field] = [];
-      }
-
-      params[field] = Array.from(new Set([...(params[field] ?? []), search.value]));
-    }
-
-    this.filters.forEach((filter) => {
-      if (!filter.hasFilter()) {
-        return;
-      }
-
-      if (filter.type === 'multiselect') {
-        const values = Array.isArray(filter.value) ? filter.value : [filter.value];
-        if (!params[filter.field]) {
-          params[filter.field] = [];
-        }
-        params[filter.field] = Array.from(
-          new Set([
-            ...(params[filter.field] ?? []),
-            ...values.filter((value) => value !== null && value !== undefined && value !== ''),
-          ])
-        );
-      } else if (filter instanceof RangeFilterConfig) {
-        if (Array.isArray(filter.value) && filter.value.length === 2) {
-          const [min, max] = filter.value;
-          if (filter.field === 'predicted_ec') {
-            params['clean_ec_confidence_min'] = min;
-            params['clean_ec_confidence_max'] = max;
-            params['clean_ec_confidence'] = min;
-          } else {
-            params[`${filter.field}_min`] = min;
-            params[`${filter.field}_max`] = max;
-          }
-        }
-      }
-    });
-
-    params['limit'] = this.tableState.rows;
-    params['offset'] = this.tableState.first;
-
-    if (this.tableState.sortField) {
-      const direction = this.tableState.sortOrder === -1 ? '-' : '';
-      params['ordering'] = `${direction}${this.tableState.sortField}`;
-    }
-
-    return params;
-  }
-
   exportTable() {
     if (this.result.status !== 'loaded' || this.result.data.length === 0) {
       console.warn('Export called when no data available');
@@ -612,20 +546,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
   
   // Update filter options based on response data
   private updateFilterOptions(response: any[]) {
-    function getField(obj: any, dotPath: string) {
-      return dotPath.split('.').reduce((obj, key) => obj[key], obj);
-    }
-    
     Object.entries(this.filters).forEach(([key, filter]) => {
-      const options = response.map((row: any) => getField(row, filter.field)).flat();
-      const optionsSet = new Set(options);
-      if (filter instanceof MultiselectFilterConfig) {
-        return;
-      }
-      const options = response
-        .map((row: any) => getField(row, filter.field))
-        .flat()
-        .filter((option) => option !== undefined && option !== null);
       if (filter instanceof RangeFilterConfig) {
         filter.min = 0;
         filter.max = 1;
