@@ -90,71 +90,15 @@
     </form>
 
     @if (result.status !== 'na') {
-        @if (result.status === 'loaded') {
-            <div class="flex items-center gap-4 my-4 flex-wrap">
-                <button class="btn-outline !flex items-center gap-2" (click)="showFilterDialog = true">
-                    <i class="pi pi-filter"></i>
-                    <span>Filter</span>
-                </button>
-
-                @if (hasActiveFilters(appliedFilters)) {
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-sm text-gray-600">Active Filters:</span>
-
-                        @if (appliedFilters.protein.length) {
-                            <span class="chip" [pTooltip]="appliedFilters.protein.join('\n')" tooltipPosition="top">
-                                Protein: {{ appliedFilters.protein[0] }}
-                                @if (appliedFilters.protein.length > 1) {
-                                    <span class="ml-1">+{{ appliedFilters.protein.length - 1 }} more</span>
-                                }
-                                <i class="pi pi-times ml-1 cursor-pointer hover:text-red-500" (click)="onRemoveFilter('protein')"></i>
-                            </span>
-                        }
-
-                        @if (appliedFilters.organism.length) {
-                            <span class="chip" [pTooltip]="appliedFilters.organism.join('\n')" tooltipPosition="top">
-                                Organism: {{ appliedFilters.organism[0] }}
-                                @if (appliedFilters.organism.length > 1) {
-                                    <span class="ml-1">+{{ appliedFilters.organism.length - 1 }} more</span>
-                                }
-                                <i class="pi pi-times ml-1 cursor-pointer hover:text-red-500" (click)="onRemoveFilter('organism')"></i>
-                            </span>
-                        }
-
-                        @if (appliedFilters.curation_status.length) {
-                            <span class="chip" [pTooltip]="appliedFilters.curation_status.join('\n')" tooltipPosition="top">
-                                Curation: {{ appliedFilters.curation_status[0] }}
-                                @if (appliedFilters.curation_status.length > 1) {
-                                    <span class="ml-1">+{{ appliedFilters.curation_status.length - 1 }} more</span>
-                                }
-                                <i class="pi pi-times ml-1 cursor-pointer hover:text-red-500" (click)="onRemoveFilter('curation_status')"></i>
-                            </span>
-                        }
-
-                        @if (appliedFilters.ec_number.length) {
-                            <span class="chip" [pTooltip]="appliedFilters.ec_number.join('\n')" tooltipPosition="top">
-                                EC: {{ appliedFilters.ec_number[0] }}
-                                @if (appliedFilters.ec_number.length > 1) {
-                                    <span class="ml-1">+{{ appliedFilters.ec_number.length - 1 }} more</span>
-                                }
-                                <i class="pi pi-times ml-1 cursor-pointer hover:text-red-500" (click)="onRemoveFilter('ec_number')"></i>
-                            </span>
-                        }
-
-                        @if (appliedFilters.confidence_min != null || appliedFilters.confidence_max != null) {
-                            <span class="chip">
-                                Confidence: {{ appliedFilters.confidence_min ?? 0 }}-{{ appliedFilters.confidence_max ?? 1 }}
-                                <i class="pi pi-times ml-1 cursor-pointer hover:text-red-500" (click)="onRemoveFilter('confidence_min')"></i>
-                            </span>
-                        }
-
-                        <button class="text-sm text-blue-600 underline hover:text-blue-800" (click)="onClearAllFilters()">Clear All</button>
-                    </div>
-                }
-            </div>
-        }
-
-        <app-kinetic-table [result]="result" [filters]="filters"></app-kinetic-table>
+        <app-kinetic-table
+            [result]="result"
+            [filters]="filters"
+            [appliedFilters]="appliedFilters"
+            [hasActiveFilters]="hasActiveFilters"
+            (filterClick)="showFilterDialog = true"
+            (removeFilter)="onRemoveFilter($event)"
+            (clearAllFilters)="onClearAllFilters()"
+        ></app-kinetic-table>
     }
 
     <!-- Filter Dialog -->
