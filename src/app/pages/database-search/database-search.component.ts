@@ -155,7 +155,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       options: [],
       value: [],
     })],
-    ['predicted_ec', new MultiselectFilterConfig({
+    ['predicted_ec', new RangeFilterConfig({
       category: 'parameter',
       label: {
         value: 'Predicted EC Number (Score)',
@@ -163,8 +163,9 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       },
       placeholder: 'Enter predicted EC number (score) range',
       field: 'predicted_ec',
-      options: [],
-      value: [],
+      min: 0,
+      max: 1,
+      value: [0, 1],
       matchMode: 'subset',
     })],
   ] as [string, FilterConfig][])
@@ -450,6 +451,72 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       });
   }
 
+  private buildQueryParams(): Record<string, any> {
+    const params: Record<string, any> = {};
+    const criteriaArray = this.form.get('searchCriteria') as FormArray;
+
+    for (let i = 0; i < criteriaArray.length; i++) {
+      const criteria = criteriaArray.at(i).value;
+      const search: QueryValue | null = criteria.search;
+
+      if (!search?.value) {
+        continue;
+      }
+
+      const field = this.searchOptionFieldMap[search.selectedOption];
+      if (!field) {
+        continue;
+      }
+
+      if (!params[field]) {
+        params[field] = [];
+      }
+
+      params[field] = Array.from(new Set([...(params[field] ?? []), search.value]));
+    }
+
+    this.filters.forEach((filter) => {
+      if (!filter.hasFilter()) {
+        return;
+      }
+
+      if (filter.type === 'multiselect') {
+        const values = Array.isArray(filter.value) ? filter.value : [filter.value];
+        if (!params[filter.field]) {
+          params[filter.field] = [];
+        }
+        params[filter.field] = Array.from(
+          new Set([
+            ...(params[filter.field] ?? []),
+            ...values.filter((value) => value !== null && value !== undefined && value !== ''),
+          ])
+        );
+      } else if (filter instanceof RangeFilterConfig) {
+        if (Array.isArray(filter.value) && filter.value.length === 2) {
+          const [min, max] = filter.value;
+          if (filter.field === 'predicted_ec') {
+            params['clean_ec_confidence_min'] = min;
+            params['clean_ec_confidence_max'] = max;
+            params['clean_ec_confidence'] = min;
+          } else {
+            params[`${filter.field}_min`] = min;
+            params[`${filter.field}_max`] = max;
+          }
+        }
+      }
+    });
+
+    params['limit'] = this.tableState.rows;
+    params['offset'] = this.tableState.first;
+
+    if (this.tableState.sortField) {
+      const direction = this.tableState.sortOrder === -1 ? '-' : '';
+      params['ordering'] = `${direction}${this.tableState.sortField}`;
+    }
+
+    return params;
+  }
+
   exportTable() {
     if (this.result.status !== 'loaded' || this.result.data.length === 0) {
       console.warn('Export called when no data available');
@@ -553,16 +620,20 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       const options = response.map((row: any) => getField(row, filter.field)).flat();
       const optionsSet = new Set(options);
       if (filter instanceof MultiselectFilterConfig) {
-        filter.options = Array.from(optionsSet).map((option: any) => ({
-          label: option,
-          value: option,
-        }));
-        filter.defaultValue = [];
-      } else if (filter instanceof RangeFilterConfig) {
-        filter.min = Math.min(...options);
-        filter.max = Math.max(...options);
-        filter.value = [filter.min, filter.max];
-        filter.defaultValue = [filter.min, filter.max];
+        return;
+      }
+      const options = response
+        .map((row: any) => getField(row, filter.field))
+        .flat()
+        .filter((option) => option !== undefined && option !== null);
+      if (filter instanceof RangeFilterConfig) {
+        filter.min = 0;
+        filter.max = 1;
+        const defaultRange: [number, number] = [filter.min, filter.max];
+        filter.defaultValue = defaultRange;
+        if (!filter.hasFilter()) {
+          filter.value = [...defaultRange];
+        }
       }
     });
     

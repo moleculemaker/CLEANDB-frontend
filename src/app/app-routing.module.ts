@@ -10,6 +10,7 @@ import { EffectPredictionResultComponent } from "~/app/pages/effect-prediction-r
 import { CenterLayoutComponent } from "./components/center-layout/center-layout.component";
 import { LandingPageComponent } from "./pages/landing-page/landing-page.component";
 import { TutorialPageComponent } from "./pages/tutorial-page/tutorial-page.component";
+import { ProteinViewerDemoComponent } from "./pages/protein-viewer-demo/protein-viewer-demo.component";
 
 
 const routes: Routes = [
@@ -21,6 +22,7 @@ const routes: Routes = [
       { path: 'about', component: AboutPageComponent },
       { path: 'home', component: LandingPageComponent },
       { path: 'tutorial', component: TutorialPageComponent },
+      { path: 'protein-viewer-demo', component: ProteinViewerDemoComponent },
     ]
   },
   { 

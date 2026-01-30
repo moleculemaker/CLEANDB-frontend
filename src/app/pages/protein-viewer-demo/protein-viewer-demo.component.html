@@ -1,0 +1,76 @@
+<div class="demo-page">
+  <!-- UniProt ID input row -->
+  <div class="input-row">
+    <span class="p-float-label">
+      <input id="uniprotInput" type="text" pInputText [(ngModel)]="uniprotIdInput" />
+      <label for="uniprotInput">UniProt ID</label>
+    </span>
+    <button pButton label="Load" icon="pi pi-download" (click)="loadProtein()"></button>
+  </div>
+
+  <!-- Main content: controls + viewer -->
+  <div class="main-content">
+    <!-- Controls panel -->
+    <p-panel header="Controls" class="controls-panel">
+      <div class="control-group">
+        <label>Style</label>
+        <p-dropdown [options]="styleOptions" [(ngModel)]="style" optionLabel="label" optionValue="value"></p-dropdown>
+      </div>
+
+      <div class="control-group">
+        <label>Color Scheme</label>
+        <p-dropdown [options]="colorSchemeOptions" [(ngModel)]="colorScheme" optionLabel="label" optionValue="value"></p-dropdown>
+      </div>
+
+      <div class="control-group">
+        <label>Highlight Color</label>
+        <input type="color" [(ngModel)]="highlightColor" class="color-input" />
+      </div>
+
+      <div class="control-actions">
+        <button pButton label="Clear" icon="pi pi-times" class="p-button-outlined" (click)="clearHighlights()"></button>
+        <button pButton label="Add Residue 50" icon="pi pi-plus" class="p-button-outlined" (click)="addResidue50()"></button>
+      </div>
+    </p-panel>
+
+    <!-- 3D Viewer -->
+    <div class="viewer-wrapper">
+      <app-protein-viewer
+        [uniprotId]="activeUniprotId"
+        [style]="style"
+        [colorScheme]="colorScheme"
+        [highlightColor]="highlightColor"
+        [highlightedResidues]="highlightedResidues"
+        [viewerId]="viewerId"
+        (residueClicked)="onResidueClicked($event)"
+        (highlightedResiduesChange)="onHighlightedResiduesChange($event)">
+      </app-protein-viewer>
+    </div>
+  </div>
+
+  <!-- Highlighted residues table -->
+  <p-panel header="Highlighted Residues" *ngIf="highlightedResidues.length > 0" class="residues-panel">
+    <p-table [value]="highlightedResidues" [tableStyle]="{'min-width': '30rem'}">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>#</th>
+          <th>Residue Index</th>
+          <th>Chain</th>
+          <th>Name</th>
+          <th></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-residue let-i="rowIndex">
+        <tr>
+          <td>{{ i + 1 }}</td>
+          <td>{{ residue.resi }}</td>
+          <td>{{ residue.chain }}</td>
+          <td>{{ residue.resn || '—' }}</td>
+          <td>
+            <button pButton icon="pi pi-trash" class="p-button-text p-button-danger p-button-sm" (click)="removeResidue(residue)"></button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-panel>
+</div>
