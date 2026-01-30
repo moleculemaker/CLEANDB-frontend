@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, ViewChild, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { PanelModule } from 'primeng/panel';
@@ -12,6 +12,7 @@ import { ScrollPanelModule } from 'primeng/scrollpanel';
 import { ToastModule } from 'primeng/toast';
 import { TabViewModule } from 'primeng/tabview';
 import { MessageService } from 'primeng/api';
+import { TooltipModule } from 'primeng/tooltip';
 
 import { CleanDbService } from '~/app/services/clean-db.service';
 import { LoadingStatus } from '~/app/models/Loadable';
@@ -21,6 +22,7 @@ import { ReactionSchemaComponent } from '../reaction-schema/reaction-schema.comp
 import { catchError, of } from 'rxjs';
 import { map } from 'rxjs';
 import { ReactionSchemaRecord } from '~/app/models/ReactionSchemaRecord';
+import { AppliedFilters } from '~/app/models/applied-filters';
 
 @Component({
   selector: 'app-kinetic-table',
@@ -49,6 +51,7 @@ import { ReactionSchemaRecord } from '~/app/models/ReactionSchemaRecord';
     ScrollPanelModule,
     ToastModule,
     TabViewModule,
+    TooltipModule,
 
     EcArrowComponent,
     EcChipComponent,
@@ -70,6 +73,12 @@ export class KineticTableComponent implements OnChanges {
   };
   @Input() filters: Map<string, any> = new Map();
   @Input() isFiltered = false;
+  @Input() appliedFilters: AppliedFilters | null = null;
+  @Input() hasActiveFilters: ((filters: AppliedFilters) => boolean) | null = null;
+
+  @Output() filterClick = new EventEmitter<void>();
+  @Output() removeFilter = new EventEmitter<keyof AppliedFilters>();
+  @Output() clearAllFilters = new EventEmitter<void>();
 
   @ViewChild(Table) resultsTable!: Table;
 
@@ -144,5 +153,17 @@ export class KineticTableComponent implements OnChanges {
       summary: 'Success',
       detail: 'Sequence copied to clipboard',
     });
+  }
+
+  onFilterClick() {
+    this.filterClick.emit();
+  }
+
+  onRemoveFilter(filterKey: keyof AppliedFilters) {
+    this.removeFilter.emit(filterKey);
+  }
+
+  onClearAllFilters() {
+    this.clearAllFilters.emit();
   }
 }
