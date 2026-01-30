@@ -7,11 +7,13 @@ configuration.ts
 encoder.ts
 git_push.sh
 index.ts
+model/cLEANCurationStatusResponse.ts
 model/cLEANDataBase.ts
 model/cLEANECLookupMatch.ts
 model/cLEANECLookupResponse.ts
 model/cLEANSearchResponse.ts
 model/cLEANTypeaheadResponse.ts
+model/curationStatusOption.ts
 model/eCNumberConfidence.ts
 model/hTTPValidationError.ts
 model/models.ts

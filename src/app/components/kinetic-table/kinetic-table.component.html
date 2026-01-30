@@ -3,40 +3,9 @@
     <p-panel>
       <ng-template pTemplate="header">
         <span class="grow">Enzyme Function Predictions</span>
-        <div class="flex items-center gap-2 hidden"> <!-- FIXME temporarily hiding filter controls because they need to be updated to work with the API -->
-          <button class="btn-outline !flex items-center gap-2" (click)="showFilter = !showFilter">
-            <i class="pi pi-filter"></i>
-            <h6 class="inline leading-lg">Filter</h6>
-          </button>
-          <button class="btn-outline" (click)="clearAllFilters()">
-            Clear All
-          </button>
-        </div>
       </ng-template>
 
       <div class="flex flex-col">
-        @if (hasFilter) {
-        <div id="container-filters" class="flex flex-col gap-2 w-full gap-4 p-2 px-4 bg-white">
-          <div class="font-semibold">Current Filters</div>
-          <div class="flex gap-2">
-            @for (filter of filterRecords; track filter.label) {
-            @if (filter.hasFilter()) {
-            <span class="rounded-sm bg-[--surface-d] p-1 flex items-center gap-1">
-              <div [innerHTML]="filter.label.value" class="font-semibold"></div>: {{
-              filter.formattedValue }}
-              <i class="pi pi-times-circle cursor-pointer" (click)="
-                                                filter.value = filter.defaultValue;
-                                                applyFilters();
-                                            "></i>
-            </span>
-            }
-            }
-          </div>
-        </div>
-
-        <hr />
-        }
-
         <div class="flex w-full">
           <p-table #resultsTable [value]="result.data" [loading]="result.status === 'loading'"
             [rows]="10" [rowsPerPageOptions]="[10, 20, 50]"
@@ -44,10 +13,6 @@
             [columns]="columns" (onRowExpand)="onRowExpand($event)">
             <ng-template pTemplate="header">
               <tr>
-                <!-- TODO revisit after troubleshooting missing protein names:
-                @for (filter of filters.entries(); track filter[0]) {
-                @let value = filter[1];
-                -->
                 @for (value of columns; track value.field) {
                 <th class="align-middle relative group text-center" pSortableColumn="{{ value.field }}">
                   <div [innerHTML]="value.header"></div>
@@ -60,10 +25,6 @@
             </ng-template>
             <ng-template pTemplate="body" let-row let-expanded="expanded">
               <tr class="table-row">
-                <!-- TODO revisit after troubleshooting missing protein names:
-                @for (filter of filters.entries(); track filter[0]) {
-                @let value = column[1];
-                -->
                 @for (value of columns; track value.field) {
                 @switch (value.field) {
                   @case("protein") {
@@ -77,17 +38,13 @@
                 @case ('accession') {
                 <td class="align-middle">
                   <div class="flex flex-nowrap items-center gap-2">
-                    <!-- TODO revisit after troubleshooting missing protein names -->
                     <button title="Expand" type="button" [pRowToggler]="row">
                       <i [class]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"></i>
                     </button>
-                    <!-- @for (id of row.uniprot; track id) { -->
                     <a [href]="'https://www.uniprot.org/uniprotkb/' + row.accession" target="_blank" class="text-blue-500 cursor-pointer p-2">{{ row.accession }}</a>
-                    <!-- } -->
                   </div>
                 </td>
                 }
-                <!-- TODO revisit this column after troubleshooting missing protein names -->
                 @case ('amino_acids') {
                 <td class="align-middle">
                   <span class="font-semibold">{{ row.amino_acids }}</span>
@@ -145,7 +102,6 @@
                       <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Protein Name', value: row.protein }"></ng-container>
                       <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'NCBI Tax ID', value: row.ncbi_tax_id }"></ng-container>
                       <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'EC Number (UniProt)', value: row.ec_uniprot ? row.ec_uniprot.join(', ') : '' }"></ng-container>
-                      <!-- TODO revisit after troubleshooting missing protein names <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Amino Acids', value: row.amino_acids }"></ng-container> -->
                       <div class="flex flex-col gap-2">
                         <div class="text-[--text-secondary-color]">Enzyme Sequence</div>
                         <button class="flex items-center gap-1 text-[#64748B] font-semibold" title="Download Sequence" (click)="copySequence(row.sequence)">
@@ -154,7 +110,7 @@
                         </button>
                       </div>
                     </div>
-                    
+
                     <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Enzyme Function', value: row.function }"></ng-container>
                     <div class="flex flex-col gap-2">
                       <div class="text-[--text-secondary-color]">Generic Names</div>
@@ -196,8 +152,8 @@
               <tr>
                 <td colspan="11" class="text-center">
                   <div class="flex flex-col items-center justify-center h-full gap-4 p-8">
-                    <h5 class="font-semibold text-center">Empty</h5>
-                    <p class="text-center">No results available in CLEAN DB.</p>
+                    <h5 class="font-semibold text-center">No Results Found</h5>
+                    <p class="text-center">No results available. Try adjusting your search criteria or filters.</p>
                   </div>
                 </td>
               </tr>
@@ -208,11 +164,6 @@
     </p-panel>
   </div>
 </div>
-
-<app-filter-dialog [(visible)]="showFilter" [filters]="filters"
-  [numberResults]="$any(resultsTable)?.filteredValue?.length ?? result.total" (filterChange)="searchTable($event)"
-  (clearAllFilters)="clearAllFilters()" (applyFilters)="applyFilters()">
-</app-filter-dialog>
 
 <ng-template #rowInfo let-label="label" let-value="value">
 @if (value) {
