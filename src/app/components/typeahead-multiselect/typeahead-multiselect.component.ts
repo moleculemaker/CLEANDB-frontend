@@ -34,6 +34,8 @@ export interface TypeaheadOption {
         panelStyleClass="typeahead-panel"
         [showEmptyMessage]="true"
         emptyMessage="Type at least 3 characters to search..."
+        appendTo="body"
+        [baseZIndex]="10000"
       >
         <ng-template let-item pTemplate="item">
           <div class="flex items-center">
