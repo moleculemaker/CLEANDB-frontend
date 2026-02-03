@@ -21,7 +21,7 @@
                     <label class="text-sm font-medium text-gray-600">Protein Name</label>
                     <app-typeahead-multiselect
                         fieldName="protein_name"
-                        placeholder="Search protein names..."
+                        placeholder="Type 3 characters to search protein names"
                         [selectedValues]="draft.protein"
                         (selectedValuesChange)="draft.protein = $event"
                         [searchContext]="searchContext"
@@ -32,7 +32,7 @@
                     <label class="text-sm font-medium text-gray-600">Organism</label>
                     <app-typeahead-multiselect
                         fieldName="organism"
-                        placeholder="Search organisms..."
+                        placeholder="Type 3 characters to search organisms"
                         [selectedValues]="draft.organism"
                         (selectedValuesChange)="draft.organism = $event"
                         [searchContext]="searchContext"
@@ -49,7 +49,7 @@
                         styleClass="w-full"
                         [showClear]="true"
                         appendTo="body"
-        [baseZIndex]="10000"
+                        [baseZIndex]="10000"
                     />
                 </div>
             </div>
@@ -62,7 +62,7 @@
                     <label class="text-sm font-medium text-gray-600">Predicted EC Number</label>
                     <app-typeahead-multiselect
                         fieldName="predicted_ec"
-                        placeholder="Search EC numbers..."
+                        placeholder="Type 3 characters to search EC numbers"
                         [selectedValues]="draft.ec_number"
                         (selectedValuesChange)="draft.ec_number = $event"
                         [searchContext]="searchContext"
@@ -79,8 +79,7 @@
                         styleClass="w-full"
                         [showClear]="true"
                         appendTo="body"
-        [baseZIndex]="10000"
-
+                        [baseZIndex]="10000"
                     />
                 </div>
 

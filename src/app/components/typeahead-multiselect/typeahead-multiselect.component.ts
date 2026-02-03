@@ -33,7 +33,7 @@ export interface TypeaheadOption {
         styleClass="w-full"
         panelStyleClass="typeahead-panel"
         [showEmptyMessage]="true"
-        emptyMessage="Type at least 3 characters to search..."
+        [emptyMessage]="emptyMessage"
         appendTo="body"
         [baseZIndex]="10000"
       >
@@ -90,6 +90,7 @@ export class TypeaheadMultiselectComponent implements OnDestroy, AfterViewInit {
   suggestions: TypeaheadOption[] = [];
   loading = false;
   error: string | null = null;
+  emptyMessage = 'No matching found for current search';
 
   private currentQuery = '';
   private currentOffset = 0;
