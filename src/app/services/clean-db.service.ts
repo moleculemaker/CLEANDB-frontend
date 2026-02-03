@@ -120,16 +120,6 @@ export class CleanDbService {
     if (this.frontendOnly) {
       return of([]);
     }
-    if (params.field_name === 'ec_number' || params.field_name === 'predicted_ec') {
-      return this.searchService.getEcLookupApiV1EcLookupGet({ ...params, search: params.search }).pipe(
-        map(({ matches }) =>
-          matches.map((match: { ec_number: string; ec_name: string }) => ({
-            label: match.ec_number + ' ' + match.ec_name,
-            value: match.ec_number,
-          }))
-        )
-      );
-    }
     return this.searchService.getTypeaheadApiV1TypeaheadGet({ ...params }).pipe(
       map(({ matches }) => matches.map((match: string) => ({ label: match, value: match })))
     );
