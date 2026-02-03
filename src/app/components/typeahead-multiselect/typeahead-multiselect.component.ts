@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, OnDestroy, Output, ViewChild, ElementRe
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AutoCompleteModule, AutoComplete, AutoCompleteCompleteEvent } from 'primeng/autocomplete';
-import { Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs';
+import { Subject, Subscription, debounceTime } from 'rxjs';
 import { CleanDbService } from '~/app/services/clean-db.service';
 
 export interface TypeaheadOption {
@@ -98,11 +98,11 @@ export class TypeaheadMultiselectComponent implements OnDestroy, AfterViewInit {
   private searchSubject = new Subject<string>();
   private searchSubscription: Subscription | null = null;
   private panelScrollListener: (() => void) | null = null;
+  private searchVersion = 0; // Track search version to handle race conditions
 
   constructor(private service: CleanDbService) {
     this.searchSubscription = this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged()
+      debounceTime(300)
     ).subscribe(query => {
       this.executeSearch(query);
     });
@@ -149,10 +149,13 @@ export class TypeaheadMultiselectComponent implements OnDestroy, AfterViewInit {
   }
 
   private executeSearch(query: string): void {
+    // Increment version to invalidate any in-flight requests
+    this.searchVersion++;
     this.currentQuery = query;
     this.currentOffset = 0;
     this.hasMore = true;
     this.error = null;
+    this.loading = false; // Reset loading state for new search
     this.fetchPage(true);
   }
 
@@ -172,8 +175,15 @@ export class TypeaheadMultiselectComponent implements OnDestroy, AfterViewInit {
       ...this.searchContext
     };
 
+    // Capture the current version to check when response arrives
+    const requestVersion = this.searchVersion;
+
     this.service.getTypeaheadPaginated(params).subscribe({
       next: (results) => {
+        // Ignore response if a newer search has been initiated
+        if (requestVersion !== this.searchVersion) {
+          return;
+        }
         if (reset) {
           this.suggestions = results;
         } else {
@@ -184,6 +194,10 @@ export class TypeaheadMultiselectComponent implements OnDestroy, AfterViewInit {
         this.loading = false;
       },
       error: (err) => {
+        // Ignore error if a newer search has been initiated
+        if (requestVersion !== this.searchVersion) {
+          return;
+        }
         console.error('Typeahead error:', err);
         this.error = 'Failed to load suggestions';
         this.loading = false;
