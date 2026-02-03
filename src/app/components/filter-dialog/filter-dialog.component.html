@@ -43,10 +43,13 @@
                     <label class="text-sm font-medium text-gray-600">Curation Status</label>
                     <p-multiSelect
                         [options]="curationStatusOptions"
+                        display="chip"
                         [(ngModel)]="draft.curation_status"
                         placeholder="Select curation status"
                         styleClass="w-full"
                         [showClear]="true"
+                        appendTo="body"
+        [baseZIndex]="10000"
                     />
                 </div>
             </div>
@@ -75,6 +78,9 @@
                         placeholder="Select category"
                         styleClass="w-full"
                         [showClear]="true"
+                        appendTo="body"
+        [baseZIndex]="10000"
+
                     />
                 </div>
 
