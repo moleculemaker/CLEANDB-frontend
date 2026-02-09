@@ -21,7 +21,7 @@ export interface TypeaheadOption {
         [multiple]="true"
         [suggestions]="suggestions"
         [placeholder]="placeholder"
-        [minLength]="3"
+        [minLength]="1"
         [delay]="300"
         field="label"
         [(ngModel)]="selectedItems"
@@ -90,7 +90,7 @@ export class TypeaheadMultiselectComponent implements OnDestroy, AfterViewInit {
   suggestions: TypeaheadOption[] = [];
   loading = false;
   error: string | null = null;
-  emptyMessage = 'No matching found for current search';
+  emptyMessage = 'Type 3+ characters to start search';
 
   private currentQuery = '';
   private currentOffset = 0;
@@ -124,8 +124,10 @@ export class TypeaheadMultiselectComponent implements OnDestroy, AfterViewInit {
     const query = event.query;
     if (query.length < 3) {
       this.suggestions = [];
+      this.emptyMessage = 'Type 3+ characters to start search';
       return;
     }
+    this.emptyMessage = 'No matching found for current search';
     this.searchSubject.next(query);
   }
 

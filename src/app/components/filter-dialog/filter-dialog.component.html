@@ -21,7 +21,7 @@
                     <label class="text-sm font-medium text-gray-600">Protein Name</label>
                     <app-typeahead-multiselect
                         fieldName="protein_name"
-                        placeholder="Type 3 characters to search protein names"
+                        placeholder="Search Protein"
                         [selectedValues]="draft.protein"
                         (selectedValuesChange)="draft.protein = $event"
                         [searchContext]="searchContext"
@@ -32,7 +32,7 @@
                     <label class="text-sm font-medium text-gray-600">Organism</label>
                     <app-typeahead-multiselect
                         fieldName="organism"
-                        placeholder="Type 3 characters to search organisms"
+                        placeholder="Search Organism"
                         [selectedValues]="draft.organism"
                         (selectedValuesChange)="draft.organism = $event"
                         [searchContext]="searchContext"
@@ -62,7 +62,7 @@
                     <label class="text-sm font-medium text-gray-600">Predicted EC Number</label>
                     <app-typeahead-multiselect
                         fieldName="predicted_ec"
-                        placeholder="Type 3 characters to search EC numbers"
+                        placeholder="Search EC Number"
                         [selectedValues]="draft.ec_number"
                         (selectedValuesChange)="draft.ec_number = $event"
                         [searchContext]="searchContext"
