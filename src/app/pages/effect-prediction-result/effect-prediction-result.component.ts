@@ -186,6 +186,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
       const diff: number[] = Array.from(newPositionSet.difference(oldPositionSet));
       const minPosition = Math.min(...diff);
       this.heatmap.scrollToCol(minPosition);
+      this.scrollTableToPosition(minPosition + 1); // table uses 1-based positions
     }
     this.previousSelectedPositions = [...this.selectedPositions];
     this.selectedPositions = newPositions;
@@ -197,10 +198,6 @@ export class EffectPredictionResultComponent implements OnDestroy {
     this.togglePosition(position);
     this.heatmap.scrollToCol(position);
     this.scrollTableToPosition(position + 1); // table uses 1-based positions
-  }
-
-  onHeatmapColumnClicked(column: number): void {
-    this.togglePosition(column);
   }
 
   private startSimplefoldPolling(simplefoldJobId?: string): void {
