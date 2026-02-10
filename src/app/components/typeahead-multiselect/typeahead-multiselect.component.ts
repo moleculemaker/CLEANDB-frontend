@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, Output, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, Output, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AutoCompleteModule, AutoComplete, AutoCompleteCompleteEvent } from 'primeng/autocomplete';
