@@ -11,7 +11,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { BehaviorSubject, Subscription } from 'rxjs';
-import { distinctUntilChanged, filter, first, map, switchMap } from 'rxjs/operators';
+import { first, map } from 'rxjs/operators';
 import { ThreedmolLoaderService } from '~/app/services/threedmol-loader.service';
 import { AlphafoldService } from '~/app/services/alphafold.service';
 import { ProteinSelectionService } from '~/app/services/protein-selection.service';
