@@ -12,7 +12,7 @@ import { QueryInputComponent } from "~/app/components/query-input/query-input.co
 import { QueryValue, RangeSearchOption, SearchOption } from "~/app/models/search-options";
 import { InputTextareaModule } from "primeng/inputtextarea";
 import { JobType } from "~/app/api/mmli-backend/v1";
-import { combineLatestWith, map, Subscription, tap } from "rxjs";
+import { combineLatestWith, map, Subscription, switchMap, tap } from "rxjs";
 import { getFasta, getSingleSeq } from "~/app/utils/fasta";
 import { InputTextModule } from "primeng/inputtext";
 import { SequenceValidatorDirective } from "~/app/directives/sequence-validator.directive";
@@ -125,18 +125,21 @@ export class EffectPredictionComponent implements OnChanges, OnDestroy {
     } 
 
     const { sequenceName, sequence } = getSingleSeq(this.form.value.sequence || '');
+    const email = this.form.value.email || '';
+    const positions = this.form.value.positions?.value || [];
+
     this.subscriptions.push(
-      this.service.createAndRunJob(
-        JobType.CleandbMepesm,
-        { 
-          job_info: JSON.stringify({
-            sequence: sequence,
-            sequence_name: sequenceName,
-            positions: this.form.value.positions?.value || [],
-          }),
-          email: this.form.value.email || '',
-        }
-      ).subscribe((response) => 
+      this.service.createSimplefoldJob(sequence, sequenceName, email).pipe(
+        switchMap((simplefoldResponse) =>
+          this.service.createAndRunJob(JobType.CleandbMepesm, {
+            job_info: JSON.stringify({
+              sequence, sequence_name: sequenceName, positions,
+              simplefold_job_id: simplefoldResponse.job_id,
+            }),
+            email,
+          })
+        )
+      ).subscribe((response) =>
         this.router.navigate(['effect-prediction', 'result', response.job_id])
       )
     );

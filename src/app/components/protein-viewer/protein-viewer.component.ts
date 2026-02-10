@@ -30,6 +30,8 @@ import {
 })
 export class ProteinViewerComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() uniprotId: string = '';
+  @Input() pdbData: string = '';
+  @Input() dataFormat: string = 'pdb';
   @Input() style: ProteinViewerStyle = 'cartoon';
   @Input() colorScheme: ProteinColorScheme = 'spectrum';
   @Input() highlightColor: string = '#FF4444';
@@ -78,7 +80,8 @@ export class ProteinViewerComponent implements AfterViewInit, OnChanges, OnDestr
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['uniprotId'] && !changes['uniprotId'].firstChange) {
+    if ((changes['uniprotId'] && !changes['uniprotId'].firstChange) ||
+        (changes['pdbData'] && !changes['pdbData'].firstChange)) {
       this.loadProtein();
     }
 
@@ -111,31 +114,38 @@ export class ProteinViewerComponent implements AfterViewInit, OnChanges, OnDestr
   }
 
   private loadProtein(): void {
-    if (!this.uniprotId || !this.viewer) return;
+    if (!this.viewer) return;
+    if (!this.pdbData && !this.uniprotId) return;
     this.modelLoaded = false;
 
-    this.subscriptions.push(
-      this.alphafoldService.get3DProtein(this.uniprotId).subscribe({
-        next: (pdbData) => {
-          this.viewer.removeAllModels();
-          this.viewer.addModel(pdbData, 'pdb');
-          this.modelLoaded = true;
-          this.setupClickHandler(this.viewer);
-          this.applyBaseStyle();
-          this.viewer.zoomTo();
-          this.viewer.render();
-          this.viewer.zoom(1, 2000);
+    if (this.pdbData) {
+      this.renderModel(this.pdbData);
+    } else {
+      this.subscriptions.push(
+        this.alphafoldService.get3DProtein(this.uniprotId).subscribe({
+          next: (pdbData) => this.renderModel(pdbData),
+          error: (err) => {
+            console.error('Failed to load protein:', err);
+          },
+        }),
+      );
+    }
+  }
 
-          const selections = this.getCurrentSelections();
-          if (selections.length > 0) {
-            this.applyHighlights(selections);
-          }
-        },
-        error: (err) => {
-          console.error('Failed to load protein:', err);
-        },
-      }),
-    );
+  private renderModel(pdbData: string): void {
+    this.viewer.removeAllModels();
+    this.viewer.addModel(pdbData, this.dataFormat);
+    this.modelLoaded = true;
+    this.setupClickHandler(this.viewer);
+    this.applyBaseStyle();
+    this.viewer.zoomTo();
+    this.viewer.render();
+    this.viewer.zoom(1, 2000);
+
+    const selections = this.getCurrentSelections();
+    if (selections.length > 0) {
+      this.applyHighlights(selections);
+    }
   }
 
   private setupClickHandler(viewer: any): void {

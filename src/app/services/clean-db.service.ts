@@ -1,5 +1,6 @@
 import { Injectable } from "@angular/core";
-import { Observable, from, map, of } from "rxjs";
+import { HttpClient } from "@angular/common/http";
+import { Observable, from, map, of, switchMap } from "rxjs";
 import { scaleLinear } from 'd3';
 
 
@@ -41,11 +42,40 @@ export class CleanDbService {
     private jobsService: JobsService,
     private filesService: FilesService,
     private environmentService: EnvironmentService,
-    private searchService: SearchService
-
-    // private apiService: CleanDbApiService,
+    private searchService: SearchService,
+    private http: HttpClient,
   ) {
     this.frontendOnly = this.environmentService.getEnvConfig().frontendOnly === "true";
+  }
+
+  createSimplefoldJob(sequence: string, sequenceName: string, email: string): Observable<Job> {
+    if (this.frontendOnly) {
+      return from(exampleStatus) as Observable<Job>;
+    }
+    const fasta = `>${sequenceName}\n${sequence}`;
+    return this.jobsService.createJobJobTypeJobsPost('ml-simplefold', {
+      job_info: JSON.stringify({ fasta }),
+      email,
+    });
+  }
+
+  getSimplefoldStatus(jobId: string): Observable<Job> {
+    if (this.shouldUsePrecomputedResult(jobId)) {
+      return of({ phase: 'completed', job_id: jobId } as Job);
+    }
+    return this.jobsService.listJobsByTypeAndJobIdJobTypeJobsJobIdGet('ml-simplefold', jobId)
+      .pipe(map((jobs) => jobs[0]));
+  }
+
+  getSimplefoldResult(jobId: string): Observable<string> {
+    return this.filesService.getResultsBucketNameResultsJobIdGet('ml-simplefold', jobId).pipe(
+      map((urls: string[]) => {
+        const cifUrl = urls.find(url => url.endsWith('.cif'));
+        if (!cifUrl) throw new Error('No .cif file found in SimpleFold results');
+        return cifUrl;
+      }),
+      switchMap(url => this.http.get(url, { responseType: 'text' })),
+    );
   }
 
   createAndRunJob(jobType: JobType, requestBody: BodyCreateJobJobTypeJobsPost): Observable<Job> {
