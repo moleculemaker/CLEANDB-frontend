@@ -16,6 +16,7 @@ import { HeatmapCellLocations, HeatmapComponent } from '~/app/components/heatmap
 import { ScoreChipComponent } from "../../components/score-chip/score-chip.component";
 import { ProteinViewerComponent } from '~/app/components/protein-viewer/protein-viewer.component';
 import { ProteinViewerStyle, ProteinColorScheme, ResidueSelection } from '~/app/models/protein-viewer';
+import { ProteinSelectionService } from '~/app/services/protein-selection.service';
 import { AlphafoldService } from '~/app/services/alphafold.service';
 import { TooltipModule } from 'primeng/tooltip';
 import { SplitButtonModule } from 'primeng/splitbutton';
@@ -102,7 +103,6 @@ export class EffectPredictionResultComponent implements OnDestroy {
   viewerStyle: ProteinViewerStyle           = 'cartoon';
   viewerColorScheme: ProteinColorScheme     = 'spectrum';
   highlightColor                            = '#FF4444';
-  highlightedResidues: ResidueSelection[]   = [];
   precomputedUniprotId                      = 'Q6V4H0';
   subscriptions: Subscription[]             = [];
   tableValues: any[]                        = [];
@@ -121,9 +121,12 @@ export class EffectPredictionResultComponent implements OnDestroy {
       }),
     );
 
+  readonly viewerId = 'effect-prediction-viewer';
+
   constructor(
     private service: CleanDbService,
     private alphafoldService: AlphafoldService,
+    private proteinSelectionService: ProteinSelectionService,
     private route: ActivatedRoute,
   ) {}
 
@@ -191,12 +194,16 @@ export class EffectPredictionResultComponent implements OnDestroy {
     }
     this.previousSelectedPositions = [...this.selectedPositions];
     this.selectedPositions = newPositions;
+    this.syncViewerSelections();
   }
 
-  onResidueClicked(_residue: ResidueSelection): void {}
+  onResidueClicked(residue: ResidueSelection): void {
+    const position = residue.resi - 1; // resi is 1-based, positions are 0-based
+    this.togglePosition(position);
+  }
 
-  onHighlightedResiduesChange(residues: ResidueSelection[]): void {
-    this.highlightedResidues = residues;
+  onHeatmapColumnClicked(column: number): void {
+    this.togglePosition(column);
   }
 
   private startSimplefoldPolling(simplefoldJobId?: string): void {
@@ -257,6 +264,29 @@ export class EffectPredictionResultComponent implements OnDestroy {
   }
 
   /* ------------------------------ Utils ------------------------------ */
+  togglePosition(position: number): void {
+    const idx = this.selectedPositions.indexOf(position);
+    let newPositions: number[];
+    if (idx >= 0) {
+      newPositions = this.selectedPositions.filter((_, i) => i !== idx);
+    } else {
+      newPositions = [...this.selectedPositions, position];
+    }
+    this.previousSelectedPositions = [...this.selectedPositions];
+    this.selectedPositions = newPositions;
+    this.selectedCells = this.generateCellsFromPositions(newPositions);
+    this.syncViewerSelections();
+  }
+
+  syncViewerSelections(): void {
+    const selections: ResidueSelection[] = this.selectedPositions.map(pos => ({
+      resi: pos + 1, // positions are 0-based, resi is 1-based
+      resn: '',
+      chain: 'A',
+    }));
+    this.proteinSelectionService.setSelections(this.viewerId, selections);
+  }
+
   generateCellsFromPositions(positions: number[]): HeatmapCellLocations {
     const columns = Array.from({ length: this.numColumns }, (_, i) => i);
     return positions.map((position) => 

@@ -79,6 +79,7 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
   @Input() mutedCells: HeatmapCellLocations;
   @Input() selectedCells: HeatmapCellLocations;
   @Output() selectedCellsChange: EventEmitter<HeatmapCellLocations> = new EventEmitter();
+  @Output() columnClicked = new EventEmitter<number>();
 
   @ViewChild('heatmapTable') heatmapTable: ElementRef<HTMLTableElement>;
 
@@ -322,22 +323,9 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
 
   /* ------------------------------ Interactable Events ------------------------------ */
   onInteractableMouseDown(x: Interactable, event: MouseEvent) {
-    // Disable cell interaction for first release
-    // if (x.state !== InteractableState.MUTED) {
-    //   this.heatmapState = HeatmapState.SELECTING;
-    // }
-
-    // switch (x.state) {
-    //   case InteractableState.DEFAULT:
-    //     x.state = InteractableState.PENDING_SELECTED;
-    //     break;
-    //   case InteractableState.SELECTED:
-    //     x.state = InteractableState.PENDING_DEFAULT;
-    //     break;
-    //   case InteractableState.PENDING_SELECTED:
-    //   case InteractableState.PENDING_DEFAULT:
-    //     break;
-    // }
+    if (x.column >= 0 && x.row >= 0 && x.state !== InteractableState.MUTED) {
+      this.columnClicked.emit(x.column);
+    }
   }
 
   onInteractableMouseOver(x: Interactable, event: MouseEvent) {

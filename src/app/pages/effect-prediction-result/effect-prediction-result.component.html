@@ -96,7 +96,8 @@
                     #heatmap
                     [data]="result"
                     [mutedCells]="mutedCells"
-                    [(selectedCells)]="selectedCells"
+                    [selectedCells]="selectedCells"
+                    (columnClicked)="onHeatmapColumnClicked($event)"
                   ></app-heatmap>
                 </div>
               </div>
@@ -113,10 +114,9 @@
                   } @else {
                     <app-protein-viewer [pdbData]="simplefoldPdbData" [dataFormat]="simplefoldDataFormat"
                       [style]="viewerStyle" [colorScheme]="viewerColorScheme"
-                      [highlightColor]="highlightColor" [highlightedResidues]="highlightedResidues"
+                      [highlightColor]="highlightColor"
                       [viewerId]="'effect-prediction-viewer'"
-                      (residueClicked)="onResidueClicked($event)"
-                      (highlightedResiduesChange)="onHighlightedResiduesChange($event)">
+                      (residueClicked)="onResidueClicked($event)">
                     </app-protein-viewer>
                   }
                 </div>
