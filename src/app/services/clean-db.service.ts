@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Observable, from, map, of, switchMap } from "rxjs";
+import { Observable, from, map, of } from "rxjs";
 import { scaleLinear } from 'd3';
 
 
@@ -68,13 +68,9 @@ export class CleanDbService {
   }
 
   getSimplefoldResult(jobId: string): Observable<string> {
-    return this.filesService.getResultsBucketNameResultsJobIdGet('ml-simplefold', jobId).pipe(
-      map((urls: string[]) => {
-        const cifUrl = urls.find(url => url.endsWith('.cif'));
-        if (!cifUrl) throw new Error('No .cif file found in SimpleFold results');
-        return cifUrl;
-      }),
-      switchMap(url => this.http.get(url, { responseType: 'text' })),
+    return this.filesService.getResultsBucketNameResultsJobIdGet(
+      'ml-simplefold', jobId, 'body', false,
+      { httpHeaderAccept: 'text/plain' as any },
     );
   }
 
