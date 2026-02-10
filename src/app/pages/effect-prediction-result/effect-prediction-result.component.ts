@@ -101,7 +101,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
   simplefoldLoading                         = false;
   simplefoldError                           = false;
   viewerStyle: ProteinViewerStyle           = 'cartoon';
-  viewerColorScheme: ProteinColorScheme     = 'spectrum';
+  viewerColorScheme: ProteinColorScheme     = 'default';
   highlightColor                            = '#FF4444';
   precomputedUniprotId                      = 'Q6V4H0';
   subscriptions: Subscription[]             = [];
