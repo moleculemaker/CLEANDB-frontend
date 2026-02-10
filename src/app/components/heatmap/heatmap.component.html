@@ -77,15 +77,11 @@
   <td
     [class]="classNames"
     [style.background-color]="interactable.color"
-    (click)="onInteractableClick(interactable, type, $event)"
-    (keydown)="onInteractableKeyDown(interactable, type, $event)"
+    (mouseenter)="isCell ? onCellMouseEnter(interactable, $event) : null"
+    (mouseleave)="isCell ? onCellMouseLeave() : null"
     [attr.data-col-index]="interactable.column"
     [attr.data-row-index]="interactable.row"
-    [attr.role]="isCell ? 'button' : null"
-    [attr.tabindex]="isCell ? 0 : null"
-    [attr.aria-pressed]="isCell ? isSelected : null"
     [attr.aria-label]="isCell ? getCellHoverTitle(interactable) : null"
-    [attr.title]="isCell ? getCellHoverTitle(interactable) : null"
   >
     {{ isCell ? '' : interactable.value }}
   </td>
@@ -96,7 +92,7 @@
   [dismissable]="true"
   [showCloseIcon]="true"
   styleClass="rounded-xl shadow-2xl max-w-xs p-2 bg-[#343A40] text-white border border-white/10"
-  (onHide)="onTooltipHide()"
+  (onHide)="onCellMouseLeave()"
 >
   <ng-container *ngIf="tooltipContext as tooltip">
     <span class="text-base font-semibold tracking-tight">{{ tooltip.displayLabel }}</span>

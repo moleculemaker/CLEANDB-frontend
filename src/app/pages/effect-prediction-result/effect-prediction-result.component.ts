@@ -186,11 +186,6 @@ export class EffectPredictionResultComponent implements OnDestroy {
       const diff: number[] = Array.from(newPositionSet.difference(oldPositionSet));
       const minPosition = Math.min(...diff);
       this.heatmap.scrollToCol(minPosition);
-
-      this.resultTable.el.nativeElement.querySelector(`[data-position="${minPosition + 1}"]`).scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
     }
     this.previousSelectedPositions = [...this.selectedPositions];
     this.selectedPositions = newPositions;
@@ -200,6 +195,8 @@ export class EffectPredictionResultComponent implements OnDestroy {
   onResidueClicked(residue: ResidueSelection): void {
     const position = residue.resi - 1; // resi is 1-based, positions are 0-based
     this.togglePosition(position);
+    this.heatmap.scrollToCol(position);
+    this.scrollTableToPosition(position + 1); // table uses 1-based positions
   }
 
   onHeatmapColumnClicked(column: number): void {
@@ -285,6 +282,13 @@ export class EffectPredictionResultComponent implements OnDestroy {
       chain: 'A',
     }));
     this.proteinSelectionService.setSelections(this.viewerId, selections);
+  }
+
+  scrollTableToPosition(position: number): void {
+    this.resultTable.el.nativeElement.querySelector(`[data-position="${position}"]`)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+    });
   }
 
   generateCellsFromPositions(positions: number[]): HeatmapCellLocations {

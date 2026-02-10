@@ -112,7 +112,6 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
     maximumFractionDigits: 2,
   });
   private tooltipTarget: HTMLElement | null = null;
-  private suppressTooltipHideHandler = false;
 
   tooltipContext: HeatmapCellTooltipContext | null = null;
 
@@ -340,19 +339,9 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
   }
 
   /* ------------------------------ Interactable Events ------------------------------ */
-  onInteractableClick(interactable: Interactable, type: string, event: Event): void {
-    if (type !== 'cell') {
-      return;
-    }
-
+  onCellMouseEnter(interactable: Interactable, event: Event): void {
     const targetElement = event.currentTarget as HTMLElement | null;
     if (!targetElement) {
-      return;
-    }
-
-    const isSameCell = this.manualSelectedCell?.id === interactable.id;
-    if (isSameCell && this.cellTooltip?.overlayVisible) {
-      this.clearManualSelection({ hideTooltip: true });
       return;
     }
 
@@ -363,34 +352,13 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
     this.manualSelectedCell = interactable;
     this.refreshCellStates();
 
-    const newCells: HeatmapCellLocations = [[interactable.row, interactable.column]];
-    if (this.shouldEmitCellChanges(newCells)) {
-      this.selectedCellsChange.emit(newCells);
-    }
-
     if (this.cellTooltip && context) {
       this.openTooltip(event, targetElement);
     }
   }
 
-  onInteractableKeyDown(interactable: Interactable, type: string, event: KeyboardEvent): void {
-    if (type !== 'cell') {
-      return;
-    }
-
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      this.onInteractableClick(interactable, type, event);
-    }
-  }
-
-  onTooltipHide(): void {
-    if (this.suppressTooltipHideHandler) {
-      this.suppressTooltipHideHandler = false;
-      return;
-    }
-
-    this.clearManualSelection({ skipRefresh: false });
+  onCellMouseLeave(): void {
+    this.clearManualSelection({ hideTooltip: true });
   }
 
   /* ---------------------------------- Utils --------------------------------- */
@@ -585,7 +553,6 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
     };
 
     if (this.cellTooltip.overlayVisible) {
-      this.suppressTooltipHideHandler = true;
       this.cellTooltip.hide();
       setTimeout(showOverlay);
     } else {
