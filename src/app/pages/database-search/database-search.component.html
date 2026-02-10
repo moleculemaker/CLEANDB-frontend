@@ -90,6 +90,22 @@
     </form>
 
     @if (result.status !== 'na') {
-    <app-kinetic-table [result]="result" [filters]="filters"></app-kinetic-table>
+        <app-kinetic-table
+            [result]="result"
+            [filters]="filters"
+            [appliedFilters]="appliedFilters"
+            [hasActiveFilters]="hasActiveFilters"
+            (filterClick)="showFilterDialog = true"
+            (removeFilter)="onRemoveFilter($event)"
+            (clearAllFilters)="onClearAllFilters()"
+        ></app-kinetic-table>
     }
+
+    <!-- Filter Dialog -->
+    <app-filter-dialog
+        [(visible)]="showFilterDialog"
+        [appliedFilters]="appliedFilters"
+        [searchContext]="searchContext"
+        (applyFilters)="onApplyFilters($event)"
+    />
 </div>

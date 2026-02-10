@@ -24,10 +24,12 @@ import { DropdownModule } from "primeng/dropdown";
 import { TooltipModule } from "primeng/tooltip";
 import { DividerModule } from "primeng/divider";
 import { FilterConfig, MultiselectFilterConfig, RangeFilterConfig } from "~/app/models/filters";
+import { AppliedFilters, EMPTY_FILTERS, filtersToApiParams, hasActiveFilters } from "~/app/models/applied-filters";
 import { Subscription, map } from "rxjs";
 import { saveAs } from "file-saver";
 import { format } from 'd3';
 import { KineticTableComponent } from "~/app/components/kinetic-table/kinetic-table.component";
+import { FilterDialogComponent } from "~/app/components/filter-dialog/filter-dialog.component";
 import { CactusService } from "~/app/services/cactus.service";
 import { CleanDbPredictedEC, CleanDbRecord } from "~/app/models/CleanDbRecord";
 
@@ -69,7 +71,9 @@ import { CleanDbPredictedEC, CleanDbRecord } from "~/app/models/CleanDbRecord";
     DividerModule,
 
     KineticTableComponent,
+    FilterDialogComponent,
     QueryInputComponent,
+    TooltipModule,
 ],
   host: {
     class: "flex flex-col h-full"
@@ -106,6 +110,16 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     data: [],
     total: 0,
   };
+
+  appliedFilters: AppliedFilters = { ...EMPTY_FILTERS };
+  currentSearchQuery: any = {};
+  showFilterDialog = false;
+
+  hasActiveFilters = hasActiveFilters;
+
+  get searchContext(): Record<string, any> {
+    return { ...this.currentSearchQuery, ...filtersToApiParams(this.appliedFilters) };
+  }
 
   showFilter = false;
   hasFilter = false;
@@ -297,13 +311,15 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
 
   clearAll() {
     this.clearResult();
+    this.appliedFilters = { ...EMPTY_FILTERS };
+    this.currentSearchQuery = {};
     const criteriaArray = this.form.get('searchCriteria') as FormArray;
     criteriaArray.clear();
     setTimeout(() => {
       this.addCriteria();
     });
     // this.submit(true); TODO revisit this later--was this something we wanted?
-    
+
     // Clear URL parameters
     this.router.navigate([], {
       relativeTo: this.route,
@@ -412,26 +428,31 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     // Update URL with search criteria
     this.updateUrlWithSearchCriteria(criteriaArray.value);
 
-    // Use the existing getResult method
-    // For the prototype, we'll use a fixed JobType.Defaults and dummy job ID
-    // In a real implementation, this would send the query to the backend first
+    // Store the search query for filter operations
+    this.currentSearchQuery = query;
 
-    // TODO: implement this
-    this.service.getData(query)
+    // Fetch data with current filters
+    this.fetchData();
+  }
+
+  fetchData(): void {
+    const combinedQuery = { ...this.currentSearchQuery, ...filtersToApiParams(this.appliedFilters) };
+
+    this.result = {
+      status: 'loading',
+      data: [],
+      total: 0,
+    };
+    this.cdr.detectChanges();
+
+    this.service.getData(combinedQuery)
       .pipe(
-        map(({data: response} : {data: CleanDbRecord[]}) => 
-          response
-            .filter((row) => {
-              // Process multi-criteria filtering client-side
-              return this.matchesSearchCriteria(row, criteriaArray);
-            })
-        )
+        map(({data: response} : {data: CleanDbRecord[]}) => response)
       )
       .subscribe({
         next: (response: CleanDbRecord[]) => {
-          // Update options for filters
           this.updateFilterOptions(response);
-          
+
           this.result = {
             status: 'loaded',
             data: response,
@@ -449,6 +470,31 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
           this.cdr.detectChanges();
         }
       });
+  }
+
+  onApplyFilters(filters: AppliedFilters): void {
+    this.appliedFilters = filters;
+    this.showFilterDialog = false;
+    this.fetchData();
+  }
+
+  onRemoveFilter(filterKey: keyof AppliedFilters): void {
+    if (Array.isArray(this.appliedFilters[filterKey])) {
+      (this.appliedFilters[filterKey] as string[]) = [];
+    } else {
+      (this.appliedFilters[filterKey] as any) = null;
+    }
+    if (filterKey === 'confidence_min' || filterKey === 'confidence_max') {
+      this.appliedFilters.confidence_category = null;
+      this.appliedFilters.confidence_min = null;
+      this.appliedFilters.confidence_max = null;
+    }
+    this.fetchData();
+  }
+
+  onClearAllFilters(): void {
+    this.appliedFilters = { ...EMPTY_FILTERS };
+    this.fetchData();
   }
 
   exportTable() {
