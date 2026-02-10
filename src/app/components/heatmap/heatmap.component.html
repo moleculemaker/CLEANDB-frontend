@@ -40,7 +40,7 @@
   @let mutedClassName = 'cell-muted';
   @let naClassName = 'cell-na';
   @let selectedClassName = 'z-[9] border-solid border-[#38001B]';
-  @let interactiveClassName = isCell ? 'cursor-pointer heatmap-cell--interactive' : '';
+  @let interactiveClassName = '';
   @let topBorderClassName
     = (interactable.state === InteractableState.SELECTED
     && (interactable.above ? interactable.above.state !== InteractableState.SELECTED : true))
@@ -81,7 +81,6 @@
     (mouseleave)="isCell ? onCellMouseLeave() : null"
     [attr.data-col-index]="interactable.column"
     [attr.data-row-index]="interactable.row"
-    [attr.aria-label]="isCell ? getCellHoverTitle(interactable) : null"
   >
     {{ isCell ? '' : interactable.value }}
   </td>
