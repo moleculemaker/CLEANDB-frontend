@@ -173,6 +173,7 @@ export class ProteinViewerComponent implements AfterViewInit, OnChanges, OnDestr
         modeSpec.colorscheme = 'amino';
         break;
       case 'default':
+        modeSpec.color = 0x2ecc71;
         break;
       default:
         modeSpec.colorscheme = this.colorScheme;
