@@ -69,7 +69,8 @@ export class EffectPredictionResultComponent implements OnDestroy {
         { label: 'PNG', command: () => this.heatmap.exportAs('png') },
         { label: 'JPEG', command: () => this.heatmap.exportAs('jpeg') },
       ]
-    }
+    },
+    { label: 'Protein Structure', command: () => this.exportProteinStructure() },
   ];
   jobId: string                             = this.route.snapshot.paramMap.get("id") || "precomputed";
   jobInfo: any                              = {};
@@ -255,6 +256,18 @@ export class EffectPredictionResultComponent implements OnDestroy {
         },
       })
     );
+  }
+
+  exportProteinStructure(): void {
+    if (!this.simplefoldPdbData) return;
+    const ext = this.simplefoldDataFormat === 'cif' ? 'cif' : 'pdb';
+    const blob = new Blob([this.simplefoldPdbData], { type: 'text/plain' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `protein_structure.${ext}`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    link.remove();
   }
 
   /* ------------------------------ Utils ------------------------------ */
