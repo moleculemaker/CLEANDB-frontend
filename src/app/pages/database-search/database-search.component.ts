@@ -450,12 +450,16 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
   }
 
   fetchData(offset: number, limit: number): void {
-    const combinedQuery = {
+    const ordering = this.buildOrdering();
+    const combinedQuery: any = {
       ...this.currentSearchQuery,
       ...filtersToApiParams(this.appliedFilters),
       offset,
       limit,
     };
+    if (ordering) {
+      combinedQuery.ordering = ordering;
+    }
 
     this.result = {
       status: 'loading',
@@ -477,7 +481,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
 
           this.result = {
             status: 'loaded',
-            data: this.sortData(response.data),
+            data: response.data,
             total: response.total,
             offset: response.offset ?? offset,
           };
@@ -502,23 +506,14 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     }
 
     const sortChanged = event.sortField !== this.currentSortField || event.sortOrder !== this.currentSortOrder;
-    const pageChanged = event.offset !== this.result.offset || event.limit !== this.pageSize;
 
     this.currentSortField = event.sortField;
     this.currentSortOrder = event.sortOrder;
     this.pageSize = event.limit;
 
-    if (sortChanged && !pageChanged) {
-      // Sort only changed — re-sort current data without re-fetching
-      this.result = {
-        ...this.result,
-        data: this.sortData(this.result.data),
-      };
-      this.cdr.detectChanges();
-      return;
-    }
-
-    this.fetchData(event.offset, event.limit);
+    // Sort change affects the entire result set, so reset to page 1
+    const offset = sortChanged ? 0 : event.offset;
+    this.fetchData(offset, event.limit);
   }
 
   onApplyFilters(filters: AppliedFilters): void {
@@ -639,23 +634,12 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     return matches;
   }
   
-  private sortData(data: any[]): any[] {
+  private buildOrdering(): string | null {
     if (!this.currentSortField || this.currentSortOrder === 0) {
-      return data;
+      return null;
     }
-    const field = this.currentSortField;
-    const order = this.currentSortOrder;
-    return [...data].sort((a, b) => {
-      const valA = a[field];
-      const valB = b[field];
-      if (valA == null && valB == null) return 0;
-      if (valA == null) return order;
-      if (valB == null) return -order;
-      if (typeof valA === 'string') {
-        return order * valA.localeCompare(valB);
-      }
-      return order * (valA < valB ? -1 : valA > valB ? 1 : 0);
-    });
+    const prefix = this.currentSortOrder === -1 ? '-' : '';
+    return `${prefix}${this.currentSortField}`;
   }
 
   // Update filter options based on response data
