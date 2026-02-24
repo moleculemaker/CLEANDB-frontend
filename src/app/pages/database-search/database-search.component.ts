@@ -114,6 +114,8 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
   };
 
   pageSize = 10;
+  currentSortField: string | null = null;
+  currentSortOrder: number = 0; // 0 = unsorted, 1 = asc, -1 = desc
 
   appliedFilters: AppliedFilters = { ...EMPTY_FILTERS };
   currentSearchQuery: any = {};
@@ -357,7 +359,9 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       return;
     }
 
-    // Set loading state
+    // Reset sort and loading state
+    this.currentSortField = null;
+    this.currentSortOrder = 0;
     this.result = {
       status: 'loading',
       data: [],
@@ -473,7 +477,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
 
           this.result = {
             status: 'loaded',
-            data: response.data,
+            data: this.sortData(response.data),
             total: response.total,
             offset: response.offset ?? offset,
           };
@@ -492,11 +496,28 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       });
   }
 
-  onPageChange(event: { offset: number; limit: number }): void {
+  onPageChange(event: { offset: number; limit: number; sortField: string | null; sortOrder: number }): void {
     if (this.result.status === 'loading') {
       return;
     }
+
+    const sortChanged = event.sortField !== this.currentSortField || event.sortOrder !== this.currentSortOrder;
+    const pageChanged = event.offset !== this.result.offset || event.limit !== this.pageSize;
+
+    this.currentSortField = event.sortField;
+    this.currentSortOrder = event.sortOrder;
     this.pageSize = event.limit;
+
+    if (sortChanged && !pageChanged) {
+      // Sort only changed — re-sort current data without re-fetching
+      this.result = {
+        ...this.result,
+        data: this.sortData(this.result.data),
+      };
+      this.cdr.detectChanges();
+      return;
+    }
+
     this.fetchData(event.offset, event.limit);
   }
 
@@ -618,6 +639,25 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     return matches;
   }
   
+  private sortData(data: any[]): any[] {
+    if (!this.currentSortField || this.currentSortOrder === 0) {
+      return data;
+    }
+    const field = this.currentSortField;
+    const order = this.currentSortOrder;
+    return [...data].sort((a, b) => {
+      const valA = a[field];
+      const valB = b[field];
+      if (valA == null && valB == null) return 0;
+      if (valA == null) return order;
+      if (valB == null) return -order;
+      if (typeof valA === 'string') {
+        return order * valA.localeCompare(valB);
+      }
+      return order * (valA < valB ? -1 : valA > valB ? 1 : 0);
+    });
+  }
+
   // Update filter options based on response data
   private updateFilterOptions(response: any[]) {
     Object.entries(this.filters).forEach(([key, filter]) => {

@@ -81,7 +81,7 @@ export class KineticTableComponent implements OnChanges {
   @Output() filterClick = new EventEmitter<void>();
   @Output() removeFilter = new EventEmitter<keyof AppliedFilters>();
   @Output() clearAllFilters = new EventEmitter<void>();
-  @Output() pageChange = new EventEmitter<{ offset: number; limit: number }>();
+  @Output() pageChange = new EventEmitter<{ offset: number; limit: number; sortField: string | null; sortOrder: number }>();
 
   @ViewChild(Table) resultsTable!: Table;
 
@@ -171,6 +171,11 @@ export class KineticTableComponent implements OnChanges {
   }
 
   onLazyLoad(event: any) {
-    this.pageChange.emit({ offset: event.first, limit: event.rows });
+    this.pageChange.emit({
+      offset: event.first,
+      limit: event.rows,
+      sortField: event.sortField ?? null,
+      sortOrder: event.sortOrder ?? 0,
+    });
   }
 }
