@@ -66,10 +66,12 @@ export class KineticTableComponent implements OnChanges {
     status: 'loading' | 'loaded' | 'error' | 'na';
     data: any[];
     total: number;
+    offset: number;
   } = {
     status: 'na',
     data: [],
     total: 0,
+    offset: 0,
   };
   @Input() filters: Map<string, any> = new Map();
   @Input() isFiltered = false;
@@ -79,6 +81,7 @@ export class KineticTableComponent implements OnChanges {
   @Output() filterClick = new EventEmitter<void>();
   @Output() removeFilter = new EventEmitter<keyof AppliedFilters>();
   @Output() clearAllFilters = new EventEmitter<void>();
+  @Output() pageChange = new EventEmitter<{ offset: number; limit: number }>();
 
   @ViewChild(Table) resultsTable!: Table;
 
@@ -165,5 +168,9 @@ export class KineticTableComponent implements OnChanges {
 
   onClearAllFilters() {
     this.clearAllFilters.emit();
+  }
+
+  onLazyLoad(event: any) {
+    this.pageChange.emit({ offset: event.first, limit: event.rows });
   }
 }

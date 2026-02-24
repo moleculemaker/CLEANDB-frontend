@@ -25,7 +25,7 @@ import { TooltipModule } from "primeng/tooltip";
 import { DividerModule } from "primeng/divider";
 import { FilterConfig, MultiselectFilterConfig, RangeFilterConfig } from "~/app/models/filters";
 import { AppliedFilters, EMPTY_FILTERS, filtersToApiParams, hasActiveFilters } from "~/app/models/applied-filters";
-import { Subscription, map } from "rxjs";
+import { Subscription } from "rxjs";
 import { saveAs } from "file-saver";
 import { format } from 'd3';
 import { KineticTableComponent } from "~/app/components/kinetic-table/kinetic-table.component";
@@ -105,11 +105,15 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     status: 'loading' | 'loaded' | 'error' | 'na';
     data: any[];
     total: number;
+    offset: number;
   } = {
     status: 'na',
     data: [],
     total: 0,
+    offset: 0,
   };
+
+  pageSize = 10;
 
   appliedFilters: AppliedFilters = { ...EMPTY_FILTERS };
   currentSearchQuery: any = {};
@@ -248,6 +252,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
   readonly filterRecords = Object.values(this.filters);
   
   private formSubscription: Subscription | null = null;
+  private dataSubscription: Subscription | null = null;
  
   constructor(
     public service: CleanDbService,
@@ -278,6 +283,10 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     if (this.formSubscription) {
       this.formSubscription.unsubscribe();
       this.formSubscription = null;
+    }
+    if (this.dataSubscription) {
+      this.dataSubscription.unsubscribe();
+      this.dataSubscription = null;
     }
   }
 
@@ -353,6 +362,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       status: 'loading',
       data: [],
       total: 0,
+      offset: 0,
     };
     
     // Trigger change detection to show loading state
@@ -432,31 +442,40 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     this.currentSearchQuery = query;
 
     // Fetch data with current filters
-    this.fetchData();
+    this.fetchData(0, this.pageSize);
   }
 
-  fetchData(): void {
-    const combinedQuery = { ...this.currentSearchQuery, ...filtersToApiParams(this.appliedFilters) };
+  fetchData(offset: number, limit: number): void {
+    const combinedQuery = {
+      ...this.currentSearchQuery,
+      ...filtersToApiParams(this.appliedFilters),
+      offset,
+      limit,
+    };
 
     this.result = {
       status: 'loading',
-      data: [],
-      total: 0,
+      data: this.result.data,
+      total: this.result.total,
+      offset: this.result.offset,
     };
     this.cdr.detectChanges();
 
-    this.service.getData(combinedQuery)
-      .pipe(
-        map(({data: response} : {data: CleanDbRecord[]}) => response)
-      )
+    // Cancel any in-flight request
+    if (this.dataSubscription) {
+      this.dataSubscription.unsubscribe();
+    }
+
+    this.dataSubscription = this.service.getData(combinedQuery)
       .subscribe({
-        next: (response: CleanDbRecord[]) => {
-          this.updateFilterOptions(response);
+        next: (response: any) => {
+          this.updateFilterOptions(response.data);
 
           this.result = {
             status: 'loaded',
-            data: response,
-            total: response.length,
+            data: response.data,
+            total: response.total,
+            offset: response.offset ?? offset,
           };
           this.cdr.detectChanges();
         },
@@ -466,16 +485,25 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
             status: 'error',
             data: [],
             total: 0,
+            offset: 0,
           };
           this.cdr.detectChanges();
         }
       });
   }
 
+  onPageChange(event: { offset: number; limit: number }): void {
+    if (this.result.status === 'loading') {
+      return;
+    }
+    this.pageSize = event.limit;
+    this.fetchData(event.offset, event.limit);
+  }
+
   onApplyFilters(filters: AppliedFilters): void {
     this.appliedFilters = filters;
     this.showFilterDialog = false;
-    this.fetchData();
+    this.fetchData(0, this.pageSize);
   }
 
   onRemoveFilter(filterKey: keyof AppliedFilters): void {
@@ -489,12 +517,12 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       this.appliedFilters.confidence_min = null;
       this.appliedFilters.confidence_max = null;
     }
-    this.fetchData();
+    this.fetchData(0, this.pageSize);
   }
 
   onClearAllFilters(): void {
     this.appliedFilters = { ...EMPTY_FILTERS };
-    this.fetchData();
+    this.fetchData(0, this.pageSize);
   }
 
   exportTable() {
@@ -642,6 +670,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       status: 'na',
       data: [],
       total: 0,
+      offset: 0,
     };
   }
 

@@ -119,7 +119,12 @@ export class CleanDbService {
         data: recordsResponse.data.map(cleanDbRecordRawToCleanDbRecord)
       }))))
     }
-    return this.searchService.getDataApiV1SearchGet(query);
+    return this.searchService.getDataApiV1SearchGet(query).pipe(
+      map((response: any) => ({
+        ...response,
+        data: response.data.map(cleanDbRecordRawToCleanDbRecord)
+      }))
+    );
   }
 
   getTypeahead(query: {field_name: string, search :string}) : Observable<{ label: string; value: string; }[]> {
