@@ -33,7 +33,7 @@ export class ProteinViewerComponent implements AfterViewInit, OnChanges, OnDestr
   @Input() dataFormat: string = 'pdb';
   @Input() style: ProteinViewerStyle = 'cartoon';
   @Input() colorScheme: ProteinColorScheme = 'spectrum';
-  @Input() highlightColor: string = '#FF4444';
+  @Input() highlightColor: string = '#E16ACF';
   @Input() highlightedResidues: ResidueSelection[] = [];
   @Input() viewerId: string = 'default';
 
@@ -172,7 +172,7 @@ export class ProteinViewerComponent implements AfterViewInit, OnChanges, OnDestr
         modeSpec.colorscheme = 'amino';
         break;
       case 'default':
-        modeSpec.color = 0x2ecc71;
+        modeSpec.color = 0x46C38B;
         break;
       default:
         modeSpec.colorscheme = this.colorScheme;

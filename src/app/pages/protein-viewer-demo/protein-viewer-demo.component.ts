@@ -41,7 +41,7 @@ export class ProteinViewerDemoComponent {
 
   style: ProteinViewerStyle = 'cartoon';
   colorScheme: ProteinColorScheme = 'spectrum';
-  highlightColor: string = '#FF4444';
+  highlightColor: string = '#E16ACF';
 
   highlightedResidues: ResidueSelection[] = [];
 
