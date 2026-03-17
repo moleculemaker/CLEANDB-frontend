@@ -1,13 +1,1 @@
-:host .heatmap-cell--interactive {
-  transition: box-shadow 0.15s ease;
-}
-
-:host .heatmap-cell--interactive:hover {
-  box-shadow: 0 0 0 2px rgba(56, 0, 27, 0.25);
-}
-
-:host .heatmap-cell--interactive:focus-visible {
-  box-shadow: 0 0 0 2px rgba(56, 0, 27, 0.4);
-  outline: none;
-}
 

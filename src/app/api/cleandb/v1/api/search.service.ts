@@ -19,6 +19,8 @@ import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
 // @ts-ignore
+import { CLEANCurationStatusResponse } from '../model/cLEANCurationStatusResponse';
+// @ts-ignore
 import { CLEANECLookupResponse } from '../model/cLEANECLookupResponse';
 // @ts-ignore
 import { CLEANSearchResponse } from '../model/cLEANSearchResponse';
@@ -40,7 +42,7 @@ import { Configuration }                                     from '../configurat
 })
 export class SearchService {
 
-    protected basePath = 'http://localhost:8000';
+    protected basePath = 'http://localhost';
     public defaultHeaders = new HttpHeaders();
     public configuration = new Configuration();
     public encoder: HttpParameterCodec;
@@ -100,6 +102,61 @@ export class SearchService {
     }
 
     /**
+     * Get available curation status options
+     * Get the list of available curation status options for filtering.
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getCurationStatusesApiV1CurationStatusesGet(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<CLEANCurationStatusResponse>;
+    public getCurationStatusesApiV1CurationStatusesGet(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpResponse<CLEANCurationStatusResponse>>;
+    public getCurationStatusesApiV1CurationStatusesGet(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpEvent<CLEANCurationStatusResponse>>;
+    public getCurationStatusesApiV1CurationStatusesGet(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<any> {
+
+        let localVarHeaders = this.defaultHeaders;
+
+        let localVarHttpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (localVarHttpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            localVarHttpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        let localVarHttpContext: HttpContext | undefined = options && options.context;
+        if (localVarHttpContext === undefined) {
+            localVarHttpContext = new HttpContext();
+        }
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/curation-statuses`;
+        return this.httpClient.request<CLEANCurationStatusResponse>('get', `${this.configuration.basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                withCredentials: this.configuration.withCredentials,
+                headers: localVarHeaders,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * Get enzyme kinetic data
      * Get enzyme kinetic data with filtering options.
      * @param accession Uniprot Accession
@@ -108,7 +165,9 @@ export class SearchService {
      * @param geneName Gene Name
      * @param ecNumber CLEAN predicted EC number
      * @param uniprot Uniprot ID
-     * @param cleanEcConfidence Minimum confidence for CLEAN predicted EC number
+     * @param curationStatus Curation status (reviewed/unreviewed)
+     * @param cleanEcConfidenceMin Minimum confidence for CLEAN predicted EC number
+     * @param cleanEcConfidenceMax Maximum confidence for CLEAN predicted EC number
      * @param sequenceLength Minimum sequence length
      * @param format Response format (json or csv)
      * @param limit Maximum number of records to return
@@ -116,10 +175,10 @@ export class SearchService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getDataApiV1SearchGet(accession?: any, organism?: any, protein?: any, geneName?: any, ecNumber?: any, uniprot?: any, cleanEcConfidence?: any, sequenceLength?: any, format?: ResponseFormat, limit?: any, offset?: any, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<CLEANSearchResponse>;
-    public getDataApiV1SearchGet(accession?: any, organism?: any, protein?: any, geneName?: any, ecNumber?: any, uniprot?: any, cleanEcConfidence?: any, sequenceLength?: any, format?: ResponseFormat, limit?: any, offset?: any, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpResponse<CLEANSearchResponse>>;
-    public getDataApiV1SearchGet(accession?: any, organism?: any, protein?: any, geneName?: any, ecNumber?: any, uniprot?: any, cleanEcConfidence?: any, sequenceLength?: any, format?: ResponseFormat, limit?: any, offset?: any, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpEvent<CLEANSearchResponse>>;
-    public getDataApiV1SearchGet(accession?: any, organism?: any, protein?: any, geneName?: any, ecNumber?: any, uniprot?: any, cleanEcConfidence?: any, sequenceLength?: any, format?: ResponseFormat, limit?: any, offset?: any, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<any> {
+    public getDataApiV1SearchGet(accession?: any, organism?: any, protein?: any, geneName?: any, ecNumber?: any, uniprot?: any, curationStatus?: any, cleanEcConfidenceMin?: any, cleanEcConfidenceMax?: any, sequenceLength?: any, format?: ResponseFormat, limit?: any, offset?: any, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<CLEANSearchResponse>;
+    public getDataApiV1SearchGet(accession?: any, organism?: any, protein?: any, geneName?: any, ecNumber?: any, uniprot?: any, curationStatus?: any, cleanEcConfidenceMin?: any, cleanEcConfidenceMax?: any, sequenceLength?: any, format?: ResponseFormat, limit?: any, offset?: any, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpResponse<CLEANSearchResponse>>;
+    public getDataApiV1SearchGet(accession?: any, organism?: any, protein?: any, geneName?: any, ecNumber?: any, uniprot?: any, curationStatus?: any, cleanEcConfidenceMin?: any, cleanEcConfidenceMax?: any, sequenceLength?: any, format?: ResponseFormat, limit?: any, offset?: any, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpEvent<CLEANSearchResponse>>;
+    public getDataApiV1SearchGet(accession?: any, organism?: any, protein?: any, geneName?: any, ecNumber?: any, uniprot?: any, curationStatus?: any, cleanEcConfidenceMin?: any, cleanEcConfidenceMax?: any, sequenceLength?: any, format?: ResponseFormat, limit?: any, offset?: any, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
         if (accession !== undefined && accession !== null) {
@@ -146,9 +205,17 @@ export class SearchService {
           localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
             <any>uniprot, 'uniprot');
         }
-        if (cleanEcConfidence !== undefined && cleanEcConfidence !== null) {
+        if (curationStatus !== undefined && curationStatus !== null) {
           localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
-            <any>cleanEcConfidence, 'clean_ec_confidence');
+            <any>curationStatus, 'curation_status');
+        }
+        if (cleanEcConfidenceMin !== undefined && cleanEcConfidenceMin !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>cleanEcConfidenceMin, 'clean_ec_confidence_min');
+        }
+        if (cleanEcConfidenceMax !== undefined && cleanEcConfidenceMax !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>cleanEcConfidenceMax, 'clean_ec_confidence_max');
         }
         if (sequenceLength !== undefined && sequenceLength !== null) {
           localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
@@ -276,17 +343,29 @@ export class SearchService {
     }
 
     /**
-     * Get typeahead suggestions for enzyme kinetic data
-     * Get typeahead suggestions for enzyme kinetic data.
+     * Get typeahead suggestions for searching the database of predicted EC numbers.
+     * Get typeahead suggestions for searching the database of predicted EC numbers.
      * @param fieldName Which field to search in
      * @param search Search term for typeahead suggestions (minimum 3 characters)
+     * @param limit Maximum number of records to return
+     * @param offset Number of records to skip
+     * @param accession Filter typeahead results by accession
+     * @param organism Filter typeahead results by organism
+     * @param protein Filter typeahead results by protein name
+     * @param geneName Filter typeahead results by gene name
+     * @param ecNumber Filter typeahead results by CLEAN EC number
+     * @param uniprot Filter typeahead results by uniprot ID
+     * @param curationStatus Filter typeahead results by curation status
+     * @param cleanEcConfidenceMin Filter typeahead results by minimum CLEAN EC confidence
+     * @param cleanEcConfidenceMax Filter typeahead results by maximum CLEAN EC confidence
+     * @param sequenceLength Filter typeahead results by minimum sequence length
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getTypeaheadApiV1TypeaheadGet(fieldName?: any, search?: any, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<CLEANTypeaheadResponse>;
-    public getTypeaheadApiV1TypeaheadGet(fieldName?: any, search?: any, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpResponse<CLEANTypeaheadResponse>>;
-    public getTypeaheadApiV1TypeaheadGet(fieldName?: any, search?: any, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpEvent<CLEANTypeaheadResponse>>;
-    public getTypeaheadApiV1TypeaheadGet(fieldName?: any, search?: any, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<any> {
+    public getTypeaheadApiV1TypeaheadGet(fieldName?: any, search?: any, limit?: any, offset?: any, accession?: any, organism?: any, protein?: any, geneName?: any, ecNumber?: any, uniprot?: any, curationStatus?: any, cleanEcConfidenceMin?: any, cleanEcConfidenceMax?: any, sequenceLength?: any, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<CLEANTypeaheadResponse>;
+    public getTypeaheadApiV1TypeaheadGet(fieldName?: any, search?: any, limit?: any, offset?: any, accession?: any, organism?: any, protein?: any, geneName?: any, ecNumber?: any, uniprot?: any, curationStatus?: any, cleanEcConfidenceMin?: any, cleanEcConfidenceMax?: any, sequenceLength?: any, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpResponse<CLEANTypeaheadResponse>>;
+    public getTypeaheadApiV1TypeaheadGet(fieldName?: any, search?: any, limit?: any, offset?: any, accession?: any, organism?: any, protein?: any, geneName?: any, ecNumber?: any, uniprot?: any, curationStatus?: any, cleanEcConfidenceMin?: any, cleanEcConfidenceMax?: any, sequenceLength?: any, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<HttpEvent<CLEANTypeaheadResponse>>;
+    public getTypeaheadApiV1TypeaheadGet(fieldName?: any, search?: any, limit?: any, offset?: any, accession?: any, organism?: any, protein?: any, geneName?: any, ecNumber?: any, uniprot?: any, curationStatus?: any, cleanEcConfidenceMin?: any, cleanEcConfidenceMax?: any, sequenceLength?: any, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
         if (fieldName !== undefined && fieldName !== null) {
@@ -296,6 +375,54 @@ export class SearchService {
         if (search !== undefined && search !== null) {
           localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
             <any>search, 'search');
+        }
+        if (limit !== undefined && limit !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>limit, 'limit');
+        }
+        if (offset !== undefined && offset !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>offset, 'offset');
+        }
+        if (accession !== undefined && accession !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>accession, 'accession');
+        }
+        if (organism !== undefined && organism !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>organism, 'organism');
+        }
+        if (protein !== undefined && protein !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>protein, 'protein');
+        }
+        if (geneName !== undefined && geneName !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>geneName, 'gene_name');
+        }
+        if (ecNumber !== undefined && ecNumber !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>ecNumber, 'ec_number');
+        }
+        if (uniprot !== undefined && uniprot !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>uniprot, 'uniprot');
+        }
+        if (curationStatus !== undefined && curationStatus !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>curationStatus, 'curation_status');
+        }
+        if (cleanEcConfidenceMin !== undefined && cleanEcConfidenceMin !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>cleanEcConfidenceMin, 'clean_ec_confidence_min');
+        }
+        if (cleanEcConfidenceMax !== undefined && cleanEcConfidenceMax !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>cleanEcConfidenceMax, 'clean_ec_confidence_max');
+        }
+        if (sequenceLength !== undefined && sequenceLength !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>sequenceLength, 'sequence_length');
         }
 
         let localVarHeaders = this.defaultHeaders;

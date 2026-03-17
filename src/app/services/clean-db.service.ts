@@ -1,15 +1,16 @@
 import { Injectable } from "@angular/core";
-import { Observable, from, map, of } from "rxjs";
+import { Observable, from, map, of, shareReplay } from "rxjs";
 import { scaleLinear } from 'd3';
 
 
 import { BodyCreateJobJobTypeJobsPost, FilesService, Job, JobType, JobsService } from "../api/mmli-backend/v1";
 import { EnvironmentService } from "./environment.service";
 
-import { CleanDbRecord, cleanDbRecordRawToCleanDbRecord } from "../models/CleanDbRecord";
+import { cleanDbRecordRawToCleanDbRecord } from "../models/CleanDbRecord";
 import { loadGzippedJson } from "../utils/loadGzippedJson";
 import { ReactionSchemaRecord, ReactionSchemaRecordRaw, reactionSchemaRecordRawToReactionSchemaRecord } from "../models/ReactionSchemaRecord";
-import { CLEANTypeaheadResponse, SearchService } from "../api/cleandb/v1"; // TODO: use the correct service
+import { CLEANTypeaheadResponse, SearchService } from "../api/cleandb/v1";
+import { AppliedFilters, filtersToApiParams } from "../models/applied-filters";
 
 
 /* -------------------------------- File Imports -------------------------------- */
@@ -36,16 +37,41 @@ export type EffectPredictionResult = {
 })
 export class CleanDbService {
   frontendOnly = false;
+  private curationStatusesCache$: Observable<string[]> | null = null;
 
   constructor(
     private jobsService: JobsService,
     private filesService: FilesService,
     private environmentService: EnvironmentService,
     private searchService: SearchService
-
-    // private apiService: CleanDbApiService,
   ) {
     this.frontendOnly = this.environmentService.getEnvConfig().frontendOnly === "true";
+  }
+
+  createSimplefoldJob(sequence: string, sequenceName: string, email: string): Observable<Job> {
+    if (this.frontendOnly) {
+      return from(exampleStatus) as Observable<Job>;
+    }
+    const fasta = `>${sequenceName}\n${sequence}`;
+    return this.jobsService.createJobJobTypeJobsPost('ml-simplefold', {
+      job_info: JSON.stringify({ fasta }),
+      email,
+    });
+  }
+
+  getSimplefoldStatus(jobId: string): Observable<Job> {
+    if (this.shouldUsePrecomputedResult(jobId)) {
+      return of({ phase: 'completed', job_id: jobId } as Job);
+    }
+    return this.jobsService.listJobsByTypeAndJobIdJobTypeJobsJobIdGet('ml-simplefold', jobId)
+      .pipe(map((jobs) => jobs[0]));
+  }
+
+  getSimplefoldResult(jobId: string): Observable<string> {
+    return this.filesService.getResultsBucketNameResultsJobIdGet(
+      'ml-simplefold', jobId, 'body', false,
+      { httpHeaderAccept: 'text/plain' as any },
+    );
   }
 
   createAndRunJob(jobType: JobType, requestBody: BodyCreateJobJobTypeJobsPost): Observable<Job> {
@@ -93,7 +119,12 @@ export class CleanDbService {
         data: recordsResponse.data.map(cleanDbRecordRawToCleanDbRecord)
       }))))
     }
-    return this.searchService.getDataApiV1SearchGet(query);
+    return this.searchService.getDataApiV1SearchGet(query).pipe(
+      map((response: any) => ({
+        ...response,
+        data: response.data.map(cleanDbRecordRawToCleanDbRecord)
+      }))
+    );
   }
 
   getTypeahead(query: {field_name: string, search :string}) : Observable<{ label: string; value: string; }[]> {
@@ -102,12 +133,44 @@ export class CleanDbService {
     }
     if (query.field_name == 'ec_number') {
       return this.searchService.getEcLookupApiV1EcLookupGet(query).pipe(
-        map(({matches}) => 
+        map(({matches}) =>
           matches.map((match: { ec_number: string, ec_name: string }) => ({ label: match.ec_number + ' ' + match.ec_name, value: match.ec_number }))
         )
       )
     }
     return this.searchService.getTypeaheadApiV1TypeaheadGet(query).pipe(map(({matches}) => matches.map((match: string) => ({ label: match, value: match}))));
+  }
+
+  getTypeaheadPaginated(params: {
+    field_name: string;
+    search: string;
+    limit: number;
+    offset: number;
+    [key: string]: any;
+  }): Observable<{ label: string; value: string }[]> {
+    if (this.frontendOnly) {
+      return of([]);
+    }
+    return this.searchService.getTypeaheadApiV1TypeaheadGet({ ...params }).pipe(
+      map(({ matches }) => matches.map((match: string) => ({ label: match, value: match })))
+    );
+  }
+
+  getCurationStatuses(): Observable<string[]> {
+    if (this.frontendOnly) {
+      return of(['Reviewed (Swiss-Prot)', 'Unreviewed (TrEMBL)']);
+    }
+    if (!this.curationStatusesCache$) {
+      this.curationStatusesCache$ = of(['Reviewed (Swiss-Prot)', 'Unreviewed (TrEMBL)']).pipe(
+        shareReplay(1)
+      );
+    }
+    return this.curationStatusesCache$;
+  }
+
+  getFilteredData(searchQuery: any, filters: AppliedFilters): Observable<any> {
+    const combinedQuery = { ...searchQuery, ...filtersToApiParams(filters) };
+    return this.getData(combinedQuery);
   }
 
   getReactionSchemaForEc(ec: string): Observable<ReactionSchemaRecord | null> {

@@ -17,6 +17,6 @@ export class AlphafoldService {
    * Get 3D Protein Structure from AlphaFold
    */
   get3DProtein(uniprot: string): Observable<string> {
-    return this.http.get(`${this.API_URL}/AF-${uniprot}-F1-model_v4.pdb`, { responseType: 'text' });
+    return this.http.get(`${this.API_URL}/AF-${uniprot}-F1-model_v6.pdb`, { responseType: 'text' });
   }
 }

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { BehaviorSubject, combineLatestWith, filter, Subscription, tap } from 'rxjs';
 import { OverlayPanel, OverlayPanelModule } from 'primeng/overlaypanel';
 import { CleanDbService, EffectPredictionResult } from '~/app/services/clean-db.service';
@@ -82,14 +82,14 @@ type HeatmapCellTooltipContext = {
     OverlayPanelModule,
   ],
   templateUrl: './heatmap.component.html',
-  styleUrl: './heatmap.component.scss'
+  styleUrl: './heatmap.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeatmapComponent implements OnChanges, OnDestroy {
   @Input() data: HeatmapInput;
   @Input() mutedCells: HeatmapCellLocations;
   @Input() selectedCells: HeatmapCellLocations;
   @Output() selectedCellsChange: EventEmitter<HeatmapCellLocations> = new EventEmitter();
-
   @ViewChild('heatmapTable') heatmapTable: ElementRef<HTMLTableElement>;
   @ViewChild('cellTooltip') cellTooltip: OverlayPanel;
 
@@ -111,7 +111,8 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
     maximumFractionDigits: 2,
   });
   private tooltipTarget: HTMLElement | null = null;
-  private suppressTooltipHideHandler = false;
+  private selectedCellSet = new Set<string>();
+  private mutedCellSet = new Set<string>();
 
   tooltipContext: HeatmapCellTooltipContext | null = null;
 
@@ -134,7 +135,8 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
   }
 
   constructor(
-    private service: CleanDbService
+    private service: CleanDbService,
+    private cdr: ChangeDetectorRef,
   ) {
     this.subscriptions.push(
       this.data$.pipe(
@@ -144,7 +146,12 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
           this.rowKeys = rowKeys;
           this.columnKeys = columnKeys;
           this.values = values;
-          this.clearManualSelection({ hideTooltip: true, skipRefresh: true });
+          if (this.cellTooltip?.overlayVisible) {
+            this.cellTooltip.hide();
+          }
+          this.manualSelectedCell = null;
+          this.tooltipContext = null;
+          this.tooltipTarget = null;
         }),
         combineLatestWith(
           this.mutedCells$,
@@ -153,6 +160,8 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
       ).subscribe(([data, mutedCells, selectedCells]) => {
         this.currentMutedCells = Array.isArray(mutedCells) ? mutedCells : [];
         this.currentSelectedCells = Array.isArray(selectedCells) ? selectedCells : [];
+        this.selectedCellSet = new Set(this.currentSelectedCells.map(([r, c]) => `${r},${c}`));
+        this.mutedCellSet = new Set(this.currentMutedCells.map(([r, c]) => `${r},${c}`));
 
         if (this.values) {
           if (mutedCells && mutedCells.length) {
@@ -165,6 +174,7 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
 
           this.refreshCellStates();
         }
+        this.cdr.markForCheck();
       })
     )
   }
@@ -339,57 +349,38 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
   }
 
   /* ------------------------------ Interactable Events ------------------------------ */
-  onInteractableClick(interactable: Interactable, type: string, event: Event): void {
-    if (type !== 'cell') {
-      return;
-    }
-
+  onCellMouseEnter(interactable: Interactable, event: Event): void {
     const targetElement = event.currentTarget as HTMLElement | null;
     if (!targetElement) {
       return;
     }
 
-    const isSameCell = this.manualSelectedCell?.id === interactable.id;
-    if (isSameCell && this.cellTooltip?.overlayVisible) {
-      this.clearManualSelection({ hideTooltip: true });
-      return;
+    // Restore previous hovered cell to its base state
+    if (this.manualSelectedCell && this.manualSelectedCell !== interactable) {
+      this.manualSelectedCell.state = this.getBaseCellState(this.manualSelectedCell);
     }
 
     const context = this.buildTooltipContext(interactable);
     this.tooltipContext = context;
-
     this.tooltipTarget = targetElement;
     this.manualSelectedCell = interactable;
-    this.refreshCellStates();
-
-    const newCells: HeatmapCellLocations = [[interactable.row, interactable.column]];
-    if (this.shouldEmitCellChanges(newCells)) {
-      this.selectedCellsChange.emit(newCells);
-    }
+    interactable.state = InteractableState.SELECTED;
 
     if (this.cellTooltip && context) {
       this.openTooltip(event, targetElement);
     }
   }
 
-  onInteractableKeyDown(interactable: Interactable, type: string, event: KeyboardEvent): void {
-    if (type !== 'cell') {
-      return;
+  onCellMouseLeave(): void {
+    if (this.manualSelectedCell) {
+      this.manualSelectedCell.state = this.getBaseCellState(this.manualSelectedCell);
+      this.manualSelectedCell = null;
     }
-
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      this.onInteractableClick(interactable, type, event);
+    this.tooltipContext = null;
+    this.tooltipTarget = null;
+    if (this.cellTooltip?.overlayVisible) {
+      this.cellTooltip.hide();
     }
-  }
-
-  onTooltipHide(): void {
-    if (this.suppressTooltipHideHandler) {
-      this.suppressTooltipHideHandler = false;
-      return;
-    }
-
-    this.clearManualSelection({ skipRefresh: false });
   }
 
   /* ---------------------------------- Utils --------------------------------- */
@@ -413,21 +404,6 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
 
   getCellLocationId(location: HeatmapCellLocation): string {
     return location.join('-');
-  }
-
-  getCellHoverTitle(interactable: Interactable): string | null {
-    const context = this.buildTooltipContext(interactable);
-    if (!context) {
-      return null;
-    }
-
-    const parts = [
-      context.displayLabel,
-      context.llr !== null ? `LLR ${context.llrFormatted}` : 'LLR N/A',
-      context.predictedEffectLabel,
-    ];
-
-    return parts.filter(Boolean).join(' • ');
   }
 
   private buildTooltipContext(interactable: Interactable): HeatmapCellTooltipContext | null {
@@ -549,27 +525,6 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
 
     if (this.manualSelectedCell) {
       this.manualSelectedCell.state = InteractableState.SELECTED;
-      this.repositionTooltip();
-    }
-  }
-
-  private clearManualSelection(options: { hideTooltip?: boolean; skipRefresh?: boolean } = {}): void {
-    const { hideTooltip = false, skipRefresh = false } = options;
-
-    if (hideTooltip && this.cellTooltip?.overlayVisible) {
-      this.cellTooltip?.hide();
-    }
-
-    if (!this.manualSelectedCell && !this.tooltipContext) {
-      return;
-    }
-
-    this.manualSelectedCell = null;
-    this.tooltipContext = null;
-    this.tooltipTarget = null;
-
-    if (!skipRefresh) {
-      this.refreshCellStates();
     }
   }
 
@@ -584,7 +539,6 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
     };
 
     if (this.cellTooltip.overlayVisible) {
-      this.suppressTooltipHideHandler = true;
       this.cellTooltip.hide();
       setTimeout(showOverlay);
     } else {
@@ -592,28 +546,11 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
     }
   }
 
-  private repositionTooltip(): void {
-    if (!this.cellTooltip || !this.cellTooltip.overlayVisible || !this.manualSelectedCell) {
-      return;
-    }
-
-    const targetElement = this.getCellElement(this.manualSelectedCell.row, this.manualSelectedCell.column);
-    if (!targetElement) {
-      return;
-    }
-
-    this.tooltipTarget = targetElement;
-    this.openTooltip(null, targetElement);
-  }
-
-  private getCellElement(row: number, column: number): HTMLElement | null {
-    if (!this.heatmapTable) {
-      return null;
-    }
-
-    return this.heatmapTable.nativeElement.querySelector(
-      `td[data-row-index="${row}"][data-col-index="${column}"]`
-    ) as HTMLElement | null;
+  private getBaseCellState(interactable: Interactable): InteractableState {
+    const key = `${interactable.row},${interactable.column}`;
+    if (this.selectedCellSet.has(key)) return InteractableState.SELECTED;
+    if (this.mutedCellSet.has(key)) return InteractableState.MUTED;
+    return InteractableState.DEFAULT;
   }
 
   private resolveOverlayEvent(event: Event | null, targetElement: HTMLElement): Event {

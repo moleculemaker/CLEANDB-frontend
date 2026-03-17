@@ -24,14 +24,40 @@ export interface CLEANTypeaheadResponse {
      * List of results matching the search term.
      */
     matches?: any | null;
+    /**
+     * The search context filters that were applied to the typeahead query.
+     */
+    search_context?: any | null;
+    /**
+     * Total number of matching results (before pagination).
+     */
+    total?: any | null;
+    /**
+     * Maximum number of results returned.
+     */
+    limit?: any | null;
+    /**
+     * Number of results skipped.
+     */
+    offset?: any | null;
+    /**
+     * Link to the next page of results.
+     */
+    next?: any | null;
+    /**
+     * Link to the previous page of results.
+     */
+    previous?: any | null;
 }
 export namespace CLEANTypeaheadResponse {
-    export type FieldNameEnum = 'accession' | 'organism' | 'protein_name' | 'gene_name';
+    export type FieldNameEnum = 'accession' | 'organism' | 'protein_name' | 'gene_name' | 'uniprot_id' | 'predicted_ec';
     export const FieldNameEnum = {
         Accession: 'accession' as FieldNameEnum,
         Organism: 'organism' as FieldNameEnum,
         ProteinName: 'protein_name' as FieldNameEnum,
-        GeneName: 'gene_name' as FieldNameEnum
+        GeneName: 'gene_name' as FieldNameEnum,
+        UniprotId: 'uniprot_id' as FieldNameEnum,
+        PredictedEc: 'predicted_ec' as FieldNameEnum
     };
 }
 

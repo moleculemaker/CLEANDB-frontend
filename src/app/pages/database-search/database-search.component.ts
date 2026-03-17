@@ -24,10 +24,12 @@ import { DropdownModule } from "primeng/dropdown";
 import { TooltipModule } from "primeng/tooltip";
 import { DividerModule } from "primeng/divider";
 import { FilterConfig, MultiselectFilterConfig, RangeFilterConfig } from "~/app/models/filters";
-import { Subscription, map } from "rxjs";
+import { AppliedFilters, EMPTY_FILTERS, filtersToApiParams, hasActiveFilters } from "~/app/models/applied-filters";
+import { Subscription } from "rxjs";
 import { saveAs } from "file-saver";
 import { format } from 'd3';
 import { KineticTableComponent } from "~/app/components/kinetic-table/kinetic-table.component";
+import { FilterDialogComponent } from "~/app/components/filter-dialog/filter-dialog.component";
 import { CactusService } from "~/app/services/cactus.service";
 import { CleanDbPredictedEC, CleanDbRecord } from "~/app/models/CleanDbRecord";
 
@@ -69,7 +71,9 @@ import { CleanDbPredictedEC, CleanDbRecord } from "~/app/models/CleanDbRecord";
     DividerModule,
 
     KineticTableComponent,
+    FilterDialogComponent,
     QueryInputComponent,
+    TooltipModule,
 ],
   host: {
     class: "flex flex-col h-full"
@@ -101,11 +105,27 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     status: 'loading' | 'loaded' | 'error' | 'na';
     data: any[];
     total: number;
+    offset: number;
   } = {
     status: 'na',
     data: [],
     total: 0,
+    offset: 0,
   };
+
+  pageSize = 10;
+  currentSortField: string | null = null;
+  currentSortOrder: number = 0; // 0 = unsorted, 1 = asc, -1 = desc
+
+  appliedFilters: AppliedFilters = { ...EMPTY_FILTERS };
+  currentSearchQuery: any = {};
+  showFilterDialog = false;
+
+  hasActiveFilters = hasActiveFilters;
+
+  get searchContext(): Record<string, any> {
+    return { ...this.currentSearchQuery, ...filtersToApiParams(this.appliedFilters) };
+  }
 
   showFilter = false;
   hasFilter = false;
@@ -155,7 +175,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       options: [],
       value: [],
     })],
-    ['predicted_ec', new MultiselectFilterConfig({
+    ['predicted_ec', new RangeFilterConfig({
       category: 'parameter',
       label: {
         value: 'Predicted EC Number (Score)',
@@ -163,8 +183,9 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       },
       placeholder: 'Enter predicted EC number (score) range',
       field: 'predicted_ec',
-      options: [],
-      value: [],
+      min: 0,
+      max: 1,
+      value: [0, 1],
       matchMode: 'subset',
     })],
   ] as [string, FilterConfig][])
@@ -233,6 +254,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
   readonly filterRecords = Object.values(this.filters);
   
   private formSubscription: Subscription | null = null;
+  private dataSubscription: Subscription | null = null;
  
   constructor(
     public service: CleanDbService,
@@ -263,6 +285,10 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     if (this.formSubscription) {
       this.formSubscription.unsubscribe();
       this.formSubscription = null;
+    }
+    if (this.dataSubscription) {
+      this.dataSubscription.unsubscribe();
+      this.dataSubscription = null;
     }
   }
 
@@ -296,13 +322,15 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
 
   clearAll() {
     this.clearResult();
+    this.appliedFilters = { ...EMPTY_FILTERS };
+    this.currentSearchQuery = {};
     const criteriaArray = this.form.get('searchCriteria') as FormArray;
     criteriaArray.clear();
     setTimeout(() => {
       this.addCriteria();
     });
     // this.submit(true); TODO revisit this later--was this something we wanted?
-    
+
     // Clear URL parameters
     this.router.navigate([], {
       relativeTo: this.route,
@@ -331,11 +359,14 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       return;
     }
 
-    // Set loading state
+    // Reset sort and loading state
+    this.currentSortField = null;
+    this.currentSortOrder = 0;
     this.result = {
       status: 'loading',
       data: [],
       total: 0,
+      offset: 0,
     };
     
     // Trigger change detection to show loading state
@@ -411,30 +442,48 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     // Update URL with search criteria
     this.updateUrlWithSearchCriteria(criteriaArray.value);
 
-    // Use the existing getResult method
-    // For the prototype, we'll use a fixed JobType.Defaults and dummy job ID
-    // In a real implementation, this would send the query to the backend first
+    // Store the search query for filter operations
+    this.currentSearchQuery = query;
 
-    // TODO: implement this
-    this.service.getData(query)
-      .pipe(
-        map(({data: response} : {data: CleanDbRecord[]}) => 
-          response
-            .filter((row) => {
-              // Process multi-criteria filtering client-side
-              return this.matchesSearchCriteria(row, criteriaArray);
-            })
-        )
-      )
+    // Fetch data with current filters
+    this.fetchData(0, this.pageSize);
+  }
+
+  fetchData(offset: number, limit: number): void {
+    const ordering = this.buildOrdering();
+    const combinedQuery: any = {
+      ...this.currentSearchQuery,
+      ...filtersToApiParams(this.appliedFilters),
+      offset,
+      limit,
+    };
+    if (ordering) {
+      combinedQuery.ordering = ordering;
+    }
+
+    this.result = {
+      status: 'loading',
+      data: this.result.data,
+      total: this.result.total,
+      offset: this.result.offset,
+    };
+    this.cdr.detectChanges();
+
+    // Cancel any in-flight request
+    if (this.dataSubscription) {
+      this.dataSubscription.unsubscribe();
+    }
+
+    this.dataSubscription = this.service.getData(combinedQuery)
       .subscribe({
-        next: (response: CleanDbRecord[]) => {
-          // Update options for filters
-          this.updateFilterOptions(response);
-          
+        next: (response: any) => {
+          this.updateFilterOptions(response.data);
+
           this.result = {
             status: 'loaded',
-            data: response,
-            total: response.length,
+            data: response.data,
+            total: response.total,
+            offset: response.offset ?? offset,
           };
           this.cdr.detectChanges();
         },
@@ -444,10 +493,52 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
             status: 'error',
             data: [],
             total: 0,
+            offset: 0,
           };
           this.cdr.detectChanges();
         }
       });
+  }
+
+  onPageChange(event: { offset: number; limit: number; sortField: string | null; sortOrder: number }): void {
+    if (this.result.status === 'loading') {
+      return;
+    }
+
+    const sortChanged = event.sortField !== this.currentSortField || event.sortOrder !== this.currentSortOrder;
+
+    this.currentSortField = event.sortField;
+    this.currentSortOrder = event.sortOrder;
+    this.pageSize = event.limit;
+
+    // Sort change affects the entire result set, so reset to page 1
+    const offset = sortChanged ? 0 : event.offset;
+    this.fetchData(offset, event.limit);
+  }
+
+  onApplyFilters(filters: AppliedFilters): void {
+    this.appliedFilters = filters;
+    this.showFilterDialog = false;
+    this.fetchData(0, this.pageSize);
+  }
+
+  onRemoveFilter(filterKey: keyof AppliedFilters): void {
+    if (Array.isArray(this.appliedFilters[filterKey])) {
+      (this.appliedFilters[filterKey] as string[]) = [];
+    } else {
+      (this.appliedFilters[filterKey] as any) = null;
+    }
+    if (filterKey === 'confidence_min' || filterKey === 'confidence_max') {
+      this.appliedFilters.confidence_category = null;
+      this.appliedFilters.confidence_min = null;
+      this.appliedFilters.confidence_max = null;
+    }
+    this.fetchData(0, this.pageSize);
+  }
+
+  onClearAllFilters(): void {
+    this.appliedFilters = { ...EMPTY_FILTERS };
+    this.fetchData(0, this.pageSize);
   }
 
   exportTable() {
@@ -543,26 +634,25 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
     return matches;
   }
   
+  private buildOrdering(): string | null {
+    if (!this.currentSortField || this.currentSortOrder === 0) {
+      return null;
+    }
+    const prefix = this.currentSortOrder === -1 ? '-' : '';
+    return `${prefix}${this.currentSortField}`;
+  }
+
   // Update filter options based on response data
   private updateFilterOptions(response: any[]) {
-    function getField(obj: any, dotPath: string) {
-      return dotPath.split('.').reduce((obj, key) => obj[key], obj);
-    }
-    
     Object.entries(this.filters).forEach(([key, filter]) => {
-      const options = response.map((row: any) => getField(row, filter.field)).flat();
-      const optionsSet = new Set(options);
-      if (filter instanceof MultiselectFilterConfig) {
-        filter.options = Array.from(optionsSet).map((option: any) => ({
-          label: option,
-          value: option,
-        }));
-        filter.defaultValue = [];
-      } else if (filter instanceof RangeFilterConfig) {
-        filter.min = Math.min(...options);
-        filter.max = Math.max(...options);
-        filter.value = [filter.min, filter.max];
-        filter.defaultValue = [filter.min, filter.max];
+      if (filter instanceof RangeFilterConfig) {
+        filter.min = 0;
+        filter.max = 1;
+        const defaultRange: [number, number] = [filter.min, filter.max];
+        filter.defaultValue = defaultRange;
+        if (!filter.hasFilter()) {
+          filter.value = [...defaultRange];
+        }
       }
     });
     
@@ -604,6 +694,7 @@ export class DatabaseSearchComponent implements AfterViewInit, OnInit, OnDestroy
       status: 'na',
       data: [],
       total: 0,
+      offset: 0,
     };
   }
 

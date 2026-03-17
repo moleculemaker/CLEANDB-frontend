@@ -67,7 +67,7 @@
 
           <!-- Mutation Effect and Structure -->
           <div class="flex gap-4">
-              <div class="flex flex-col gap-4 max-w-full">
+              <div class="flex flex-col gap-4" [class]="(simplefoldPdbData || simplefoldLoading) ? 'w-1/2' : 'max-w-full'">
                 <div class="flex items-center justify-between">
                   <p class="font-semibold underline decoration-dotted" [pTooltip]="tooltipContent">Mutation Effect Heatmap</p>
                   <ng-template #tooltipContent>
@@ -96,21 +96,31 @@
                     #heatmap
                     [data]="result"
                     [mutedCells]="mutedCells"
-                    [(selectedCells)]="selectedCells"
+                    [selectedCells]="selectedCells"
                   ></app-heatmap>
                 </div>
               </div>
-              <!-- <div class="flex flex-col gap-4 w-1/2">
+              @if (simplefoldPdbData || simplefoldLoading) {
+              <div class="flex flex-col gap-4 w-1/2">
                 <p class="font-semibold underline decoration-dotted">
-                  <span  pTooltip="The associated AlphaFold structural prediction for this UniProt entry, colored by the average Mutation Effect Log Likelihood Ratio (LLR) at each residue (red = more deleterious, blue = more beneficial).">
-                    Structure
-                  </span>
+                  <span pTooltip="Predicted 3D protein structure from ml-simplefold.">Structure</span>
                 </p>
-                <div class="h-full w-full rounded-md border border-solid border-[#dee2e6] bg-[#f8f9fa] flex justify-center items-center text-text-secondary/50">
-                  Coming soon
+                <div class="h-[400px] w-full rounded-md border border-solid border-[#dee2e6] bg-[#f8f9fa] relative">
+                  @if (simplefoldLoading) {
+                    <div class="flex justify-center items-center h-full"><i class="pi pi-spin pi-spinner text-4xl"></i></div>
+                  } @else if (simplefoldError) {
+                    <div class="flex justify-center items-center h-full text-text-secondary/50">Failed to load structure</div>
+                  } @else {
+                    <app-protein-viewer [pdbData]="simplefoldPdbData" [dataFormat]="simplefoldDataFormat"
+                      [style]="viewerStyle" [colorScheme]="viewerColorScheme"
+                      [highlightColor]="highlightColor"
+                      [viewerId]="viewerId"
+                      (residueClicked)="onResidueClicked($event)">
+                    </app-protein-viewer>
+                  }
                 </div>
-                <app-molecule3d></app-molecule3d>
-              </div> -->
+              </div>
+              }
             </div>
         </div>
 

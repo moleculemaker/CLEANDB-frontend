@@ -6,6 +6,7 @@ export interface CleanDbPredictedEC {
 export interface CleanDbRecord {
     protein: string;
     uniprot: string;
+    accession: string;
     organism: string;
     curation_status: string;
     predicted_ec: CleanDbPredictedEC[];
@@ -44,6 +45,7 @@ export function cleanDbRecordRawToCleanDbRecord(raw: CleanDbRecordRaw): CleanDbR
     return {
         protein: raw.protein?.trim() || '',
         uniprot: raw.uniprot.trim(),
+        accession: raw.accession.trim(),
         organism: raw.organism.trim(),
         curation_status: raw.curation_status.trim(),
         predicted_ec: raw.predicted_ec,
