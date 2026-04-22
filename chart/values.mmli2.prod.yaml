@@ -2,6 +2,7 @@ ingress:
   hostname: cleandb.platform.moleculemaker.org
   extraHosts:
   - cleandb.frontend.mmli2.ncsa.illinois.edu
+  - cleandb.frontend.mmli1.ncsa.illinois.edu
   tls: true
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-production
@@ -30,6 +31,6 @@ extraDeploy:
     namespace: alphasynthesis
   spec:
     redirectRegex:
-      regex: "^https://cleandb.frontend.mmli2.ncsa.illinois.edu/(.*)"
-      replacement: "https://cleandb.platform.moleculemaker.org/${1}"
+      regex: "^https:\\/\\/cleandb\\.frontend\\.mmli\\d\\.ncsa\\.illinois\\.edu(\\/.*)"
+      replacement: "https://cleandb.platform.moleculemaker.org${1}"
       permanent: true
