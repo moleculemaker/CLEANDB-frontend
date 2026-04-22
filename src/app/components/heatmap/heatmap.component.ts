@@ -111,6 +111,7 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
     maximumFractionDigits: 2,
   });
   private tooltipTarget: HTMLElement | null = null;
+  private hideTooltipTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private selectedCellSet = new Set<string>();
   private mutedCellSet = new Set<string>();
 
@@ -194,6 +195,7 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.cancelHideTooltip();
     this.subscriptions.forEach((subscription) => subscription.unsubscribe());
   }
 
@@ -355,6 +357,9 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
       return;
     }
 
+    // Cancel any pending hide; moving to an adjacent cell should keep the tooltip
+    this.cancelHideTooltip();
+
     // Restore previous hovered cell to its base state
     if (this.manualSelectedCell && this.manualSelectedCell !== interactable) {
       this.manualSelectedCell.state = this.getBaseCellState(this.manualSelectedCell);
@@ -372,15 +377,39 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
   }
 
   onCellMouseLeave(): void {
+    // Debounce hide so rapid moves to adjacent cells don't trigger a hide/show flicker
+    this.cancelHideTooltip();
+    this.hideTooltipTimeoutId = setTimeout(() => {
+      this.hideTooltipTimeoutId = null;
+      if (this.manualSelectedCell) {
+        this.manualSelectedCell.state = this.getBaseCellState(this.manualSelectedCell);
+        this.manualSelectedCell = null;
+      }
+      this.tooltipContext = null;
+      this.tooltipTarget = null;
+      if (this.cellTooltip?.overlayVisible) {
+        this.cellTooltip.hide();
+      }
+      this.cdr.markForCheck();
+    }, 80);
+  }
+
+  private cancelHideTooltip(): void {
+    if (this.hideTooltipTimeoutId !== null) {
+      clearTimeout(this.hideTooltipTimeoutId);
+      this.hideTooltipTimeoutId = null;
+    }
+  }
+
+  onTooltipHidden(): void {
+    // Reset transient hover state when the tooltip is dismissed (e.g. outside click)
     if (this.manualSelectedCell) {
       this.manualSelectedCell.state = this.getBaseCellState(this.manualSelectedCell);
       this.manualSelectedCell = null;
     }
     this.tooltipContext = null;
     this.tooltipTarget = null;
-    if (this.cellTooltip?.overlayVisible) {
-      this.cellTooltip.hide();
-    }
+    this.cdr.markForCheck();
   }
 
   /* ---------------------------------- Utils --------------------------------- */
@@ -533,17 +562,11 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
       return;
     }
 
-    const showOverlay = () => {
-      const overlayEvent = this.resolveOverlayEvent(event, targetElement);
-      this.cellTooltip!.show(overlayEvent, targetElement);
-    };
-
-    if (this.cellTooltip.overlayVisible) {
-      this.cellTooltip.hide();
-      setTimeout(showOverlay);
-    } else {
-      showOverlay();
-    }
+    const overlayEvent = this.resolveOverlayEvent(event, targetElement);
+    // PrimeNG's show() handles the already-visible case by retargeting and re-aligning,
+    // so there is no need to hide() first — doing so causes a flicker where the close
+    // icon briefly renders during the hide animation.
+    this.cellTooltip.show(overlayEvent, targetElement);
   }
 
   private getBaseCellState(interactable: Interactable): InteractableState {
