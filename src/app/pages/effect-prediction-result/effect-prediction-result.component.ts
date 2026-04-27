@@ -75,7 +75,6 @@ export class EffectPredictionResultComponent implements OnDestroy {
   jobId: string                             = this.route.snapshot.paramMap.get("id") || "precomputed";
   jobInfo: any                              = {};
   jobType: JobType                          = JobType.CleandbMepesm;
-  previousSelectedPositions: number[]       = [];
   mutedCells: HeatmapCellLocations          = [];
   mutedPositions: number[]                  = [];
   numColumns                                = 20;
@@ -181,15 +180,16 @@ export class EffectPredictionResultComponent implements OnDestroy {
   onSelectedPositionsChange(newPositions: number[]): void {
     this.selectedCells = this.generateCellsFromPositions(newPositions);
     if (newPositions.length > 0) {
-      const oldPositionSet = new Set(this.previousSelectedPositions);
+      const oldPositionSet = new Set(this.selectedPositions);
       const newPositionSet = new Set(newPositions);
       //@ts-ignore
       const diff: number[] = Array.from(newPositionSet.difference(oldPositionSet));
-      const minPosition = Math.min(...diff);
-      this.heatmap.scrollToCol(minPosition);
-      this.scrollTableToPosition(minPosition + 1); // table uses 1-based positions
+      if (diff.length > 0) {
+        const minPosition = Math.min(...diff);
+        this.heatmap.scrollToCol(minPosition);
+        this.scrollTableToPosition(minPosition + 1); // table uses 1-based positions
+      }
     }
-    this.previousSelectedPositions = [...this.selectedPositions];
     this.selectedPositions = newPositions;
     this.syncViewerSelections();
   }
@@ -270,6 +270,14 @@ export class EffectPredictionResultComponent implements OnDestroy {
     link.remove();
   }
 
+  clearAll(): void {
+    this.selectedPositions = [];
+    this.selectedCells = [];
+    this.mutedPositions = [];
+    this.mutedCells = [];
+    this.syncViewerSelections();
+  }
+
   /* ------------------------------ Utils ------------------------------ */
   togglePosition(position: number): void {
     const idx = this.selectedPositions.indexOf(position);
@@ -279,7 +287,6 @@ export class EffectPredictionResultComponent implements OnDestroy {
     } else {
       newPositions = [...this.selectedPositions, position];
     }
-    this.previousSelectedPositions = [...this.selectedPositions];
     this.selectedPositions = newPositions;
     this.selectedCells = this.generateCellsFromPositions(newPositions);
     this.syncViewerSelections();
