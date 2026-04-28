@@ -14,49 +14,49 @@
                     class="z-10 flex items-center border-r-2 border-solid p-4 hover:bg-gray-100 active:border-[#495057] text-nowrap"
                     [class.border-[#495057]]="activePanel$.value === ActiveAboutPanel.ABOUT"
                     [class.text-[#224063]]="activePanel$.value === ActiveAboutPanel.ABOUT"
-                    (click)="activePanel$.next(ActiveAboutPanel.ABOUT)">
+                    (click)="selectPanel(ActiveAboutPanel.ABOUT)">
                     <i class="pi pi-info-circle"></i><a class="ml-2 font-bold">About</a>
                 </button>
                 <button
                     class="z-10 flex items-center border-r-2 border-solid p-4 hover:bg-gray-100 active:border-[#495057] text-nowrap"
                     [class.border-[#495057]]="activePanel$.value === ActiveAboutPanel.TUTORIAL"
                     [class.text-[#224063]]="activePanel$.value === ActiveAboutPanel.TUTORIAL"
-                    (click)="activePanel$.next(ActiveAboutPanel.TUTORIAL)">
+                    (click)="selectPanel(ActiveAboutPanel.TUTORIAL)">
                     <i class="pi pi-question-circle"></i><a class="ml-2 font-bold">Tutorial</a>
                 </button>
                 <button
                     class="z-10 flex items-center border-r-2 border-solid p-4 hover:bg-gray-100 active:border-[#495057] text-nowrap"
                     [class.border-[#495057]]="activePanel$.value === ActiveAboutPanel.STATISTICS"
                     [class.text-[#224063]]="activePanel$.value === ActiveAboutPanel.STATISTICS"
-                    (click)="activePanel$.next(ActiveAboutPanel.STATISTICS)">
+                    (click)="selectPanel(ActiveAboutPanel.STATISTICS)">
                     <i class="pi pi-chart-bar"></i><a class="ml-2 font-bold">Statistics</a>
                 </button>
                 <button
                     class="z-10 flex items-center border-r-2 border-solid p-4 hover:bg-gray-100 active:border-[#495057] text-nowrap"
                     [class.border-[#495057]]="activePanel$.value === ActiveAboutPanel.GITHUB"
                     [class.text-[#224063]]="activePanel$.value === ActiveAboutPanel.GITHUB"
-                    (click)="activePanel$.next(ActiveAboutPanel.GITHUB)">
+                    (click)="selectPanel(ActiveAboutPanel.GITHUB)">
                     <i class="pi pi-github"></i><a class="ml-2 font-bold">Github</a>
                 </button>
                 <button
                     class="z-10 flex items-center border-r-2 border-solid p-4 hover:bg-gray-100 active:border-[#495057] text-nowrap"
                     [class.border-[#495057]]="activePanel$.value === ActiveAboutPanel.PUBLICATIONS"
                     [class.text-[#224063]]="activePanel$.value === ActiveAboutPanel.PUBLICATIONS"
-                    (click)="activePanel$.next(ActiveAboutPanel.PUBLICATIONS)">
+                    (click)="selectPanel(ActiveAboutPanel.PUBLICATIONS)">
                     <i class="pi pi-book"></i><a class="ml-2 font-bold">Publications</a>
                 </button>
                 <button
                     class="z-10 flex items-center border-r-2 border-solid p-4 hover:bg-gray-100 active:border-[#495057] text-nowrap"
                     [class.border-[#495057]]="activePanel$.value === ActiveAboutPanel.TEAM"
                     [class.text-[#224063]]="activePanel$.value === ActiveAboutPanel.TEAM"
-                    (click)="activePanel$.next(ActiveAboutPanel.TEAM)">
+                    (click)="selectPanel(ActiveAboutPanel.TEAM)">
                     <i class="pi pi-users"></i><a class="ml-2 font-bold">Team</a>
                 </button>
                 <button
                     class="z-10 flex items-center border-r-2 border-solid p-4 hover:bg-gray-100 active:border-[#495057] text-nowrap"
                     [class.border-[#495057]]="activePanel$.value === ActiveAboutPanel.GET_INVOLVED"
                     [class.text-[#224063]]="activePanel$.value === ActiveAboutPanel.GET_INVOLVED"
-                    (click)="activePanel$.next(ActiveAboutPanel.GET_INVOLVED)">
+                    (click)="selectPanel(ActiveAboutPanel.GET_INVOLVED)">
                     <i class="pi pi-comment"></i><a class="ml-2 font-bold">Get Involved</a>
                 </button>
             </nav>

@@ -15,21 +15,23 @@ import { ProteinViewerDemoComponent } from "./pages/protein-viewer-demo/protein-
 
 const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
-  { 
-    path: "", 
+  {
+    path: "",
     component: CenterLayoutComponent,
     children: [
       { path: 'about', component: AboutPageComponent },
+      { path: 'about/:section', component: AboutPageComponent },
       { path: 'home', component: LandingPageComponent },
       { path: 'tutorial', component: TutorialPageComponent },
       { path: 'protein-viewer-demo', component: ProteinViewerDemoComponent },
     ]
   },
-  { 
-    path: "", 
+  {
+    path: "",
     component: MainLayoutComponent,
     children: [
       { path: 'about', component: AboutPageComponent },
+      { path: 'about/:section', component: AboutPageComponent },
       { path: "database-search", component: DatabaseSearchComponent },
       { path: 'effect-prediction', component: EffectPredictionComponent },
       { path: 'effect-prediction/result/:id', component: EffectPredictionResultComponent },
