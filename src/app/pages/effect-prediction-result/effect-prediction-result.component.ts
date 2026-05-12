@@ -106,6 +106,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
   precomputedUniprotId                      = 'Q6V4H0';
   subscriptions: Subscription[]             = [];
   tableValues: any[]                        = [];
+  filteredTableValues: any[]                = [];
   sequence                                  = '';
 
   statusResponse$
@@ -171,6 +172,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
     
           tableValues.sort((a, b) => a.position - b.position);
           this.tableValues = tableValues;
+          this.updateFilteredTableValues();
           this.showResults = true;
         })
       );
@@ -191,6 +193,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
       }
     }
     this.selectedPositions = newPositions;
+    this.updateFilteredTableValues();
     this.syncViewerSelections();
   }
 
@@ -275,7 +278,18 @@ export class EffectPredictionResultComponent implements OnDestroy {
     this.selectedCells = [];
     this.mutedPositions = [];
     this.mutedCells = [];
+    this.updateFilteredTableValues();
     this.syncViewerSelections();
+  }
+
+  private updateFilteredTableValues(): void {
+    if (this.selectedPositions.length === 0) {
+      this.filteredTableValues = this.tableValues;
+      return;
+    }
+    // selectedPositions are 0-based; row.position is 1-based.
+    const selectedSet = new Set(this.selectedPositions.map((p) => p + 1));
+    this.filteredTableValues = this.tableValues.filter((row) => selectedSet.has(row.position));
   }
 
   /* ------------------------------ Utils ------------------------------ */
@@ -289,6 +303,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
     }
     this.selectedPositions = newPositions;
     this.selectedCells = this.generateCellsFromPositions(newPositions);
+    this.updateFilteredTableValues();
     this.syncViewerSelections();
   }
 
