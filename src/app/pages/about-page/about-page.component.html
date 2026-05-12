@@ -19,6 +19,13 @@
                 </button>
                 <button
                     class="z-10 flex items-center border-r-2 border-solid p-4 hover:bg-gray-100 active:border-[#495057] text-nowrap"
+                    [class.border-[#495057]]="activePanel$.value === ActiveAboutPanel.LICENSE"
+                    [class.text-[#224063]]="activePanel$.value === ActiveAboutPanel.LICENSE"
+                    (click)="selectPanel(ActiveAboutPanel.LICENSE)">
+                    <i class="pi pi-file-check"></i><a class="ml-2 font-bold">License</a>
+                </button>
+                <button
+                    class="z-10 flex items-center border-r-2 border-solid p-4 hover:bg-gray-100 active:border-[#495057] text-nowrap"
                     [class.border-[#495057]]="activePanel$.value === ActiveAboutPanel.TUTORIAL"
                     [class.text-[#224063]]="activePanel$.value === ActiveAboutPanel.TUTORIAL"
                     (click)="selectPanel(ActiveAboutPanel.TUTORIAL)">
@@ -77,6 +84,23 @@
 
                     <h5 class="leading-xl">
                         CLEAN DB supports a broad range of scientific applications, including enzyme engineering, synthetic biology, drug discovery, metabolic modeling, and functional genomics. Whether you're identifying candidate biocatalysts or studying the functional impact of mutations, CLEAN DB empowers you to extract meaningful insights from protein sequences at unprecedented scale and accuracy.
+                    </h5>
+                </main>
+
+                <!-- License -->
+                <main *ngIf="activePanel$.value === ActiveAboutPanel.LICENSE" class="w-full h-full pb-12 pl-16">
+                    <h1 class="mb-4 font-bold">License</h1>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 mb-4 border border-solid border-[#495057] rounded">
+                        <span class="font-bold">CC BY 4.0</span>
+                    </div>
+                    <h5 class="leading-xl">
+                        The CLEAN Database (CLEAN DB) is licensed under the Creative Commons Attribution 4.0 International License
+                        (CC BY 4.0). This means you are free to share and adapt the material for any purpose, even commercially,
+                        as long as you give appropriate credit, provide a link to the license, and indicate if changes were made.
+                    </h5>
+                    <h5><b class="font-bold">Full license text: </b><a rel="noopener" class="text-[#0080FF] underline" target="_blank"
+                            href="https://creativecommons.org/licenses/by/4.0/"><i
+                                class="mx-2 pi pi-external-link"></i>https://creativecommons.org/licenses/by/4.0/</a>
                     </h5>
                 </main>
 

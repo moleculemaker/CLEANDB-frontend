@@ -7,6 +7,7 @@ import { TutorialComponent } from "../../components/tutorial/tutorial.component"
 
 enum ActiveAboutPanel {
   ABOUT,
+  LICENSE,
   TUTORIAL,
   STATISTICS,
   GITHUB,
@@ -17,6 +18,7 @@ enum ActiveAboutPanel {
 
 const SECTION_TO_PANEL: Record<string, ActiveAboutPanel> = {
   '': ActiveAboutPanel.ABOUT,
+  'license': ActiveAboutPanel.LICENSE,
   'tutorial': ActiveAboutPanel.TUTORIAL,
   'statistics': ActiveAboutPanel.STATISTICS,
   'github': ActiveAboutPanel.GITHUB,
@@ -27,6 +29,7 @@ const SECTION_TO_PANEL: Record<string, ActiveAboutPanel> = {
 
 const PANEL_TO_SECTION: Record<ActiveAboutPanel, string> = {
   [ActiveAboutPanel.ABOUT]: '',
+  [ActiveAboutPanel.LICENSE]: 'license',
   [ActiveAboutPanel.TUTORIAL]: 'tutorial',
   [ActiveAboutPanel.STATISTICS]: 'statistics',
   [ActiveAboutPanel.GITHUB]: 'github',
