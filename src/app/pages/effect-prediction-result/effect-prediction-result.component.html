@@ -38,7 +38,7 @@
   </div>
 
   @if (!showResults) {
-  <app-loading [statusQuery$]="statusResponse$" (progressChange)="onProgressChange($event)" [estimatedTime]="1 * 60">
+  <app-loading [statusQuery$]="statusResponse$" (progressChange)="onProgressChange($event)" [estimatedTime]="3 * 60">
   </app-loading>
   }
 
