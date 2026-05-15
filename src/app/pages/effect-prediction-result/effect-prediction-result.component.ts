@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -54,6 +54,7 @@ import { MenuItem } from 'primeng/api';
 export class EffectPredictionResultComponent implements OnDestroy {
   @ViewChild('heatmap') heatmap: HeatmapComponent;
   @ViewChild('resultTable') resultTable: Table;
+  @ViewChild('mutationEffectSection') mutationEffectSection: ElementRef<HTMLElement>;
 
   columns = [
     { field: 'position', header: 'Position' },
@@ -188,6 +189,10 @@ export class EffectPredictionResultComponent implements OnDestroy {
         const minPosition = Math.min(...diff);
         this.heatmap.scrollToCol(minPosition);
         this.scrollTableToPosition(minPosition + 1); // table uses 1-based positions
+        // The sequence selector lives above the heatmap/structure section, so
+        // bring that section into the page viewport so the user can see the
+        // effect of the selection without scrolling manually.
+        this.scrollPageToMutationEffectSection();
       }
     }
     this.selectedPositions = newPositions;
@@ -299,6 +304,12 @@ export class EffectPredictionResultComponent implements OnDestroy {
       chain: 'A',
     }));
     this.proteinSelectionService.setSelections(this.viewerId, selections);
+  }
+
+  scrollPageToMutationEffectSection(): void {
+    const sectionEl = this.mutationEffectSection?.nativeElement;
+    if (!sectionEl) return;
+    sectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   scrollTableToPosition(position: number): void {
