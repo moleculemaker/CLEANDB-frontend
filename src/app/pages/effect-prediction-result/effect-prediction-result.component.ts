@@ -106,7 +106,6 @@ export class EffectPredictionResultComponent implements OnDestroy {
   precomputedUniprotId                      = 'Q6V4H0';
   subscriptions: Subscription[]             = [];
   tableValues: any[]                        = [];
-  filteredTableValues: any[]                = [];
   sequence                                  = '';
 
   statusResponse$
@@ -172,7 +171,6 @@ export class EffectPredictionResultComponent implements OnDestroy {
     
           tableValues.sort((a, b) => a.position - b.position);
           this.tableValues = tableValues;
-          this.updateFilteredTableValues();
           this.showResults = true;
         })
       );
@@ -193,7 +191,6 @@ export class EffectPredictionResultComponent implements OnDestroy {
       }
     }
     this.selectedPositions = newPositions;
-    this.updateFilteredTableValues();
     this.syncViewerSelections();
   }
 
@@ -278,18 +275,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
     this.selectedCells = [];
     this.mutedPositions = [];
     this.mutedCells = [];
-    this.updateFilteredTableValues();
     this.syncViewerSelections();
-  }
-
-  private updateFilteredTableValues(): void {
-    if (this.selectedPositions.length === 0) {
-      this.filteredTableValues = this.tableValues;
-      return;
-    }
-    // selectedPositions are 0-based; row.position is 1-based.
-    const selectedSet = new Set(this.selectedPositions.map((p) => p + 1));
-    this.filteredTableValues = this.tableValues.filter((row) => selectedSet.has(row.position));
   }
 
   /* ------------------------------ Utils ------------------------------ */
@@ -303,7 +289,6 @@ export class EffectPredictionResultComponent implements OnDestroy {
     }
     this.selectedPositions = newPositions;
     this.selectedCells = this.generateCellsFromPositions(newPositions);
-    this.updateFilteredTableValues();
     this.syncViewerSelections();
   }
 
@@ -317,9 +302,30 @@ export class EffectPredictionResultComponent implements OnDestroy {
   }
 
   scrollTableToPosition(position: number): void {
-    this.resultTable.el.nativeElement.querySelector(`[data-position="${position}"]`)?.scrollIntoView({
+    const tableEl = this.resultTable.el.nativeElement as HTMLElement;
+    // Find the first row matching the given (1-based) position.
+    const targetRow = tableEl.querySelector(
+      `tbody tr[data-position="${position}"]`,
+    ) as HTMLElement | null;
+    if (!targetRow) return;
+
+    // PrimeNG p-table renders its scroll container as `.p-datatable-wrapper`
+    // when [scrollable]="true". Fall back to the nearest scrolling ancestor
+    // if the class changes in future PrimeNG versions.
+    const scrollContainer =
+      (tableEl.querySelector('.p-datatable-wrapper') as HTMLElement | null) ??
+      (tableEl.querySelector('.p-datatable-scrollable-body') as HTMLElement | null);
+    if (!scrollContainer) return;
+
+    const stickyHeader = scrollContainer.querySelector('thead') as HTMLElement | null;
+    const headerHeight = stickyHeader?.getBoundingClientRect().height ?? 0;
+    const containerTop = scrollContainer.getBoundingClientRect().top;
+    const rowTop = targetRow.getBoundingClientRect().top;
+    const delta = rowTop - containerTop - headerHeight;
+
+    scrollContainer.scrollTo({
+      top: scrollContainer.scrollTop + delta,
       behavior: 'smooth',
-      block: 'nearest',
     });
   }
 
