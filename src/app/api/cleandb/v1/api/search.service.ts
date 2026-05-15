@@ -1,6 +1,6 @@
 /**
  * CLEAN Data API
- * API for accessing enzyme kinetic data from the CLEAN database  ## Automatic Pagination  When a query would return more than 5000 records and no explicit limit is provided, the API will automatically paginate results to return 5000 records at a time. The response will include pagination metadata with links to navigate to next and previous pages.  This threshold can be configured using the AUTO_PAGINATION_THRESHOLD environment variable. 
+ * API for accessing enzyme function data from the CLEAN database  ## Automatic Pagination  When a query would return more than 5000 records and no explicit limit is provided, the API will automatically paginate results to return 5000 records at a time. The response will include pagination metadata with links to navigate to next and previous pages.  This threshold can be configured using the AUTO_PAGINATION_THRESHOLD environment variable. 
  *
  * The version of the OpenAPI document: 0.1.0
  * 
@@ -157,8 +157,8 @@ export class SearchService {
     }
 
     /**
-     * Get enzyme kinetic data
-     * Get enzyme kinetic data with filtering options.
+     * Get enzyme function data
+     * Get enzyme function data with filtering options.
      * @param accession Uniprot Accession
      * @param organism Organism Name
      * @param protein Protein Name

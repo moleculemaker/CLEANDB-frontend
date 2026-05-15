@@ -7,9 +7,10 @@ import { TutorialComponent } from "../../components/tutorial/tutorial.component"
 
 enum ActiveAboutPanel {
   ABOUT,
-  LICENSE,
   TUTORIAL,
   STATISTICS,
+  LICENSE,
+  API,
   GITHUB,
   PUBLICATIONS,
   TEAM,
@@ -18,9 +19,10 @@ enum ActiveAboutPanel {
 
 const SECTION_TO_PANEL: Record<string, ActiveAboutPanel> = {
   '': ActiveAboutPanel.ABOUT,
-  'license': ActiveAboutPanel.LICENSE,
   'tutorial': ActiveAboutPanel.TUTORIAL,
   'statistics': ActiveAboutPanel.STATISTICS,
+  'license': ActiveAboutPanel.LICENSE,
+  'api': ActiveAboutPanel.API,
   'github': ActiveAboutPanel.GITHUB,
   'publications': ActiveAboutPanel.PUBLICATIONS,
   'team': ActiveAboutPanel.TEAM,
@@ -29,9 +31,10 @@ const SECTION_TO_PANEL: Record<string, ActiveAboutPanel> = {
 
 const PANEL_TO_SECTION: Record<ActiveAboutPanel, string> = {
   [ActiveAboutPanel.ABOUT]: '',
-  [ActiveAboutPanel.LICENSE]: 'license',
   [ActiveAboutPanel.TUTORIAL]: 'tutorial',
   [ActiveAboutPanel.STATISTICS]: 'statistics',
+  [ActiveAboutPanel.LICENSE]: 'license',
+  [ActiveAboutPanel.API]: 'api',
   [ActiveAboutPanel.GITHUB]: 'github',
   [ActiveAboutPanel.PUBLICATIONS]: 'publications',
   [ActiveAboutPanel.TEAM]: 'team',

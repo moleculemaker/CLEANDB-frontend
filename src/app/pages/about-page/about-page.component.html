@@ -19,13 +19,6 @@
                 </button>
                 <button
                     class="z-10 flex items-center border-r-2 border-solid p-4 hover:bg-gray-100 active:border-[#495057] text-nowrap"
-                    [class.border-[#495057]]="activePanel$.value === ActiveAboutPanel.LICENSE"
-                    [class.text-[#224063]]="activePanel$.value === ActiveAboutPanel.LICENSE"
-                    (click)="selectPanel(ActiveAboutPanel.LICENSE)">
-                    <i class="pi pi-file-check"></i><a class="ml-2 font-bold">License</a>
-                </button>
-                <button
-                    class="z-10 flex items-center border-r-2 border-solid p-4 hover:bg-gray-100 active:border-[#495057] text-nowrap"
                     [class.border-[#495057]]="activePanel$.value === ActiveAboutPanel.TUTORIAL"
                     [class.text-[#224063]]="activePanel$.value === ActiveAboutPanel.TUTORIAL"
                     (click)="selectPanel(ActiveAboutPanel.TUTORIAL)">
@@ -37,6 +30,20 @@
                     [class.text-[#224063]]="activePanel$.value === ActiveAboutPanel.STATISTICS"
                     (click)="selectPanel(ActiveAboutPanel.STATISTICS)">
                     <i class="pi pi-chart-bar"></i><a class="ml-2 font-bold">Statistics</a>
+                </button>
+                <button
+                    class="z-10 flex items-center border-r-2 border-solid p-4 hover:bg-gray-100 active:border-[#495057] text-nowrap"
+                    [class.border-[#495057]]="activePanel$.value === ActiveAboutPanel.LICENSE"
+                    [class.text-[#224063]]="activePanel$.value === ActiveAboutPanel.LICENSE"
+                    (click)="selectPanel(ActiveAboutPanel.LICENSE)">
+                    <i class="pi pi-file-check"></i><a class="ml-2 font-bold">License</a>
+                </button>
+                <button
+                    class="z-10 flex items-center border-r-2 border-solid p-4 hover:bg-gray-100 active:border-[#495057] text-nowrap"
+                    [class.border-[#495057]]="activePanel$.value === ActiveAboutPanel.API"
+                    [class.text-[#224063]]="activePanel$.value === ActiveAboutPanel.API"
+                    (click)="selectPanel(ActiveAboutPanel.API)">
+                    <i class="pi pi-database"></i><a class="ml-2 font-bold">API</a>
                 </button>
                 <button
                     class="z-10 flex items-center border-r-2 border-solid p-4 hover:bg-gray-100 active:border-[#495057] text-nowrap"
@@ -87,6 +94,23 @@
                     </h5>
                 </main>
 
+                <!-- Tutorial -->
+                <main *ngIf="activePanel$.value === ActiveAboutPanel.TUTORIAL" class="w-full h-full pb-12 pl-16">
+                    <app-tutorial></app-tutorial>
+                </main>
+
+                <!-- Statistics -->
+                <main *ngIf="activePanel$.value === ActiveAboutPanel.STATISTICS" class="w-full h-full pb-12 pl-16">
+                    <h1 class="mb-4 font-bold">Statistics</h1>
+                    <h5 class="leading-xl">
+                        The current release of the CLEAN Database provides free access to over 55 million predicted enzyme functions,
+                        generated using cutting-edge artificial intelligence tools.
+                    </h5>
+                    <h5>Learn more about our data below.</h5>
+
+                    <app-data-snapshot></app-data-snapshot>
+                </main>
+
                 <!-- License -->
                 <main *ngIf="activePanel$.value === ActiveAboutPanel.LICENSE" class="w-full h-full pb-12 pl-16">
                     <h1 class="mb-4 font-bold">License</h1>
@@ -104,21 +128,18 @@
                     </h5>
                 </main>
 
-                <!-- Tutorial -->
-                <main *ngIf="activePanel$.value === ActiveAboutPanel.TUTORIAL" class="w-full h-full pb-12 pl-16">
-                    <app-tutorial></app-tutorial>
-                </main>
-
-                <!-- Statistics -->
-                <main *ngIf="activePanel$.value === ActiveAboutPanel.STATISTICS" class="w-full h-full pb-12 pl-16">
-                    <h1 class="mb-4 font-bold">Statistics</h1>
+                <!-- API -->
+                <main *ngIf="activePanel$.value === ActiveAboutPanel.API" class="w-full h-full pb-12 pl-16">
+                    <h1 class="mb-4 font-bold">Application Programming Interface (API)</h1>
                     <h5 class="leading-xl">
-                        The current release of the CLEAN Database provides free access to over 55 million predicted enzyme functions,
-                        generated using cutting-edge artificial intelligence tools.
+                        Programmatic access to the CLEAN Database is available through the CLEAN DB API.
+                        The page below provides documentation, including request and response schemas, and allows you to try the API directly in your browser.
                     </h5>
-                    <h5>Learn more about our data below.</h5>
 
-                    <app-data-snapshot></app-data-snapshot>
+                    <h5><b class="font-bold">API: </b><a rel="noopener" class="text-[#0080FF] underline" target="_blank"
+                            href="https://fastapi.cleandb.mmli2.ncsa.illinois.edu/api/v1/docs"><i
+                                class="mx-2 pi pi-external-link"></i>https://fastapi.cleandb.mmli2.ncsa.illinois.edu/api/v1/docs</a>
+                    </h5>
                 </main>
 
                 <!-- Github -->
