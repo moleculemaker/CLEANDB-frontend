@@ -186,17 +186,17 @@
 
                       <!-- Right column -->
                       <div class="flex flex-col gap-2 flex-1 min-w-0">
-                        <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Protein Name', value: row.protein }"></ng-container>
+                        <ng-container *ngTemplateOutlet="rowInfo; context: { label: 'Protein Name', value: row.protein, valueClass: 'max-w-[60ch] ml-auto' }"></ng-container>
                         @if (row.function) {
                         <div class="flex items-start gap-4 py-px w-full">
                           <div class="text-[--text-color] leading-[21px] shrink-0 whitespace-nowrap">Function</div>
-                          <div class="flex-1 min-w-0 font-semibold text-[--text-color] text-right leading-[16.8px] [word-break:break-word]">{{ row.function }}</div>
+                          <div class="max-w-[60ch] ml-auto min-w-0 font-semibold text-[--text-color] text-right leading-[16.8px] [word-break:break-word]">{{ row.function }}</div>
                         </div>
                         }
                         @if (row.generic_names?.length) {
                         <div class="flex items-start gap-4 py-px w-full">
                           <div class="text-[--text-color] leading-[21px] shrink-0 whitespace-nowrap">Generic Names</div>
-                          <div class="flex-1 min-w-0 text-right text-[--text-color] leading-[21px] [word-break:break-word]">
+                          <div class="max-w-[60ch] ml-auto min-w-0 text-right text-[--text-color] leading-[21px] [word-break:break-word]">
                             @for (value of row.generic_names; track value) {
                             <span class="font-semibold">{{ value.name }}</span> (EC: {{ value.ec }})@if ($index !== row.generic_names.length - 1) {<span>,&nbsp;</span>}
                             }
@@ -247,11 +247,11 @@
   </div>
 </div>
 
-<ng-template #rowInfo let-label="label" let-value="value">
+<ng-template #rowInfo let-label="label" let-value="value" let-valueClass="valueClass">
 @if (value) {
   <div class="flex items-start gap-4 py-px w-full">
     <div class="text-[--text-color] leading-[21px] shrink-0 whitespace-nowrap">{{ label }}</div>
-    <div class="flex-1 min-w-0 font-semibold text-[--text-color] text-right leading-[21px] [word-break:break-word]">{{ value }}</div>
+    <div class="min-w-0 font-semibold text-[--text-color] text-right leading-[21px] [word-break:break-word]" [ngClass]="valueClass || 'flex-1'">{{ value }}</div>
   </div>
 }
 </ng-template>
