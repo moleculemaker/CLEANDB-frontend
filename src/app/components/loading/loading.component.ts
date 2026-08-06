@@ -52,7 +52,7 @@ export class LoadingComponent implements OnInit, OnDestroy {
     this.updateEstimatedTimeString();
 
     this.subscriptions.push(
-      interval(1000).pipe(
+      interval(10000).pipe(
         switchMap(() => this.statusQuery$),
         map((status) => {
           switch (status.phase) {
@@ -64,7 +64,7 @@ export class LoadingComponent implements OnInit, OnDestroy {
               const estimatedMs = this.estimatedTime * 1000;
               const decimalTime = (jobElapsedMs % estimatedMs) / estimatedMs;
               const wholeTime = Math.floor(jobElapsedMs / estimatedMs);
-    
+
               let sum = 0;
               let i = 1;
               while (i < wholeTime && wholeTime >= 1) {
@@ -73,10 +73,10 @@ export class LoadingComponent implements OnInit, OnDestroy {
               }
               sum += Math.pow(coe, i) * decimalTime;
               return sum * 100;
-    
+
             case JobStatus.Completed:
               return 100;
-    
+
             case JobStatus.Error:
               this.showError$.next(true);
               return 0;
@@ -104,7 +104,7 @@ export class LoadingComponent implements OnInit, OnDestroy {
     if (minutes > 0) {
       resultString += `${resultString.length > 0 ? ' ' : ''}${minutes} minute${minutes > 1 ? 's' : ''}`;
     }
-    
+
     this.estimatedTimeString = resultString;
   }
 }

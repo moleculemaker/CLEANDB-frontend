@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import {Component, ElementRef, Input, OnChanges, OnDestroy, ViewChild} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -51,7 +51,7 @@ import { MenuItem } from 'primeng/api';
     class: 'flex flex-col h-full',
   }
 })
-export class EffectPredictionResultComponent implements OnDestroy {
+export class EffectPredictionResultComponent implements OnChanges, OnDestroy {
   @ViewChild('heatmap') heatmap: HeatmapComponent;
   @ViewChild('resultTable') resultTable: Table;
   @ViewChild('mutationEffectSection') mutationEffectSection: ElementRef<HTMLElement>;
@@ -74,6 +74,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
     { label: 'Protein Structure', command: () => this.exportProteinStructure() },
   ];
   jobId: string                             = this.route.snapshot.paramMap.get("id") || "precomputed";
+  @Input()
   jobInfo: any                              = {};
   jobType: JobType                          = JobType.CleandbMepesm;
   mutedCells: HeatmapCellLocations          = [];
@@ -122,6 +123,8 @@ export class EffectPredictionResultComponent implements OnDestroy {
       }),
     );
 
+  private isPollingSimplefold = false;
+
   readonly viewerId = 'effect-prediction-viewer';
 
   constructor(
@@ -130,6 +133,15 @@ export class EffectPredictionResultComponent implements OnDestroy {
     private proteinSelectionService: ProteinSelectionService,
     private route: ActivatedRoute,
   ) {}
+
+  ngOnChanges() {
+    console.log(`On changes: ${this.jobInfo.simplefold_job_id}`);
+    if (this.jobInfo.simplefold_job_id && !this.isPollingSimplefold) {
+      console.log(`Polling started!`);
+      this.isPollingSimplefold = true;
+      this.startSimplefoldPolling(this.jobInfo.simplefold_job_id);
+    }
+  }
 
   ngOnDestroy() {
     this.subscriptions.forEach((subscription) => subscription.unsubscribe());
@@ -154,7 +166,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
       this.subscriptions.push(
         this.service.getEffectPredictionResult(this.jobId).subscribe((result) => {
           this.result = result;
-    
+
           const tableValues: any[] = [];
           result.values.forEach((row, rowIdx) => {
             row.forEach((value, colIdx) => {
@@ -169,7 +181,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
               });
             });
           });
-    
+
           tableValues.sort((a, b) => a.position - b.position);
           this.tableValues = tableValues;
           this.showResults = true;
@@ -231,7 +243,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
     this.simplefoldLoading = true;
 
     this.subscriptions.push(
-      interval(3000).pipe(
+      interval(10000).pipe(
         switchMap(() => this.service.getSimplefoldStatus(simplefoldJobId)),
         takeWhile((job) => job.phase !== 'completed' && job.phase !== 'error', true),
       ).subscribe({
@@ -342,7 +354,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
 
   generateCellsFromPositions(positions: number[]): HeatmapCellLocations {
     const columns = Array.from({ length: this.numColumns }, (_, i) => i);
-    return positions.map((position) => 
+    return positions.map((position) =>
         columns.map((col) => [col, position] as [number, number])
       ).flat();
   }
