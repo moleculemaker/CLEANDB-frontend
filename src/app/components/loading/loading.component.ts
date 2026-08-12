@@ -52,7 +52,7 @@ export class LoadingComponent implements OnInit, OnDestroy {
     this.updateEstimatedTimeString();
 
     this.subscriptions.push(
-      interval(10000).pipe(
+      timer(0, 10000).pipe(
         switchMap(() => this.statusQuery$),
         map((status) => {
           switch (status.phase) {
