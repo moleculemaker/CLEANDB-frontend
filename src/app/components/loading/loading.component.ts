@@ -67,7 +67,7 @@ export class LoadingComponent implements OnInit, OnDestroy {
 
               let sum = 0;
               let i = 1;
-              while (i < wholeTime && wholeTime >= 1) {
+              while (i <= wholeTime) {
                 sum += Math.pow(coe, i);
                 i++;
               }
