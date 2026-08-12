@@ -74,7 +74,6 @@ export class EffectPredictionResultComponent implements OnChanges, OnDestroy {
     { label: 'Protein Structure', command: () => this.exportProteinStructure() },
   ];
   jobId: string                             = this.route.snapshot.paramMap.get("id") || "precomputed";
-  @Input()
   jobInfo: any                              = {};
   jobType: JobType                          = JobType.CleandbMepesm;
   mutedCells: HeatmapCellLocations          = [];
