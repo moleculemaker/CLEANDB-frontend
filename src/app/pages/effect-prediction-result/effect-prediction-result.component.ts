@@ -243,7 +243,7 @@ export class EffectPredictionResultComponent implements OnChanges, OnDestroy {
     this.simplefoldLoading = true;
 
     this.subscriptions.push(
-      interval(10000).pipe(
+      timer(0, 10000).pipe(
         switchMap(() => this.service.getSimplefoldStatus(simplefoldJobId)),
         takeWhile((job) => job.phase !== 'completed' && job.phase !== 'error', true),
       ).subscribe({
