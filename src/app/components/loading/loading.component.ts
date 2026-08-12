@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from "@angular/core";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
-import { BehaviorSubject, interval, map, Observable, Subscription, switchMap } from "rxjs";
+import { BehaviorSubject, timer, map, Observable, Subscription, switchMap } from "rxjs";
 import { NgIf } from "@angular/common";
 import { ProgressBarModule } from "primeng/progressbar";
 

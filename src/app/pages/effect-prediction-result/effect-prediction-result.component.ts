@@ -8,7 +8,7 @@ import { JobTabComponent } from "~/app/components/job-tab/job-tab.component";
 
 import { CleanDbService, EffectPredictionResult } from '~/app/services/clean-db.service';
 import { EffectPredictionComponent } from '~/app/pages/effect-prediction/effect-prediction.component';
-import { interval, Subscription, switchMap, takeWhile, tap } from 'rxjs';
+import { timer, Subscription, switchMap, takeWhile, tap } from 'rxjs';
 import { PanelModule } from 'primeng/panel';
 import { Table, TableModule } from 'primeng/table';
 import { SequencePositionSelectorComponent } from '~/app/components/sequence-position-selector/sequence-position-selector.component';
@@ -51,7 +51,7 @@ import { MenuItem } from 'primeng/api';
     class: 'flex flex-col h-full',
   }
 })
-export class EffectPredictionResultComponent implements OnChanges, OnDestroy {
+export class EffectPredictionResultComponent implements OnDestroy {
   @ViewChild('heatmap') heatmap: HeatmapComponent;
   @ViewChild('resultTable') resultTable: Table;
   @ViewChild('mutationEffectSection') mutationEffectSection: ElementRef<HTMLElement>;
@@ -133,15 +133,6 @@ export class EffectPredictionResultComponent implements OnChanges, OnDestroy {
     private route: ActivatedRoute,
   ) {}
 
-  ngOnChanges() {
-    console.log(`On changes: ${this.jobInfo.simplefold_job_id}`);
-    if (this.jobInfo.simplefold_job_id && !this.isPollingSimplefold) {
-      console.log(`Polling started!`);
-      this.isPollingSimplefold = true;
-      this.startSimplefoldPolling(this.jobInfo.simplefold_job_id);
-    }
-  }
-
   ngOnDestroy() {
     this.subscriptions.forEach((subscription) => subscription.unsubscribe());
   }
@@ -218,8 +209,14 @@ export class EffectPredictionResultComponent implements OnChanges, OnDestroy {
   }
 
   private startSimplefoldPolling(simplefoldJobId?: string): void {
+    // statusResponse$ is cold: the template's `| async` subscribes once and
+    // <app-loading> re-subscribes on every poll tick, so this is called
+    // repeatedly for the same job. Only ever start one poller.
+    if (this.isPollingSimplefold) return;
+
     if (this.service.shouldUsePrecomputedResult(this.jobId)) {
       // For precomputed jobs, load from AlphaFold using the known UniProt ID
+      this.isPollingSimplefold = true;
       this.simplefoldLoading = true;
       this.subscriptions.push(
         this.alphafoldService.get3DProtein(this.precomputedUniprotId).subscribe({
@@ -236,8 +233,11 @@ export class EffectPredictionResultComponent implements OnChanges, OnDestroy {
       return;
     }
 
+    // Deliberately not latched: an early status response may not carry the
+    // simplefold id yet, and a later one will.
     if (!simplefoldJobId) return;
 
+    this.isPollingSimplefold = true;
     this.simplefoldJobId = simplefoldJobId;
     this.simplefoldLoading = true;
 
