@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import {Component, ElementRef, Input, OnChanges, OnDestroy, ViewChild} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -8,7 +8,7 @@ import { JobTabComponent } from "~/app/components/job-tab/job-tab.component";
 
 import { CleanDbService, EffectPredictionResult } from '~/app/services/clean-db.service';
 import { EffectPredictionComponent } from '~/app/pages/effect-prediction/effect-prediction.component';
-import { interval, Subscription, switchMap, takeWhile, tap } from 'rxjs';
+import { timer, Subscription, switchMap, takeWhile, tap } from 'rxjs';
 import { PanelModule } from 'primeng/panel';
 import { Table, TableModule } from 'primeng/table';
 import { SequencePositionSelectorComponent } from '~/app/components/sequence-position-selector/sequence-position-selector.component';
@@ -122,6 +122,8 @@ export class EffectPredictionResultComponent implements OnDestroy {
       }),
     );
 
+  private isPollingSimplefold = false;
+
   readonly viewerId = 'effect-prediction-viewer';
 
   constructor(
@@ -154,7 +156,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
       this.subscriptions.push(
         this.service.getEffectPredictionResult(this.jobId).subscribe((result) => {
           this.result = result;
-    
+
           const tableValues: any[] = [];
           result.values.forEach((row, rowIdx) => {
             row.forEach((value, colIdx) => {
@@ -169,7 +171,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
               });
             });
           });
-    
+
           tableValues.sort((a, b) => a.position - b.position);
           this.tableValues = tableValues;
           this.showResults = true;
@@ -207,8 +209,14 @@ export class EffectPredictionResultComponent implements OnDestroy {
   }
 
   private startSimplefoldPolling(simplefoldJobId?: string): void {
+    // statusResponse$ is cold: the template's `| async` subscribes once and
+    // <app-loading> re-subscribes on every poll tick, so this is called
+    // repeatedly for the same job. Only ever start one poller.
+    if (this.isPollingSimplefold) return;
+
     if (this.service.shouldUsePrecomputedResult(this.jobId)) {
       // For precomputed jobs, load from AlphaFold using the known UniProt ID
+      this.isPollingSimplefold = true;
       this.simplefoldLoading = true;
       this.subscriptions.push(
         this.alphafoldService.get3DProtein(this.precomputedUniprotId).subscribe({
@@ -225,13 +233,16 @@ export class EffectPredictionResultComponent implements OnDestroy {
       return;
     }
 
+    // Deliberately not latched: an early status response may not carry the
+    // simplefold id yet, and a later one will.
     if (!simplefoldJobId) return;
 
+    this.isPollingSimplefold = true;
     this.simplefoldJobId = simplefoldJobId;
     this.simplefoldLoading = true;
 
     this.subscriptions.push(
-      interval(3000).pipe(
+      timer(0, 10000).pipe(
         switchMap(() => this.service.getSimplefoldStatus(simplefoldJobId)),
         takeWhile((job) => job.phase !== 'completed' && job.phase !== 'error', true),
       ).subscribe({
@@ -342,7 +353,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
 
   generateCellsFromPositions(positions: number[]): HeatmapCellLocations {
     const columns = Array.from({ length: this.numColumns }, (_, i) => i);
-    return positions.map((position) => 
+    return positions.map((position) =>
         columns.map((col) => [col, position] as [number, number])
       ).flat();
   }
