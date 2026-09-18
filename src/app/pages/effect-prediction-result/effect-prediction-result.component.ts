@@ -208,6 +208,13 @@ export class EffectPredictionResultComponent implements OnDestroy {
     this.scrollTableToPosition(position + 1); // table uses 1-based positions
   }
 
+  // Single definition of the structure panel's visibility: every error path
+  // clears simplefoldLoading without setting pdbData, so omitting simplefoldError
+  // here unmounts the panel instead of showing its error state.
+  get showStructurePanel(): boolean {
+    return !!this.simplefoldPdbData || this.simplefoldLoading || this.simplefoldError;
+  }
+
   private startSimplefoldPolling(simplefoldJobId?: string): void {
     // statusResponse$ is cold: the template's `| async` subscribes once and
     // <app-loading> re-subscribes on every poll tick, so this is called

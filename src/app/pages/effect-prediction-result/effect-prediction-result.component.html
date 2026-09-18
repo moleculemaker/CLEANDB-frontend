@@ -76,7 +76,7 @@
 
           <!-- Mutation Effect and Structure -->
           <div #mutationEffectSection class="flex gap-4 scroll-mt-4">
-              <div class="flex flex-col gap-4" [class]="(simplefoldPdbData || simplefoldLoading) ? 'w-1/2' : 'max-w-full'">
+              <div class="flex flex-col gap-4" [class]="showStructurePanel ? 'w-1/2' : 'max-w-full'">
                 <div class="flex items-center justify-between">
                   <p class="font-semibold underline decoration-dotted" [pTooltip]="tooltipContent">Mutation Effect Heatmap</p>
                   <ng-template #tooltipContent>
@@ -109,7 +109,7 @@
                   ></app-heatmap>
                 </div>
               </div>
-              @if (simplefoldPdbData || simplefoldLoading) {
+              @if (showStructurePanel) {
               <div class="flex flex-col gap-4 w-1/2">
                 <p class="font-semibold underline decoration-dotted">
                   <span pTooltip="Predicted 3D protein structure from ml-simplefold.">Structure</span>
