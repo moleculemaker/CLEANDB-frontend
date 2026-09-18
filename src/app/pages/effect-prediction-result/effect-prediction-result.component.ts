@@ -154,6 +154,13 @@ export class EffectPredictionResultComponent implements OnDestroy {
   private isPollingSimplefold = false;
   private structureResidueCount: number | null = null;
 
+  /**
+   * Fixed row height the table's virtual scroller lays rows out against. Must
+   * match the rendered row or rows overlap or leave gaps; measured from the
+   * rendered table rather than assumed.
+   */
+  readonly tableRowHeight = 42;
+
   readonly viewerId = 'effect-prediction-viewer';
 
   constructor(
@@ -436,31 +443,24 @@ export class EffectPredictionResultComponent implements OnDestroy {
   }
 
   scrollTableToPosition(position: number): void {
-    const tableEl = this.resultTable.el.nativeElement as HTMLElement;
-    // Find the first row matching the given (1-based) position.
-    const targetRow = tableEl.querySelector(
-      `tbody tr[data-position="${position}"]`,
-    ) as HTMLElement | null;
-    if (!targetRow) return;
+    // Under virtual scrolling only the visible window of rows exists in the DOM,
+    // so the row for a position further down the list cannot be looked up by
+    // selector. Scroll by index instead: PrimeNG's sortSingle() sorts the bound
+    // array in place, so tableValues is always in the table's current order.
+    const index = this.tableValues.findIndex((row) => row.position === position);
+    if (index < 0) return;
 
-    // PrimeNG p-table renders its scroll container as `.p-datatable-wrapper`
-    // when [scrollable]="true". Fall back to the nearest scrolling ancestor
-    // if the class changes in future PrimeNG versions.
-    const scrollContainer =
-      (tableEl.querySelector('.p-datatable-wrapper') as HTMLElement | null) ??
-      (tableEl.querySelector('.p-datatable-scrollable-body') as HTMLElement | null);
-    if (!scrollContainer) return;
+    this.resultTable.scrollToVirtualIndex(index);
 
-    const stickyHeader = scrollContainer.querySelector('thead') as HTMLElement | null;
-    const headerHeight = stickyHeader?.getBoundingClientRect().height ?? 0;
-    const containerTop = scrollContainer.getBoundingClientRect().top;
-    const rowTop = targetRow.getBoundingClientRect().top;
-    const delta = rowTop - containerTop - headerHeight;
-
-    scrollContainer.scrollTo({
-      top: scrollContainer.scrollTop + delta,
-      behavior: 'smooth',
-    });
+    // Scroller.scrollToIndex only assigns its rendered window (`first`) when it
+    // believes the scroll position changed, and it decides that by comparing
+    // against the position read *before* it scrolls. At rest that comparison is
+    // false, so it moves the DOM scroll position and leaves the rendered rows
+    // stale. Re-firing the scroll event it would have seen from a user drag
+    // resynchronises the window with where it actually scrolled to.
+    const scroller = (this.resultTable.el.nativeElement as HTMLElement)
+      .querySelector('.p-scroller');
+    scroller?.dispatchEvent(new Event('scroll', { bubbles: true }));
   }
 
   generateCellsFromPositions(positions: number[]): HeatmapCellLocations {
