@@ -1,4 +1,7 @@
 import { TestBed } from '@angular/core/testing';
+import { provideEnvironmentServiceStub } from '~/app/testing/environment-service.stub';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from './app.component';
 
@@ -9,6 +12,7 @@ describe('AppComponent', () => {
         RouterTestingModule,
         AppComponent
     ],
+      providers: [provideEnvironmentServiceStub(), provideHttpClient(), provideHttpClientTesting()],
 }).compileComponents();
   });
 

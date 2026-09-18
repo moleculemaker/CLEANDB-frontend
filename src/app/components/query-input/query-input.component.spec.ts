@@ -1,4 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideEnvironmentServiceStub } from '~/app/testing/environment-service.stub';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
 
 import { QueryInputComponent } from './query-input.component';
 
@@ -8,7 +11,8 @@ describe('QueryInputComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [QueryInputComponent]
+      imports: [QueryInputComponent],
+      providers: [provideEnvironmentServiceStub(), provideHttpClient(), provideHttpClientTesting()]
     })
     .compileComponents();
 

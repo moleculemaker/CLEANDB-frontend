@@ -14,6 +14,7 @@ describe('EcChipComponent', () => {
 
     fixture = TestBed.createComponent(EcChipComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('ec', { ec_number: '1.1.1.1', score: 0.9 });
     fixture.detectChanges();
   });
 
