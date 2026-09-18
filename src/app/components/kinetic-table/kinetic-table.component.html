@@ -219,6 +219,10 @@
                         </ng-template>
                         @let reactionSchema = $any(reactionSchemaCache[ec.ec_number])?.data;
                         @if (reactionSchema) {
+                        <a [href]="'https://www.rhea-db.org/rhea?query=ec:' + ec.ec_number" target="_blank"
+                          class="inline-flex items-center gap-1 text-blue-500 font-bold">
+                          Rhea <i class="pi pi-external-link"></i>
+                        </a>
                         <app-reaction-schema [reactionSchema]="reactionSchema"></app-reaction-schema>
                         }
                       </p-tabPanel>
