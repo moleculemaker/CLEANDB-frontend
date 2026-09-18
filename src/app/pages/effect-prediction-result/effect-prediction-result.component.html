@@ -111,9 +111,32 @@
               </div>
               @if (showStructurePanel) {
               <div class="flex flex-col gap-4 w-1/2">
-                <p class="font-semibold underline decoration-dotted">
-                  <span pTooltip="Predicted 3D protein structure from ml-simplefold.">Structure</span>
-                </p>
+                <div class="flex items-center justify-between gap-4">
+                  <p class="font-semibold underline decoration-dotted">
+                    <span pTooltip="Predicted 3D protein structure from ml-simplefold.">Structure</span>
+                  </p>
+                  <div class="flex items-center gap-3">
+                    <span class="w-[45px] text-right text-[10.5px] leading-[10.5px] text-[#495057]">Color by:</span>
+                    <p-dropdown
+                      [options]="structureColorOptions"
+                      [(ngModel)]="structureColorMode"
+                      optionLabel="label"
+                      optionValue="value"
+                      [disabled]="!simplefoldPdbData"
+                      (onChange)="onStructureColorModeChange()"
+                      appendTo="body"
+                      scrollHeight="400px"
+                      panelStyleClass="max-w-[400px]"
+                    >
+                      <ng-template pTemplate="item" let-option>
+                        <div class="flex flex-col gap-1 whitespace-normal">
+                          <span class="text-sm font-semibold text-[#495057]">{{ option.menuLabel }}</span>
+                          <span class="text-sm text-[#495057]">{{ option.description }}</span>
+                        </div>
+                      </ng-template>
+                    </p-dropdown>
+                  </div>
+                </div>
                 <div class="h-[400px] w-full rounded-md border border-solid border-[#dee2e6] bg-[#f8f9fa] relative">
                   @if (simplefoldLoading) {
                     <div class="flex justify-center items-center h-full"><i class="pi pi-spin pi-spinner text-4xl"></i></div>
@@ -124,6 +147,8 @@
                       [style]="viewerStyle" [colorScheme]="viewerColorScheme"
                       [highlightColor]="highlightColor"
                       [viewerId]="viewerId"
+                      [residueColors]="structureResidueColors"
+                      (residueCountChange)="onStructureResidueCount($event)"
                       (residueClicked)="onResidueClicked($event)">
                     </app-protein-viewer>
                   }

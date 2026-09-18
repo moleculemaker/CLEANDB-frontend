@@ -15,14 +15,19 @@ import { SequencePositionSelectorComponent } from '~/app/components/sequence-pos
 import { HeatmapCellLocations, HeatmapComponent } from '~/app/components/heatmap/heatmap.component';
 import { ScoreChipComponent } from "../../components/score-chip/score-chip.component";
 import { ProteinViewerComponent } from '~/app/components/protein-viewer/protein-viewer.component';
-import { ProteinViewerStyle, ProteinColorScheme, ResidueSelection } from '~/app/models/protein-viewer';
+import { ProteinViewerStyle, ProteinColorScheme, ProteinResidueColors, ResidueSelection } from '~/app/models/protein-viewer';
 import { ProteinSelectionService } from '~/app/services/protein-selection.service';
 import { AlphafoldService } from '~/app/services/alphafold.service';
 import { TooltipModule } from 'primeng/tooltip';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { TieredMenuModule } from 'primeng/tieredmenu';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { DropdownModule } from 'primeng/dropdown';
+import { FormsModule } from '@angular/forms';
 import { MenuItem } from 'primeng/api';
+
+/** How the structure's per-residue colours are derived from the LLR matrix. */
+export type StructureColorMode = 'average' | 'max' | 'single';
 
 @Component({
   selector: 'app-effect-prediction-result',
@@ -45,7 +50,9 @@ import { MenuItem } from 'primeng/api';
     ProteinViewerComponent,
     SequencePositionSelectorComponent,
     ScoreChipComponent,
-    ProgressSpinnerModule
+    ProgressSpinnerModule,
+    DropdownModule,
+    FormsModule
 ],
   host: {
     class: 'flex flex-col h-full',
@@ -101,6 +108,28 @@ export class EffectPredictionResultComponent implements OnDestroy {
   simplefoldDataFormat                      = 'pdb';
   simplefoldLoading                         = false;
   simplefoldError                           = false;
+  structureColorMode: StructureColorMode    = 'average';
+  structureResidueColors: ProteinResidueColors | null = null;
+  structureColorOptions = [
+    {
+      value: 'average',
+      label: 'Average LLR',
+      menuLabel: 'Average LLR (Default)',
+      description: 'Uses Average LLR colormap value for this position across all possible mutations. Useful for viewing enzyme regions with significant impact (e.g. conserved residues, binding sites) where any/several mutations can cause significant changes.',
+    },
+    {
+      value: 'max',
+      label: 'Max LLR',
+      menuLabel: 'Max LLR',
+      description: 'Uses the Maximum LLR colormap value for the mutation with highest LLR for this position. Useful for viewing enzyme positions that might be engineering target sites, where 1 specific mutation causes a significant change',
+    },
+    {
+      value: 'single',
+      label: 'Single Color',
+      menuLabel: 'Single Color',
+      description: 'Uses a single color (fixed) colormap across all positions. Useful for viewing the structure as a whole.',
+    },
+  ];
   viewerStyle: ProteinViewerStyle           = 'cartoon';
   viewerColorScheme: ProteinColorScheme     = 'default';
   highlightColor                            = '#E16ACF';
@@ -123,6 +152,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
     );
 
   private isPollingSimplefold = false;
+  private structureResidueCount: number | null = null;
 
   readonly viewerId = 'effect-prediction-viewer';
 
@@ -175,6 +205,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
           tableValues.sort((a, b) => a.position - b.position);
           this.tableValues = tableValues;
           this.showResults = true;
+          this.updateStructureResidueColors();
         })
       );
     }
@@ -206,6 +237,80 @@ export class EffectPredictionResultComponent implements OnDestroy {
     this.togglePosition(position);
     this.heatmap.scrollToCol(position);
     this.scrollTableToPosition(position + 1); // table uses 1-based positions
+  }
+
+  onStructureColorModeChange(): void {
+    this.updateStructureResidueColors();
+  }
+
+  onStructureResidueCount(count: number | null): void {
+    this.structureResidueCount = count;
+    this.updateStructureResidueColors();
+  }
+
+  /**
+   * Reduce each position's column of substitutions to a single LLR. Columns are
+   * sequence positions and rows are the 20 amino acids, so a position's column
+   * is its 19 real substitutions plus the synonymous cell, which is a hard 0 and
+   * is excluded here exactly as the results table excludes it.
+   */
+  private aggregateByPosition(mode: 'average' | 'max'): (number | null)[] {
+    const { rowKeys, colKeys, values } = this.result;
+    return colKeys.map((wildType, colIdx) => {
+      const llrs: number[] = [];
+      values.forEach((row, rowIdx) => {
+        if (rowKeys[rowIdx] === wildType) return;
+        llrs.push(row[colIdx]);
+      });
+      if (!llrs.length) return null;
+      return mode === 'max'
+        ? Math.max(...llrs)
+        : llrs.reduce((sum, value) => sum + value, 0) / llrs.length;
+    });
+  }
+
+  private updateStructureResidueColors(): void {
+    this.structureResidueColors = null;
+
+    if (this.structureColorMode === 'single') return;
+    if (!this.result?.values?.length || !this.result.colKeys?.length) return;
+
+    // Refuse to colour rather than risk a plausible-looking misalignment. The
+    // precomputed route renders an AlphaFold entry that was not folded from this
+    // sequence, and nobody can eyeball that residue 200 got position 200's LLR.
+    if (this.structureResidueCount === null) return;
+    if (this.structureResidueCount !== this.result.colKeys.length) {
+      console.warn(
+        `[effect-prediction] structure has ${this.structureResidueCount} residues but the ` +
+        `prediction covers ${this.result.colKeys.length} positions; skipping LLR colouring.`,
+      );
+      return;
+    }
+
+    // Same domain the heatmap uses, so a colour means the same LLR in both.
+    const flat = this.result.values.flat();
+    const dataMin = Math.min(...flat);
+    const dataMax = Math.max(...flat);
+
+    const colors: ProteinResidueColors = {};
+    this.aggregateByPosition(this.structureColorMode).forEach((value, colIdx) => {
+      if (value === null) return;
+      colors[colIdx + 1] = this.structureColorFor(value, dataMin, dataMax); // resi is 1-based
+    });
+    this.structureResidueColors = colors;
+  }
+
+  /**
+   * The one place the LLR -> colour ramp is chosen. Currently the heatmap's own
+   * scale, so a colour means the same LLR in both views. Note the ramp's stops
+   * are absolute while ESM LLRs are overwhelmingly negative: on the example
+   * protein 320 of 360 positions land in its single [min, -2) segment under
+   * Average LLR, leaving almost all the structure's visible variation to the
+   * other 40 residues. Max LLR spreads evenly across the stops. If that needs
+   * rescaling, this function is the only thing to change.
+   */
+  private structureColorFor(value: number, dataMin: number, dataMax: number): string {
+    return this.service.getColorFor(value, dataMin, dataMax);
   }
 
   // Single definition of the structure panel's visibility: every error path

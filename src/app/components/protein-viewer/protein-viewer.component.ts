@@ -18,6 +18,7 @@ import { ProteinSelectionService } from '~/app/services/protein-selection.servic
 import {
   ProteinViewerStyle,
   ProteinColorScheme,
+  ProteinResidueColors,
   ResidueSelection,
 } from '~/app/models/protein-viewer';
 
@@ -36,8 +37,15 @@ export class ProteinViewerComponent implements AfterViewInit, OnChanges, OnDestr
   @Input() highlightColor: string = '#E16ACF';
   @Input() highlightedResidues: ResidueSelection[] = [];
   @Input() viewerId: string = 'default';
+  @Input() residueColors: ProteinResidueColors | null = null;
 
   @Output() residueClicked = new EventEmitter<ResidueSelection>();
+  /**
+   * Number of distinct residues in the loaded model, or null when it could not
+   * be determined. Callers that map external per-residue data onto the
+   * structure use this to confirm the two line up before colouring.
+   */
+  @Output() residueCountChange = new EventEmitter<number | null>();
   @Output() highlightedResiduesChange = new EventEmitter<ResidueSelection[]>();
 
   @ViewChild('viewerContainer', { read: ElementRef })
@@ -88,6 +96,11 @@ export class ProteinViewerComponent implements AfterViewInit, OnChanges, OnDestr
       this.proteinSelectionService.setSelections(this.viewerId, this.highlightedResidues ?? []);
     }
 
+    if (changes['residueColors'] && !changes['residueColors'].firstChange) {
+      this.applyBaseStyle();
+      this.applyHighlights(this.getCurrentSelections());
+    }
+
     if (changes['style'] || changes['colorScheme']) {
       if (!changes['style']?.firstChange && !changes['colorScheme']?.firstChange) {
         this.applyBaseStyle();
@@ -135,6 +148,7 @@ export class ProteinViewerComponent implements AfterViewInit, OnChanges, OnDestr
     this.viewer.removeAllModels();
     this.viewer.addModel(pdbData, this.dataFormat);
     this.modelLoaded = true;
+    this.residueCountChange.emit(this.countResidues());
     this.setupClickHandler(this.viewer);
     this.applyBaseStyle();
     this.viewer.zoomTo();
@@ -179,7 +193,43 @@ export class ProteinViewerComponent implements AfterViewInit, OnChanges, OnDestr
         break;
     }
     this.viewer.setStyle({}, { [this.style]: modeSpec });
+
+    if (this.residueColors) {
+      // One addStyle per distinct colour rather than per residue: a 360-residue
+      // chain would otherwise mean 360 calls on every restyle.
+      const residuesByColor = new Map<string, number[]>();
+      for (const [resi, color] of Object.entries(this.residueColors)) {
+        const group = residuesByColor.get(color);
+        if (group) {
+          group.push(Number(resi));
+        } else {
+          residuesByColor.set(color, [Number(resi)]);
+        }
+      }
+      for (const [color, resis] of residuesByColor) {
+        this.viewer.addStyle({ resi: resis }, { [this.style]: { color } });
+      }
+    }
+
     this.viewer.render();
+  }
+
+  /**
+   * 3Dmol is an untyped CDN global, so treat every step as unverified: any
+   * failure reports null, which callers read as "don't map data onto this".
+   */
+  private countResidues(): number | null {
+    try {
+      const atoms = this.viewer?.selectedAtoms?.({});
+      if (!Array.isArray(atoms) || atoms.length === 0) return null;
+      const resis = new Set<number>();
+      for (const atom of atoms) {
+        if (typeof atom?.resi === 'number') resis.add(atom.resi);
+      }
+      return resis.size > 0 ? resis.size : null;
+    } catch {
+      return null;
+    }
   }
 
   private getHighlightSpec(): any {
