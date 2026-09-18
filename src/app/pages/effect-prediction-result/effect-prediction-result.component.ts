@@ -15,7 +15,7 @@ import { SequencePositionSelectorComponent } from '~/app/components/sequence-pos
 import { HeatmapCellLocations, HeatmapComponent } from '~/app/components/heatmap/heatmap.component';
 import { ScoreChipComponent } from "../../components/score-chip/score-chip.component";
 import { ProteinViewerComponent } from '~/app/components/protein-viewer/protein-viewer.component';
-import { ProteinViewerStyle, ProteinColorScheme, ProteinResidueColors, ResidueSelection } from '~/app/models/protein-viewer';
+import { ProteinViewerStyle, ProteinColorScheme, ProteinResidueColors, ResidueNumbering, ResidueSelection } from '~/app/models/protein-viewer';
 import { ProteinSelectionService } from '~/app/services/protein-selection.service';
 import { AlphafoldService } from '~/app/services/alphafold.service';
 import { TooltipModule } from 'primeng/tooltip';
@@ -110,6 +110,9 @@ export class EffectPredictionResultComponent implements OnDestroy {
   simplefoldError                           = false;
   structureColorMode: StructureColorMode    = 'average';
   structureResidueColors: ProteinResidueColors | null = null;
+  // Set when a per-residue mode is selected but the structure cannot carry it,
+  // so the panel can say why it is showing a flat colour instead.
+  structureColoringUnavailable              = false;
   structureColorOptions = [
     {
       value: 'average',
@@ -152,7 +155,10 @@ export class EffectPredictionResultComponent implements OnDestroy {
     );
 
   private isPollingSimplefold = false;
-  private structureResidueCount: number | null = null;
+  private structureResidueNumbering: ResidueNumbering | null = null;
+  // Distinguishes "the viewer has not reported yet" from "the viewer reported
+  // that it could not tell", which are both a null numbering.
+  private structureNumberingReported = false;
 
   /**
    * Fixed row height the table's virtual scroller lays rows out against. Must
@@ -250,8 +256,9 @@ export class EffectPredictionResultComponent implements OnDestroy {
     this.updateStructureResidueColors();
   }
 
-  onStructureResidueCount(count: number | null): void {
-    this.structureResidueCount = count;
+  onStructureResidueNumbering(numbering: ResidueNumbering | null): void {
+    this.structureResidueNumbering = numbering;
+    this.structureNumberingReported = true;
     this.updateStructureResidueColors();
   }
 
@@ -278,18 +285,32 @@ export class EffectPredictionResultComponent implements OnDestroy {
 
   private updateStructureResidueColors(): void {
     this.structureResidueColors = null;
+    this.structureColoringUnavailable = false;
 
     if (this.structureColorMode === 'single') return;
     if (!this.result?.values?.length || !this.result.colKeys?.length) return;
+    // Nothing to say yet while the model is still loading.
+    if (!this.structureNumberingReported) return;
 
     // Refuse to colour rather than risk a plausible-looking misalignment. The
     // precomputed route renders an AlphaFold entry that was not folded from this
     // sequence, and nobody can eyeball that residue 200 got position 200's LLR.
-    if (this.structureResidueCount === null) return;
-    if (this.structureResidueCount !== this.result.colKeys.length) {
+    // The map below is keyed 1..positions, so a matching residue count is not
+    // enough: the model has to be numbered that way too, or a chain starting at
+    // 20 (or one carrying a ligand) gets coloured with a constant offset.
+    const positions = this.result.colKeys.length;
+    const numbering = this.structureResidueNumbering;
+    if (numbering === null
+        || numbering.count !== positions
+        || numbering.min !== 1
+        || numbering.max !== positions) {
+      this.structureColoringUnavailable = true;
       console.warn(
-        `[effect-prediction] structure has ${this.structureResidueCount} residues but the ` +
-        `prediction covers ${this.result.colKeys.length} positions; skipping LLR colouring.`,
+        '[effect-prediction] structure residues ' +
+        (numbering === null
+          ? 'could not be read'
+          : `are ${numbering.min}-${numbering.max} (${numbering.count} distinct)`) +
+        ` but the prediction covers positions 1-${positions}; skipping LLR colouring.`,
       );
       return;
     }
