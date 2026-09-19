@@ -1,4 +1,18 @@
-<table class="table-fixed border-spacing-2" #heatmapTable>
+<!--
+  The scroll container lives here rather than on the page so the grid owns its
+  scrollbar styling (see the component styles). scrollToCol finds it by class.
+-->
+<div class="heatmap-scroll overflow-x-scroll">
+<table class="table-fixed border-separate border-spacing-px" #heatmapTable>
+  <!-- Position numbers, every tenth position, above the residue letters. -->
+  <tr>
+    @for (interactable of positionKeys; track interactable.id) {
+    <ng-container *ngTemplateOutlet="interactableTemplate; context : {
+                $implicit: interactable,
+                type: 'posKey'
+            }"></ng-container>
+    }
+  </tr>
   <tr>
     @for (interactable of columnKeys; track interactable.id) {
     <ng-container *ngTemplateOutlet="interactableTemplate; context : {
@@ -25,61 +39,41 @@
   </tr>
   }
 </table>
+</div>
 
 <ng-template #interactableTemplate let-interactable let-type="type">
+  @let isPosKey = type === 'posKey';
   @let isColKey = type === 'colKey';
   @let isRowKey = type === 'rowKey';
-  @let isKey = isColKey || isRowKey;
+  @let isKey = isPosKey || isColKey || isRowKey;
   @let isCell = type === 'cell';
   @let isMuted = interactable.state === InteractableState.MUTED;
   @let isNA = interactable.value === 0;
-  @let isSelected = interactable.state === InteractableState.SELECTED;
   @let isHovered = isCell && interactable === hoveredCell;
-  
-  @let baseCellClassName = 'align-middle min-w-4 h-4';
-  @let keyClassName = 'sticky left-0 bg-white border-solid border-gray-200 h-full z-[10]' + (isColKey ? ' border-b' : ' border-r'); 
+
+  <!-- Only the row keys and the corner above them pin to the left edge. The
+       header letters scroll with their columns; pinning them too stacked every
+       letter on top of the first once the grid was scrolled. -->
+  @let isPinned = isRowKey || (isKey && interactable.column === 0);
+
+  @let baseCellClassName = 'p-0 align-middle text-center w-[18px] min-w-[18px] h-[18px] text-[10.5px] leading-none';
+  @let keyClassName = 'bg-white ' + (isPosKey ? 'text-[#9e9e9e]' : 'text-[rgba(0,0,0,0.87)]');
+  @let pinnedClassName = 'sticky left-0 z-[10]';
   @let mutedClassName = 'cell-muted';
   @let naClassName = 'cell-na';
-  @let selectedClassName = 'z-[9] border-solid border-[#38001B]';
-  @let hoveredClassName = 'cell-hovered';
-  @let interactiveClassName = '';
-  @let topBorderClassName
-    = (interactable.state === InteractableState.SELECTED
-    && (interactable.above ? interactable.above.state !== InteractableState.SELECTED : true))
-    ? 'border-t-4' : '';
 
-  @let leftBorderClassName
-    = (interactable.state === InteractableState.SELECTED
-    && (interactable.prev ? interactable.prev.state !== InteractableState.SELECTED : true))
-    ? 'border-l-4' : '';
-
-  @let bottomBorderClassName
-    = (interactable.state === InteractableState.SELECTED
-    && (interactable.below ? interactable.below.state !== InteractableState.SELECTED : true))
-    ? 'border-b-4' : '';
-
-  @let rightBorderClassName
-    = (interactable.state === InteractableState.SELECTED
-    && (interactable.next ? interactable.next.state !== InteractableState.SELECTED : true))
-    ? 'border-r-4' : '';
-  
   @let classNames = [
     baseCellClassName,
     isKey ? keyClassName : '',
-    isSelected ? selectedClassName : '',
-    isHovered ? hoveredClassName : '',
+    isPinned ? pinnedClassName : '',
     isMuted ? mutedClassName : '',
     isNA ? naClassName : '',
-    interactiveClassName,
-    topBorderClassName,
-    leftBorderClassName,
-    bottomBorderClassName,
-    rightBorderClassName,
   ].join(' ');
 
   <td
     [class]="classNames"
     [style.background-color]="interactable.color"
+    [style.box-shadow]="isCell ? cellBoxShadow(interactable, isHovered) : null"
     (mouseenter)="isCell ? onCellMouseEnter(interactable, $event) : null"
     (mouseleave)="isCell ? onCellMouseLeave() : null"
     [attr.data-col-index]="interactable.column"

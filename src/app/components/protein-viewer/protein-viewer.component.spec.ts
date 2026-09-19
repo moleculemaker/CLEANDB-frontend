@@ -10,11 +10,13 @@ import { ProteinResidueColors, ResidueNumbering } from '~/app/models/protein-vie
  * so the viewer's subscription resolves synchronously. This stub keeps that
  * timing, which is the thing under test.
  */
-function installFake3Dmol(resis: number[]): { addStyle: jasmine.Spy } {
+function installFake3Dmol(resis: number[]): { addStyle: jasmine.Spy; resize: jasmine.Spy } {
   const addStyle = jasmine.createSpy('addStyle');
+  const resize = jasmine.createSpy('resize');
   (window as any).$3Dmol = {
     createViewer: () => ({
       addStyle,
+      resize,
       removeAllModels: () => {},
       addModel: () => {},
       selectedAtoms: () => resis.map(resi => ({ resi })),
@@ -26,16 +28,20 @@ function installFake3Dmol(resis: number[]): { addStyle: jasmine.Spy } {
       clear: () => {},
     }),
   };
-  return { addStyle };
+  return { addStyle, resize };
 }
 
 @Component({
   standalone: true,
   imports: [ProteinViewerComponent],
-  template: `<app-protein-viewer
-      [pdbData]="pdb"
-      [residueColors]="colors"
-      (residueNumberingChange)="onNumbering($event)"></app-protein-viewer>`,
+  // The viewer fills a positioned box, as it does on the results page, where
+  // that box is sized by the flex row around it rather than by the viewer.
+  template: `<div class="box" style="position: relative; width: 200px; height: 120px">
+      <app-protein-viewer
+        [pdbData]="pdb"
+        [residueColors]="colors"
+        (residueNumberingChange)="onNumbering($event)"></app-protein-viewer>
+    </div>`,
 })
 class HostComponent {
   pdb = 'ATOM      1  N   MET A   1';
@@ -55,6 +61,7 @@ class HostComponent {
 describe('ProteinViewerComponent', () => {
   let fixture: ComponentFixture<HostComponent>;
   let addStyle: jasmine.Spy;
+  let resize: jasmine.Spy;
   let original3Dmol: unknown;
 
   // installFake3Dmol writes to window, and ThreedmolLoaderService reads that
@@ -73,7 +80,7 @@ describe('ProteinViewerComponent', () => {
   });
 
   async function setUp(resis: number[]) {
-    addStyle = installFake3Dmol(resis).addStyle;
+    ({ addStyle, resize } = installFake3Dmol(resis));
     await TestBed.configureTestingModule({
       imports: [HostComponent, HttpClientTestingModule],
     }).compileComponents();
@@ -102,5 +109,27 @@ describe('ProteinViewerComponent', () => {
     await fixture.whenStable();
 
     expect(fixture.componentInstance.numbering).toEqual({ count: 3, min: 20, max: 22 });
+  });
+  /** ResizeObserver reports after layout, on the next frame. */
+  const settleResizeObserver = () =>
+    new Promise<void>(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
+
+  it('resizes the viewer when its box changes size, and lets go of the box on destroy', async () => {
+    await setUp([1, 2, 3]);
+    fixture.detectChanges();
+    await settleResizeObserver();
+
+    const box: HTMLElement = fixture.nativeElement.querySelector('.box');
+    resize.calls.reset();
+    box.style.height = '240px';
+    await settleResizeObserver();
+    expect(resize).withContext('3Dmol sizes its canvas once; a taller box needs a resize').toHaveBeenCalled();
+
+    const viewer = fixture.debugElement.children[0].children[0].componentInstance as ProteinViewerComponent;
+    viewer.ngOnDestroy();
+    resize.calls.reset();
+    box.style.height = '300px';
+    await settleResizeObserver();
+    expect(resize).withContext('observer must be disconnected with the component').not.toHaveBeenCalled();
   });
 });

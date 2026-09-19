@@ -103,6 +103,8 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
   @ViewChild('heatmapTable') heatmapTable: ElementRef<HTMLTableElement>;
 
   columnKeys: Interactable[];
+  /** Header row above the residue letters: the position number at every tenth column, blank elsewhere. */
+  positionKeys: Interactable[];
   rowKeys: Interactable[];
   subscriptions: Subscription[] = [];
   values: Interactable[][];
@@ -169,9 +171,10 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
       this.data$.pipe(
         filter(d => !!d),
         tap((data) => {
-          const { rowKeys, columnKeys, values } = this.parseInput(data!);
+          const { rowKeys, columnKeys, positionKeys, values } = this.parseInput(data!);
           this.rowKeys = rowKeys;
           this.columnKeys = columnKeys;
+          this.positionKeys = positionKeys;
           this.values = values;
           this.cancelHideTooltip();
           this.hoveredCell = null;
@@ -292,6 +295,22 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
         below: null,
       }));
 
+    // Same shape as columnKeys, leading corner cell included, so the two header
+    // rows line up column for column.
+    const positionKeys
+      = ['', ...data.colKeys.map((_, i) => ((i + 1) % 10 === 0 ? String(i + 1) : ''))]
+        .map((key, i) => new Interactable({
+          value: key,
+          row: -2,
+          column: i,
+          color: 'white',
+          state: InteractableState.DEFAULT,
+          prev: null,
+          next: null,
+          above: null,
+          below: null,
+        }));
+
     let prevRow: Interactable[] | null = null;
     const values
       = data.values.map((row, rowIdx) => {
@@ -331,8 +350,36 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
     return {
       rowKeys,
       columnKeys,
+      positionKeys,
       values
     }
+  }
+
+  /**
+   * The selection outline is a 3px #38001B line around each run of selected
+   * cells, drawn on the edges whose neighbour is not selected. Hover is a 3px
+   * brown ring with 2px of white just inside it, so the cursor stays legible on
+   * a cell already inside the outline. Both are inset shadows: the grid uses
+   * separated 18px cells with 1px gutters, and a border would change a cell's
+   * size where a shadow does not. Hover layers come first so they paint on top.
+   */
+  cellBoxShadow(cell: Interactable, hovered: boolean): string | null {
+    const layers: string[] = [];
+
+    if (hovered) {
+      layers.push('inset 0 0 0 3px #38001B', 'inset 0 0 0 5px #ffffff');
+    }
+
+    if (cell.state === InteractableState.SELECTED) {
+      const isEdge = (neighbour: Interactable | null) =>
+        !neighbour || neighbour.state !== InteractableState.SELECTED;
+      if (isEdge(cell.above)) layers.push('inset 0 3px 0 0 #38001B');
+      if (isEdge(cell.below)) layers.push('inset 0 -3px 0 0 #38001B');
+      if (isEdge(cell.prev)) layers.push('inset 3px 0 0 0 #38001B');
+      if (isEdge(cell.next)) layers.push('inset -3px 0 0 0 #38001B');
+    }
+
+    return layers.length ? layers.join(', ') : null;
   }
 
   resetCellStates(): void {
