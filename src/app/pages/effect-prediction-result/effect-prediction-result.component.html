@@ -76,7 +76,7 @@
 
           <!-- Mutation Effect and Structure -->
           <div #mutationEffectSection class="flex gap-4 scroll-mt-4">
-              <div class="flex flex-col gap-4" [class]="(simplefoldPdbData || simplefoldLoading) ? 'w-1/2' : 'max-w-full'">
+              <div class="flex flex-col gap-4" [class]="showStructurePanel ? 'w-1/2' : 'max-w-full'">
                 <div class="flex items-center justify-between">
                   <p class="font-semibold underline decoration-dotted" [pTooltip]="tooltipContent">Mutation Effect Heatmap</p>
                   <ng-template #tooltipContent>
@@ -109,11 +109,40 @@
                   ></app-heatmap>
                 </div>
               </div>
-              @if (simplefoldPdbData || simplefoldLoading) {
+              @if (showStructurePanel) {
               <div class="flex flex-col gap-4 w-1/2">
-                <p class="font-semibold underline decoration-dotted">
-                  <span pTooltip="Predicted 3D protein structure from ml-simplefold.">Structure</span>
-                </p>
+                <div class="flex items-center justify-between gap-4">
+                  <p class="font-semibold underline decoration-dotted">
+                    <span pTooltip="Predicted 3D protein structure from ml-simplefold.">Structure</span>
+                  </p>
+                  <div class="flex items-center gap-3">
+                    <span class="w-[45px] text-right text-[10.5px] leading-[10.5px] text-[#495057]">Color by:</span>
+                    <p-dropdown
+                      [options]="structureColorOptions"
+                      [(ngModel)]="structureColorMode"
+                      optionLabel="label"
+                      optionValue="value"
+                      [disabled]="!simplefoldPdbData"
+                      (onChange)="onStructureColorModeChange()"
+                      appendTo="body"
+                      scrollHeight="400px"
+                      panelStyleClass="max-w-[400px]"
+                    >
+                      <ng-template pTemplate="item" let-option>
+                        <div class="flex flex-col gap-1 whitespace-normal">
+                          <span class="text-sm font-semibold text-[#495057]">{{ option.menuLabel }}</span>
+                          <span class="text-sm text-[#495057]">{{ option.description }}</span>
+                        </div>
+                      </ng-template>
+                    </p-dropdown>
+                  </div>
+                </div>
+                @if (structureColoringUnavailable) {
+                  <p class="text-xs text-[#6C757D]">
+                    This structure's residue numbering doesn't line up with the prediction, so it is
+                    shown in a single color.
+                  </p>
+                }
                 <div class="h-[400px] w-full rounded-md border border-solid border-[#dee2e6] bg-[#f8f9fa] relative">
                   @if (simplefoldLoading) {
                     <div class="flex justify-center items-center h-full"><i class="pi pi-spin pi-spinner text-4xl"></i></div>
@@ -124,6 +153,8 @@
                       [style]="viewerStyle" [colorScheme]="viewerColorScheme"
                       [highlightColor]="highlightColor"
                       [viewerId]="viewerId"
+                      [residueColors]="structureResidueColors"
+                      (residueNumberingChange)="onStructureResidueNumbering($event)"
                       (residueClicked)="onResidueClicked($event)">
                     </app-protein-viewer>
                   }
@@ -135,12 +166,21 @@
 
         <!-- Table -->
         <hr> <!-- hr for border styling -->
+        <!-- virtualScrollItemSize: rows are laid out against tableRowHeight rather than
+             measured, so the body row below has to render at exactly that height.
+             app-score-chip is the part most likely to break it, and it carries a
+             whitespace-nowrap for this reason: its label used to wrap below roughly a
+             940px window, making rows 59px and drifting the scroller by ~323px per 20
+             rows. It also renders nothing when the score is falsy, which would shorten
+             a row -- no row in the current data has a score of exactly 0. -->
         <p-table 
           #resultTable
           [columns]="columns" 
           
           [scrollable]="true" 
           scrollHeight="400px" 
+          [virtualScroll]="true"
+          [virtualScrollItemSize]="tableRowHeight"
           styleClass="w-full" 
           tableStyleClass="w-full border-b-0"
 
@@ -169,7 +209,7 @@
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-row let-expanded="expanded">
-            <tr [attr.data-position]="row.position">
+            <tr>
               <td class="align-middle border-b border-solid border-[#dee2e6] !p-2 !px-4">
                 {{ row.position }}
               </td>

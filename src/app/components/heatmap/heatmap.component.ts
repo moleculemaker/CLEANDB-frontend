@@ -103,7 +103,10 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
   selectedCells$ = new BehaviorSubject<HeatmapCellLocations | null>(null);
 
   public InteractableState = InteractableState;
-  private manualSelectedCell: Interactable | null = null;
+  // Hover is tracked separately from InteractableState so it never participates
+  // in the run-border geometry: mutating a cell's state on hover would make its
+  // selected neighbours see a non-selected neighbour and split the column outline.
+  hoveredCell: Interactable | null = null;
   private currentMutedCells: HeatmapCellLocations = [];
   private currentSelectedCells: HeatmapCellLocations = [];
   private scoreFormatter = new Intl.NumberFormat('en-US', {
@@ -112,8 +115,6 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
   });
   private tooltipTarget: HTMLElement | null = null;
   private hideTooltipTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  private selectedCellSet = new Set<string>();
-  private mutedCellSet = new Set<string>();
 
   tooltipContext: HeatmapCellTooltipContext | null = null;
 
@@ -150,7 +151,7 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
           if (this.cellTooltip?.overlayVisible) {
             this.cellTooltip.hide();
           }
-          this.manualSelectedCell = null;
+          this.hoveredCell = null;
           this.tooltipContext = null;
           this.tooltipTarget = null;
         }),
@@ -161,8 +162,6 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
       ).subscribe(([data, mutedCells, selectedCells]) => {
         this.currentMutedCells = Array.isArray(mutedCells) ? mutedCells : [];
         this.currentSelectedCells = Array.isArray(selectedCells) ? selectedCells : [];
-        this.selectedCellSet = new Set(this.currentSelectedCells.map(([r, c]) => `${r},${c}`));
-        this.mutedCellSet = new Set(this.currentMutedCells.map(([r, c]) => `${r},${c}`));
 
         if (this.values) {
           if (mutedCells && mutedCells.length) {
@@ -360,16 +359,10 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
     // Cancel any pending hide; moving to an adjacent cell should keep the tooltip
     this.cancelHideTooltip();
 
-    // Restore previous hovered cell to its base state
-    if (this.manualSelectedCell && this.manualSelectedCell !== interactable) {
-      this.manualSelectedCell.state = this.getBaseCellState(this.manualSelectedCell);
-    }
-
     const context = this.buildTooltipContext(interactable);
     this.tooltipContext = context;
     this.tooltipTarget = targetElement;
-    this.manualSelectedCell = interactable;
-    interactable.state = InteractableState.SELECTED;
+    this.hoveredCell = interactable;
 
     if (this.cellTooltip && context) {
       this.openTooltip(event, targetElement);
@@ -381,10 +374,7 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
     this.cancelHideTooltip();
     this.hideTooltipTimeoutId = setTimeout(() => {
       this.hideTooltipTimeoutId = null;
-      if (this.manualSelectedCell) {
-        this.manualSelectedCell.state = this.getBaseCellState(this.manualSelectedCell);
-        this.manualSelectedCell = null;
-      }
+      this.hoveredCell = null;
       this.tooltipContext = null;
       this.tooltipTarget = null;
       if (this.cellTooltip?.overlayVisible) {
@@ -403,10 +393,7 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
 
   onTooltipHidden(): void {
     // Reset transient hover state when the tooltip is dismissed (e.g. outside click)
-    if (this.manualSelectedCell) {
-      this.manualSelectedCell.state = this.getBaseCellState(this.manualSelectedCell);
-      this.manualSelectedCell = null;
-    }
+    this.hoveredCell = null;
     this.tooltipContext = null;
     this.tooltipTarget = null;
     this.cdr.markForCheck();
@@ -551,10 +538,6 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
     if (operations.length) {
       this.applyCellOperations(operations);
     }
-
-    if (this.manualSelectedCell) {
-      this.manualSelectedCell.state = InteractableState.SELECTED;
-    }
   }
 
   private openTooltip(event: Event | null, targetElement: HTMLElement): void {
@@ -567,13 +550,6 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
     // so there is no need to hide() first — doing so causes a flicker where the close
     // icon briefly renders during the hide animation.
     this.cellTooltip.show(overlayEvent, targetElement);
-  }
-
-  private getBaseCellState(interactable: Interactable): InteractableState {
-    const key = `${interactable.row},${interactable.column}`;
-    if (this.selectedCellSet.has(key)) return InteractableState.SELECTED;
-    if (this.mutedCellSet.has(key)) return InteractableState.MUTED;
-    return InteractableState.DEFAULT;
   }
 
   private resolveOverlayEvent(event: Event | null, targetElement: HTMLElement): Event {

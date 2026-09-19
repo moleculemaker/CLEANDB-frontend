@@ -18,6 +18,8 @@ import { ProteinSelectionService } from '~/app/services/protein-selection.servic
 import {
   ProteinViewerStyle,
   ProteinColorScheme,
+  ProteinResidueColors,
+  ResidueNumbering,
   ResidueSelection,
 } from '~/app/models/protein-viewer';
 
@@ -36,8 +38,15 @@ export class ProteinViewerComponent implements AfterViewInit, OnChanges, OnDestr
   @Input() highlightColor: string = '#E16ACF';
   @Input() highlightedResidues: ResidueSelection[] = [];
   @Input() viewerId: string = 'default';
+  @Input() residueColors: ProteinResidueColors | null = null;
 
   @Output() residueClicked = new EventEmitter<ResidueSelection>();
+  /**
+   * How the loaded model numbers its residues, or null when that could not be
+   * determined. Callers that map external per-residue data onto the structure
+   * use this to confirm the two line up before colouring.
+   */
+  @Output() residueNumberingChange = new EventEmitter<ResidueNumbering | null>();
   @Output() highlightedResiduesChange = new EventEmitter<ResidueSelection[]>();
 
   @ViewChild('viewerContainer', { read: ElementRef })
@@ -45,6 +54,7 @@ export class ProteinViewerComponent implements AfterViewInit, OnChanges, OnDestr
 
   private viewer: any = null;
   private modelLoaded = false;
+  private destroyed = false;
   private uniprotId$ = new BehaviorSubject<string>('');
   private subscriptions: Subscription[] = [];
 
@@ -88,6 +98,11 @@ export class ProteinViewerComponent implements AfterViewInit, OnChanges, OnDestr
       this.proteinSelectionService.setSelections(this.viewerId, this.highlightedResidues ?? []);
     }
 
+    if (changes['residueColors'] && !changes['residueColors'].firstChange) {
+      this.applyBaseStyle();
+      this.applyHighlights(this.getCurrentSelections());
+    }
+
     if (changes['style'] || changes['colorScheme']) {
       if (!changes['style']?.firstChange && !changes['colorScheme']?.firstChange) {
         this.applyBaseStyle();
@@ -103,6 +118,7 @@ export class ProteinViewerComponent implements AfterViewInit, OnChanges, OnDestr
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     this.subscriptions.forEach(sub => sub.unsubscribe());
     this.proteinSelectionService.clearSelections(this.viewerId);
     if (this.viewer) {
@@ -135,6 +151,18 @@ export class ProteinViewerComponent implements AfterViewInit, OnChanges, OnDestr
     this.viewer.removeAllModels();
     this.viewer.addModel(pdbData, this.dataFormat);
     this.modelLoaded = true;
+
+    // renderModel can run inside the parent's change-detection pass: get3DMol()
+    // is a ReplaySubject, so once 3Dmol is on window a second viewer resolves
+    // its subscription synchronously. Callers answer this event by assigning
+    // residueColors, an input bound straight back here, so emitting
+    // synchronously would change a binding after it was checked (NG0100).
+    // Defer to a microtask, which lands the assignment in the next cycle.
+    const numbering = this.describeResidues();
+    Promise.resolve().then(() => {
+      if (this.destroyed) return;
+      this.residueNumberingChange.emit(numbering);
+    });
     this.setupClickHandler(this.viewer);
     this.applyBaseStyle();
     this.viewer.zoomTo();
@@ -179,7 +207,50 @@ export class ProteinViewerComponent implements AfterViewInit, OnChanges, OnDestr
         break;
     }
     this.viewer.setStyle({}, { [this.style]: modeSpec });
+
+    if (this.residueColors) {
+      // One addStyle per distinct colour rather than per residue: a 360-residue
+      // chain would otherwise mean 360 calls on every restyle.
+      const residuesByColor = new Map<string, number[]>();
+      for (const [resi, color] of Object.entries(this.residueColors)) {
+        const group = residuesByColor.get(color);
+        if (group) {
+          group.push(Number(resi));
+        } else {
+          residuesByColor.set(color, [Number(resi)]);
+        }
+      }
+      for (const [color, resis] of residuesByColor) {
+        this.viewer.addStyle({ resi: resis }, { [this.style]: { color } });
+      }
+    }
+
     this.viewer.render();
+  }
+
+  /**
+   * 3Dmol is an untyped CDN global, so treat every step as unverified: any
+   * failure reports null, which callers read as "don't map data onto this".
+   * `selectedAtoms({})` spans every chain and every HETATM, so the numbering
+   * reported here describes the whole model, not one chain of it.
+   */
+  private describeResidues(): ResidueNumbering | null {
+    try {
+      const atoms = this.viewer?.selectedAtoms?.({});
+      if (!Array.isArray(atoms) || atoms.length === 0) return null;
+      const resis = new Set<number>();
+      for (const atom of atoms) {
+        if (typeof atom?.resi === 'number') resis.add(atom.resi);
+      }
+      if (resis.size === 0) return null;
+      return {
+        count: resis.size,
+        min: Math.min(...resis),
+        max: Math.max(...resis),
+      };
+    } catch {
+      return null;
+    }
   }
 
   private getHighlightSpec(): any {
