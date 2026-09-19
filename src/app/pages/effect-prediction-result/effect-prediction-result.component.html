@@ -99,6 +99,18 @@
                   </svg>
                 </div>
                   
+                <!-- The structure panel is simply absent when the fold was never
+                     requested. The form told the submitter why; whoever opens this
+                     link later, from an email or the job tab, was told nothing. -->
+                @if (structureOmittedForLength) {
+                <p class="text-xs text-[#6C757D]">
+                  No 3D structure was predicted for this job: the sequence is
+                  {{ sequenceResidueCount }} residues, above the
+                  {{ maxStructureResidues }}-residue limit for structure prediction.
+                  Mutation effect prediction is unaffected.
+                </p>
+                }
+
                 <!-- debug - selected cells: {{ selectedCells | json }} -->
                 <div class="h-full overflow-x-scroll">
                   <app-heatmap

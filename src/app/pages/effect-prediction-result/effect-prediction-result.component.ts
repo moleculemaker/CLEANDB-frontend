@@ -7,7 +7,8 @@ import { LoadingComponent } from '~/app/components/loading/loading.component';
 import { JobTabComponent } from "~/app/components/job-tab/job-tab.component";
 
 import { CleanDbService, EffectPredictionResult } from '~/app/services/clean-db.service';
-import { EffectPredictionComponent } from '~/app/pages/effect-prediction/effect-prediction.component';
+import { EffectPredictionComponent, MAX_STRUCTURE_RESIDUES } from '~/app/pages/effect-prediction/effect-prediction.component';
+import { residueCount } from '~/app/utils/fasta';
 import { timer, Subscription, switchMap, takeWhile, tap } from 'rxjs';
 import { PanelModule } from 'primeng/panel';
 import { Table, TableModule } from 'primeng/table';
@@ -140,6 +141,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
   subscriptions: Subscription[]             = [];
   tableValues: any[]                        = [];
   sequence                                  = '';
+  readonly maxStructureResidues             = MAX_STRUCTURE_RESIDUES;
 
   statusResponse$
     = this.service.getResultStatus(this.jobType, this.jobId).pipe(
@@ -346,6 +348,24 @@ export class EffectPredictionResultComponent implements OnDestroy {
   // here unmounts the panel instead of showing its error state.
   get showStructurePanel(): boolean {
     return !!this.simplefoldPdbData || this.simplefoldLoading || this.simplefoldError;
+  }
+
+  /** Residues in the submitted sequence, counted the way the submit path counted them. */
+  get sequenceResidueCount(): number {
+    return residueCount(this.sequence || '');
+  }
+
+  /**
+   * True when this job never asked for a structure because the sequence was too long
+   * to fold. The submit path omits simplefold_job_id above MAX_STRUCTURE_RESIDUES, so
+   * the panel is absent for a reason only the submitter was told. The length test is
+   * what keeps this off a short job whose id has not arrived in this status response
+   * yet, and off the precomputed example, which is 360 residues and loads from
+   * AlphaFold rather than simplefold.
+   */
+  get structureOmittedForLength(): boolean {
+    return !this.jobInfo.simplefold_job_id
+      && this.sequenceResidueCount > this.maxStructureResidues;
   }
 
   private startSimplefoldPolling(simplefoldJobId?: string): void {

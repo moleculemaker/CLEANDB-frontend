@@ -13,9 +13,19 @@ import { QueryValue, RangeSearchOption, SearchOption } from "~/app/models/search
 import { InputTextareaModule } from "primeng/inputtextarea";
 import { JobType } from "~/app/api/mmli-backend/v1";
 import { combineLatestWith, map, Subscription, switchMap, tap } from "rxjs";
-import { getFasta, getSingleSeq } from "~/app/utils/fasta";
+import { getFasta, getSingleSeq, residueCount } from "~/app/utils/fasta";
 import { InputTextModule } from "primeng/inputtext";
 import { SequenceValidatorDirective } from "~/app/directives/sequence-validator.directive";
+
+/**
+ * Longest sequence the STRUCTURE half will accept. Not a model limit: the same
+ * submission starts an ml-simplefold job whose VRAM grows with length until it
+ * exhausts the shared GPU (at 1022 it OOMs even running alone). Above this the fold
+ * is skipped rather than the submission blocked, because the heatmap is the primary
+ * result and ESM-2 handles the full 1022 fine. Shared with the result page, which
+ * tells a later reader why the structure panel is absent.
+ */
+export const MAX_STRUCTURE_RESIDUES = 700;
 
 @Component({
   selector: 'app-effect-prediction',
@@ -56,11 +66,7 @@ export class EffectPredictionComponent implements OnChanges, OnDestroy {
   // ESM-2's own ceiling: 1024 context minus BOS/EOS. This is what the mutation
   // effect prediction can actually handle, and it is what the form accepts.
   maxResidues = 1022;
-  // Separate, lower bound for the STRUCTURE half only. The same submission starts an
-  // ml-simplefold job whose VRAM grows with length until it exhausts the shared GPU
-  // (at 1022 it OOMs even running alone). Above this we skip that job rather than
-  // block the submission: the heatmap is the primary result and ESM-2 is fine here.
-  maxStructureResidues = 700;
+  maxStructureResidues = MAX_STRUCTURE_RESIDUES;
   searchConfigs: SearchOption[] = [
     new RangeSearchOption({
       key: 'positions',
@@ -161,12 +167,9 @@ export class EffectPredictionComponent implements OnChanges, OnDestroy {
     );
   }
 
-  /**
-   * Length of the entered sequence, or 0 when nothing parseable is entered. Strips a
-   * trailing `*` so this agrees with the validator's count.
-   */
+  /** Length of the entered sequence, or 0 when nothing parseable is entered. */
   get sequenceLength(): number {
-    return getSingleSeq(this.form.value.sequence || '').sequence.replace(/\*$/, '').length;
+    return residueCount(getSingleSeq(this.form.value.sequence || '').sequence);
   }
 
   /** Single source of truth for the notice and the submit path alike. */
