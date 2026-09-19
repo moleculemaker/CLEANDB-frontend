@@ -234,6 +234,12 @@ describe('EffectPredictionResultComponent', () => {
     });
   });
   describe('resubmitting from the embedded form', () => {
+    it('hands the form the job id it is showing, so it can recognise an unchanged resubmit', async () => {
+      await firstValueFrom(component.statusResponse$);
+
+      expect(component.jobInfo.job_id).toBe(component.jobId);
+    });
+
     // No route param in this fixture, so the page shows the precomputed job.
     const embeddedForm = (): EffectPredictionComponent =>
       fixture.debugElement.query(By.directive(EffectPredictionComponent)).componentInstance;

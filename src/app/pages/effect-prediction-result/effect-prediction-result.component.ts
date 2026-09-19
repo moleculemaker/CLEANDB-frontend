@@ -151,6 +151,8 @@ export class EffectPredictionResultComponent implements OnDestroy {
         this.jobInfo = {
           ...jobInfo,
           email: job.email || '',
+          // Lets the embedded form recognise a resubmit of this very job.
+          job_id: this.jobId,
         };
         this.startSimplefoldPolling(jobInfo.simplefold_job_id);
       }),

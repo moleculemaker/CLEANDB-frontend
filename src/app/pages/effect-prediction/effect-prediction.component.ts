@@ -146,6 +146,14 @@ export class EffectPredictionComponent implements OnChanges, OnDestroy {
       return;
     } 
 
+    // Resubmitting the loaded job's own request would only queue a duplicate of a
+    // result that already exists, so return to that result instead.
+    if (this.requestUnchanged) {
+      this.submitted.emit(this.formValue.job_id);
+      this.router.navigate(['effect-prediction', 'result', this.formValue.job_id]);
+      return;
+    }
+
     const { sequenceName, sequence } = getSingleSeq(this.form.value.sequence || '');
     const email = this.form.value.email || '';
     const positions = this.form.value.positions?.value || [];
@@ -179,6 +187,22 @@ export class EffectPredictionComponent implements OnChanges, OnDestroy {
   /** Length of the entered sequence, or 0 when nothing parseable is entered. */
   get sequenceLength(): number {
     return residueCount(getSingleSeq(this.form.value.sequence || '').sequence);
+  }
+
+  /**
+   * True when the form would resubmit exactly the request the loaded job ran: same
+   * header, residues and positions. Email is not part of the request, so changing
+   * only it does not make a new job. Only a result page hands this form a job_id,
+   * so on the standalone page this is always false.
+   */
+  get requestUnchanged(): boolean {
+    const job = this.formValue;
+    if (!job?.job_id) return false;
+    const { sequenceName, sequence } = getSingleSeq(this.form.value.sequence || '');
+    const positions = this.form.value.positions?.value || [];
+    return sequenceName === job.sequence_name
+      && sequence === job.sequence
+      && JSON.stringify(positions) === JSON.stringify(job.positions || []);
   }
 
   /** Single source of truth for the notice and the submit path alike. */

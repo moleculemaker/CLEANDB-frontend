@@ -1,3 +1,4 @@
+import { SimpleChange } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideEnvironmentServiceStub } from '~/app/testing/environment-service.stub';
@@ -104,6 +105,64 @@ describe('EffectPredictionComponent', () => {
 
       expect(emitted).toEqual(['job-b']);
       expect(navigate).toHaveBeenCalledWith(['effect-prediction', 'result', 'job-b']);
+    });
+  });
+  describe('resubmitting a loaded job', () => {
+    const loadedJob = { job_id: 'job-a', sequence_name: '>test', sequence: 'ACDEFGHIKL', positions: [], email: 'a@b.c' };
+    let navigate: jasmine.Spy;
+    let createAndRunJob: jasmine.Spy;
+    let emitted: string[];
+
+    beforeEach(() => {
+      const service = TestBed.inject(CleanDbService);
+      spyOn(service, 'createSimplefoldJob').and.returnValue(of({ job_id: 'simplefold-1' } as Job));
+      createAndRunJob = spyOn(service, 'createAndRunJob').and.returnValue(of({ job_id: 'job-b' } as Job));
+      navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+      emitted = [];
+      component.submitted.subscribe((jobId) => emitted.push(jobId));
+
+      component.formValue = loadedJob;
+      component.ngOnChanges({ formValue: new SimpleChange(null, loadedJob, true) });
+      component.exampleUsed = false;
+    });
+
+    it('returns to the loaded job instead of creating a duplicate when the request is unchanged', () => {
+      expect(component.requestUnchanged).toBeTrue();
+
+      component.onSubmit();
+
+      expect(createAndRunJob).not.toHaveBeenCalled();
+      expect(emitted).toEqual(['job-a']);
+      expect(navigate).toHaveBeenCalledWith(['effect-prediction', 'result', 'job-a']);
+    });
+
+    it('creates a new job once the sequence differs', () => {
+      component.form.patchValue({ sequence: '>test\nACDEFGHIKLM' });
+      expect(component.requestUnchanged).toBeFalse();
+
+      component.onSubmit();
+
+      expect(createAndRunJob).toHaveBeenCalled();
+      expect(emitted).toEqual(['job-b']);
+    });
+
+    it('creates a new job once the header differs', () => {
+      component.form.patchValue({ sequence: '>renamed\nACDEFGHIKL' });
+
+      expect(component.requestUnchanged).toBeFalse();
+    });
+
+    // Email is a notification setting, not part of the prediction request.
+    it('treats an email-only change as the same request', () => {
+      component.form.patchValue({ email: 'other@b.c' });
+
+      expect(component.requestUnchanged).toBeTrue();
+    });
+
+    it('is never unchanged on the standalone page, which has no loaded job', () => {
+      component.formValue = null;
+
+      expect(component.requestUnchanged).toBeFalse();
     });
   });
 });
