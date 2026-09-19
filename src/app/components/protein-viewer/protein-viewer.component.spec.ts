@@ -55,6 +55,22 @@ class HostComponent {
 describe('ProteinViewerComponent', () => {
   let fixture: ComponentFixture<HostComponent>;
   let addStyle: jasmine.Spy;
+  let original3Dmol: unknown;
+
+  // installFake3Dmol writes to window, and ThreedmolLoaderService reads that
+  // global directly, so without restoring it the stub would stand in for the
+  // real library in every later spec of the same Karma run.
+  beforeEach(() => {
+    original3Dmol = (window as any).$3Dmol;
+  });
+
+  afterEach(() => {
+    if (original3Dmol === undefined) {
+      delete (window as any).$3Dmol;
+    } else {
+      (window as any).$3Dmol = original3Dmol;
+    }
+  });
 
   async function setUp(resis: number[]) {
     addStyle = installFake3Dmol(resis).addStyle;
