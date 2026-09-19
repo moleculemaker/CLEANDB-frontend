@@ -7,6 +7,7 @@ import { provideHttpClient } from '@angular/common/http';
 
 import { EffectPredictionResultComponent } from './effect-prediction-result.component';
 import { EffectPredictionResult } from '~/app/services/clean-db.service';
+import { firstValueFrom } from 'rxjs';
 
 describe('EffectPredictionResultComponent', () => {
   let component: EffectPredictionResultComponent;
@@ -119,9 +120,14 @@ describe('EffectPredictionResultComponent', () => {
       expect(component.structureOmittedForLength).toBeFalse();
     });
 
-    it('says nothing for the precomputed example, whose structure comes from AlphaFold', () => {
-      // The fixture has already loaded it: 360 residues and no simplefold id, which
-      // is the shape this getter must not mistake for an omitted fold.
+    it('says nothing for the precomputed example, whose structure comes from AlphaFold', async () => {
+      // With no route id the job is 'precomputed' and the status stream serves the
+      // bundled example: 360 residues and no simplefold id, which is the shape this
+      // getter must not mistake for an omitted fold. The example arrives through a
+      // lazy import, so wait for it: run alone, this spec reached the assertions
+      // before it had landed and read an empty sequence.
+      await firstValueFrom(component.statusResponse$);
+
       expect(component.jobInfo.simplefold_job_id).toBeUndefined();
       expect(component.sequenceResidueCount).toBe(360);
       expect(component.structureOmittedForLength).toBeFalse();
