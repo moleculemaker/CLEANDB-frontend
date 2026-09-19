@@ -7,7 +7,7 @@ import { provideHttpClient } from '@angular/common/http';
 
 import { EffectPredictionResultComponent } from './effect-prediction-result.component';
 import { CleanDbService, EffectPredictionResult } from '~/app/services/clean-db.service';
-import { firstValueFrom, of } from 'rxjs';
+import { Subject, firstValueFrom, of } from 'rxjs';
 import { By } from '@angular/platform-browser';
 import { TieredMenu } from 'primeng/tieredmenu';
 
@@ -358,5 +358,48 @@ describe('EffectPredictionResultComponent', () => {
       tick(DELAY());
       expect(component.structureSlow).toBeFalse();
     }));
+  });
+
+  describe('result fetch', () => {
+    let fetches: Subject<EffectPredictionResult>[];
+    let fetchSpy: jasmine.Spy;
+
+    beforeEach(() => {
+      fetches = [];
+      fetchSpy = spyOn(TestBed.inject(CleanDbService), 'getEffectPredictionResult').and.callFake(() => {
+        const fetch = new Subject<EffectPredictionResult>();
+        fetches.push(fetch);
+        return fetch;
+      });
+      // A simplefold job still running, so the slow-structure note is in play.
+      component.simplefoldJobId = 'abc';
+      component.simplefoldLoading = true;
+    });
+
+    it('keeps the note up when the loader reports 100 again while the fetch is pending', fakeAsync(() => {
+      // <app-loading> reports 100 on every 10 s poll tick until showResults
+      // removes it, so a fetch slower than a tick used to be issued twice.
+      component.onProgressChange(100);
+      component.onProgressChange(100);
+
+      fetches[0].next(result);
+      tick(component.slowStructureDelayMs);
+      expect(component.structureSlow).toBeTrue();
+
+      // Before the latch this was the second fetch landing and re-arming the
+      // note, which blinked it off. With the latch there is no second fetch.
+      fetches[1]?.next(result);
+      expect(component.structureSlow).toBeTrue();
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+    }));
+
+    it('fetches again on the next 100 after a failed fetch', () => {
+      component.onProgressChange(100);
+      fetches[0].error(new Error('503'));
+      expect(component.showResults).toBeFalse();
+
+      component.onProgressChange(100);
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+    });
   });
 });

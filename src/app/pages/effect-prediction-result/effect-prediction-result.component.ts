@@ -162,6 +162,11 @@ export class EffectPredictionResultComponent implements OnDestroy {
     );
 
   private isPollingSimplefold = false;
+  // <app-loading> reports 100 on every poll tick until showResults removes it,
+  // so a result fetch slower than a tick would be issued again and its late
+  // callback would re-arm the slow-structure note. Released on error so the
+  // next tick retries, as it did before the latch.
+  private resultRequested = false;
   private structureResidueNumbering: ResidueNumbering | null = null;
   // Distinguishes "the viewer has not reported yet" from "the viewer reported
   // that it could not tell", which are both a null numbering.
@@ -202,9 +207,11 @@ export class EffectPredictionResultComponent implements OnDestroy {
   }
 
   onProgressChange(value: number): void {
-    if (value === 100) {
-      this.subscriptions.push(
-        this.service.getEffectPredictionResult(this.jobId).subscribe((result) => {
+    if (value !== 100 || this.resultRequested) return;
+    this.resultRequested = true;
+    this.subscriptions.push(
+      this.service.getEffectPredictionResult(this.jobId).subscribe({
+        next: (result) => {
           this.result = result;
 
           const tableValues: any[] = [];
@@ -227,9 +234,10 @@ export class EffectPredictionResultComponent implements OnDestroy {
           this.showResults = true;
           this.updateStructureResidueColors();
           this.armSlowStructureNote();
-        })
-      );
-    }
+        },
+        error: () => { this.resultRequested = false; },
+      })
+    );
   }
 
   onSelectedPositionsChange(newPositions: number[]): void {
