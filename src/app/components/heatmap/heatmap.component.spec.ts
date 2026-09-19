@@ -110,19 +110,33 @@ describe('HeatmapComponent cell tooltip', () => {
     });
 
     it('keeps every column 18px wide once position labels reach three digits', () => {
-      const n = 110;
-      component.data = {
-        rowKeys: ['A'],
-        colKeys: Array.from({ length: n }, () => 'G'),
-        values: [Array.from({ length: n }, () => -1)],
-      };
-      component.ngOnChanges({ data: { currentValue: component.data } } as any);
-      fixture.detectChanges();
+      // Karma's fallback font draws "100" at about 16px, which fits the 18px
+      // cell, so the case this guards (Inter digits, roughly 19px) has to be
+      // forced. Without this the spec passes with the label's inner block gone.
+      const wideLabels = document.createElement('style');
+      wideLabels.textContent = 'app-heatmap tr:first-child td { font-size: 30px !important; }';
+      document.head.appendChild(wideLabels);
 
-      const labels = headerRow(0);
-      expect(labels[100].textContent!.trim()).toBe('100');
-      const widths = new Set([...labels.slice(1), ...headerRow(2).slice(1)].map(td => td.getBoundingClientRect().width));
-      expect([...widths]).withContext('a three-digit label must not size its column').toEqual([18]);
+      try {
+        const n = 110;
+        component.data = {
+          rowKeys: ['A'],
+          colKeys: Array.from({ length: n }, () => 'G'),
+          values: [Array.from({ length: n }, () => -1)],
+        };
+        component.ngOnChanges({ data: { currentValue: component.data } } as any);
+        fixture.detectChanges();
+
+        const labels = headerRow(0);
+        expect(labels[100].textContent!.trim()).toBe('100');
+        // The inner block is a fixed 18px, so measure the text it holds instead.
+        expect(labels[100].firstElementChild!.scrollWidth)
+          .withContext('the label text really is wider than its cell in this test').toBeGreaterThan(18);
+        const widths = new Set([...labels.slice(1), ...headerRow(2).slice(1)].map(td => td.getBoundingClientRect().width));
+        expect([...widths]).withContext('a three-digit label must not size its column').toEqual([18]);
+      } finally {
+        wideLabels.remove();
+      }
     });
 
     it('pins only the row keys and the header corner, so header letters scroll with their columns', () => {
