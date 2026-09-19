@@ -53,6 +53,14 @@ export class EffectPredictionComponent implements OnChanges, OnDestroy {
     agreeToSubscription: new FormControl(false),
   });
   maxSeqNum = 1;
+  // ESM-2's own ceiling: 1024 context minus BOS/EOS. This is what the mutation
+  // effect prediction can actually handle, and it is what the form accepts.
+  maxResidues = 1022;
+  // Separate, lower bound for the STRUCTURE half only. The same submission starts an
+  // ml-simplefold job whose VRAM grows with length until it exhausts the shared GPU
+  // (at 1022 it OOMs even running alone). Above this we skip that job rather than
+  // block the submission: the heatmap is the primary result and ESM-2 is fine here.
+  maxStructureResidues = 700;
   searchConfigs: SearchOption[] = [
     new RangeSearchOption({
       key: 'positions',
@@ -128,21 +136,40 @@ export class EffectPredictionComponent implements OnChanges, OnDestroy {
     const email = this.form.value.email || '';
     const positions = this.form.value.positions?.value || [];
 
+    // Above the structure bound, submit the MEP job alone. The result page already
+    // treats a missing simplefold_job_id as "no structure" -- startSimplefoldPolling
+    // returns early and the heatmap widens to full width -- so nothing downstream
+    // needs to know why it is absent.
+    const mepJob$ = (simplefoldJobId?: string) =>
+      this.service.createAndRunJob(JobType.CleandbMepesm, {
+        job_info: JSON.stringify({
+          sequence, sequence_name: sequenceName, positions,
+          ...(simplefoldJobId ? { simplefold_job_id: simplefoldJobId } : {}),
+        }),
+        email,
+      });
+
+    const submission$ = this.structurePredictionAvailable
+      ? this.service.createSimplefoldJob(sequence, sequenceName, email).pipe(
+          switchMap((simplefoldResponse) => mepJob$(simplefoldResponse.job_id)))
+      : mepJob$();
+
     this.subscriptions.push(
-      this.service.createSimplefoldJob(sequence, sequenceName, email).pipe(
-        switchMap((simplefoldResponse) =>
-          this.service.createAndRunJob(JobType.CleandbMepesm, {
-            job_info: JSON.stringify({
-              sequence, sequence_name: sequenceName, positions,
-              simplefold_job_id: simplefoldResponse.job_id,
-            }),
-            email,
-          })
-        )
-      ).subscribe((response) =>
+      submission$.subscribe((response) =>
         this.router.navigate(['effect-prediction', 'result', response.job_id])
       )
     );
+  }
+
+  /** Length of the entered sequence, or 0 when nothing parseable is entered. */
+  get sequenceLength(): number {
+    return getSingleSeq(this.form.value.sequence || '').sequence.length;
+  }
+
+  /** Single source of truth for the notice and the submit path alike. */
+  get structurePredictionAvailable(): boolean {
+    const len = this.sequenceLength;
+    return len > 0 && len <= this.maxStructureResidues;
   }
 
   /* ---------------------------------- Utils --------------------------------- */

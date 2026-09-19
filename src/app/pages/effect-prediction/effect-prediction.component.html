@@ -66,6 +66,7 @@
                     appSequenceValidator
                     [allowEmptyHeader]="false"
                     [maxSeqNum]="maxSeqNum"
+                    [maxResidues]="maxResidues"
                     placeholder="Enter an Enzyme Sequence (FASTA)"></textarea>
                 </div>
 
@@ -86,13 +87,25 @@
                   @if (sequenceControl.hasError('invalidSequence')) {
                   <div class="text-red-500">invalid sequence</div>
                   }
-                  @if (sequenceControl.hasError('sequenceLengthGreaterThan1022')) {
-                  <div class="text-red-500">sequence length greater than 1022</div>
+                  @if (sequenceControl.hasError('sequenceLengthExceedsMax')) {
+                  <div class="text-red-500">sequence length greater than {{ maxResidues }}</div>
                   }
                   @if (sequenceControl.hasError('sequenceLengthIs0')) {
                   <div class="text-red-500">sequence length is 0</div>
                   }
 
+                </div>
+                }
+
+                <!-- Not an error: the job still runs. Only the structure half is dropped,
+                     so this is amber guidance rather than a red validation failure. -->
+                @if (sequenceControl.valid && sequenceLength > maxStructureResidues) {
+                <div class="flex flex-col gap-1 px-1">
+                  <div class="text-amber-600">
+                    Sequence is {{ sequenceLength }} residues. Mutation effect prediction will
+                    run as normal, but 3D structure prediction is unavailable above
+                    {{ maxStructureResidues }} residues and will be omitted from the results.
+                  </div>
                 </div>
                 }
 
