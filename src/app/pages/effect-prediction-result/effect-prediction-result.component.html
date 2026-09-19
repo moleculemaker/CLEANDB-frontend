@@ -137,6 +137,12 @@
                     </p-dropdown>
                   </div>
                 </div>
+                @if (structureColoringUnavailable) {
+                  <p class="text-xs text-[#6C757D]">
+                    This structure's residue numbering doesn't line up with the prediction, so it is
+                    shown in a single color.
+                  </p>
+                }
                 <div class="h-[400px] w-full rounded-md border border-solid border-[#dee2e6] bg-[#f8f9fa] relative">
                   @if (simplefoldLoading) {
                     <div class="flex justify-center items-center h-full"><i class="pi pi-spin pi-spinner text-4xl"></i></div>
@@ -148,7 +154,7 @@
                       [highlightColor]="highlightColor"
                       [viewerId]="viewerId"
                       [residueColors]="structureResidueColors"
-                      (residueCountChange)="onStructureResidueCount($event)"
+                      (residueNumberingChange)="onStructureResidueNumbering($event)"
                       (residueClicked)="onResidueClicked($event)">
                     </app-protein-viewer>
                   }
