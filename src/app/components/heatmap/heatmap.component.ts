@@ -468,6 +468,16 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
 
     // Anchor each axis to the near viewport edge so the box opens towards the
     // middle. Cells on the right open leftwards, cells low down open upwards.
+    //
+    // None of these offsets is clamped, because none can go negative for a cell
+    // a pointer can actually reach. Vertically that holds unconditionally: the
+    // bottom branch measures from rect.top and the top branch from rect.bottom,
+    // so a cell straddling either edge still gives a positive offset, and a cell
+    // clear of the viewport cannot be hovered. Horizontally it rests on one
+    // precondition — the grid's scroll container stays inside the viewport. If
+    // the page is ever allowed to overflow horizontally, or the heatmap goes
+    // full-bleed, rect.right can exceed viewportWidth and these offsets do need
+    // clamping to zero.
     if (rect.left + rect.width / 2 > viewportWidth / 2) {
       style.right = `${Math.round(viewportWidth - rect.right)}px`;
     } else {

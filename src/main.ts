@@ -27,7 +27,6 @@ import { DropdownModule } from 'primeng/dropdown';
 import { TableModule } from 'primeng/table';
 import { InputTextModule } from 'primeng/inputtext';
 import { ListboxModule } from 'primeng/listbox';
-import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { SidebarModule } from 'primeng/sidebar';
 import { TabViewModule } from 'primeng/tabview';
 import { TabMenuModule } from 'primeng/tabmenu';
@@ -74,7 +73,6 @@ bootstrapApplication(AppComponent, {
             TableModule,
             InputTextModule,
             ListboxModule,
-            OverlayPanelModule,
             SidebarModule,
             TabViewModule,
             TabMenuModule,
