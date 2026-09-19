@@ -8,18 +8,28 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 1. Clone repo to local machine
 2. If you do not have nvm installed, install it from https://github.com/nvm-sh/nvm
 3. Run `nvm use` to set the correct node version for this project
-4. Authenticate against the private `@moleculemaker` registry, which hosts the
-   `@moleculemaker/dev-tool` dev dependency. Add the following to `~/.npmrc`,
-   using a GitHub personal access token with the `read:packages` scope:
+4. Authenticate against the two private registries this project installs from.
+   Add both lines to `~/.npmrc`:
 
    ```
-   //npm.pkg.github.com/:_authToken=<your token>
+   //npm.pkg.github.com/:_authToken=<GitHub personal access token>
+   //hub.chemaxon.com/artifactory/api/npm/npm/:_auth=<ChemAxon Artifactory credential>
    ```
 
-   The scope-to-registry mapping is already in this repo's checked-in `.npmrc`,
-   so only the token line is needed. Without it, `npm install` and `npm ci` fail
-   with `401 Unauthorized` when fetching `@moleculemaker/dev-tool`. CI does the
-   equivalent before installing; see `.github/workflows/`.
+   - **GitHub Packages** hosts the `@moleculemaker/dev-tool` dev dependency. Use
+     a personal access token with the `read:packages` scope. The scope-to-registry
+     mapping is already in this repo's checked-in `.npmrc`, so only the token
+     line is needed here.
+   - **ChemAxon's Artifactory** is an npm mirror, and `package-lock.json`
+     resolves most of its entries (1580 of them, including ordinary packages
+     such as `yaml` and `zone.js`) through it. The host rejects anonymous
+     requests, so without this line `npm install` fails with `HTTP 401` on those
+     packages even though no `@chemaxon`-scoped package remains in
+     `package.json`. Ask the team for the credential; CI reads it from the
+     `NPM_TOKEN` secret.
+
+   Without both, `npm install` and `npm ci` fail with `401 Unauthorized`. CI does
+   the equivalent before installing; see `.github/workflows/`.
 5. Run `npm install` to install the dependencies
 6. Run `npm run init` to generate deployment configuration for the app. You will be prompted to enter the app name.
 
