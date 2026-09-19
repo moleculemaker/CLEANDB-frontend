@@ -79,7 +79,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
         { label: 'JPEG', command: () => this.heatmap.exportAs('jpeg') },
       ]
     },
-    { label: 'Protein Structure', command: () => this.exportProteinStructure() },
+    this.proteinStructureExportItem(),
   ];
   jobId: string                             = this.route.snapshot.paramMap.get("id") || "precomputed";
   jobInfo: any                              = {};
@@ -432,6 +432,36 @@ export class EffectPredictionResultComponent implements OnDestroy {
         },
       })
     );
+  }
+
+  /**
+   * The structure export entry. It no-ops whenever there is no pdb data, which is a
+   * steady state for a sequence too long to fold, not just a moment during loading or
+   * after an error, so the item is disabled rather than silently doing nothing.
+   *
+   * `disabled` is a live getter, not a stored flag. PrimeNG re-reads the property off
+   * this same object on every change detection pass, so the item tracks the data
+   * without anything having to push updates into it: no write site of
+   * `simplefoldPdbData` has to remember a flag, and the array keeps its identity, which
+   * a recomputed `exportOptions` would not. A new array on each pass re-enters the
+   * `model` setter and rebuilds the menu's internal items, disturbing the open popup
+   * and the Heatmap submenu.
+   *
+   * Both menu components are OnPush, so the rendered state settles when the popup
+   * opens rather than while it is open: a structure that finishes loading under an
+   * already-open menu shows as enabled on the next open. That is the only stale case,
+   * and it costs one reopen. Pushing the update in would mean every writer of
+   * `simplefoldPdbData` marking the menu for check, which is the coupling this avoids.
+   */
+  private proteinStructureExportItem(): MenuItem {
+    const component = this;
+    return {
+      label: 'Protein Structure',
+      get disabled(): boolean {
+        return !component.simplefoldPdbData;
+      },
+      command: () => component.exportProteinStructure(),
+    };
   }
 
   exportProteinStructure(): void {

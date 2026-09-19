@@ -8,6 +8,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { EffectPredictionResultComponent } from './effect-prediction-result.component';
 import { EffectPredictionResult } from '~/app/services/clean-db.service';
 import { firstValueFrom } from 'rxjs';
+import { By } from '@angular/platform-browser';
+import { TieredMenu } from 'primeng/tieredmenu';
 
 describe('EffectPredictionResultComponent', () => {
   let component: EffectPredictionResultComponent;
@@ -83,6 +85,88 @@ describe('EffectPredictionResultComponent', () => {
 
       expect(component.structureResidueColors).toBeNull();
       expect(component.structureColoringUnavailable).toBeFalse();
+    });
+  });
+
+  describe('structure export item', () => {
+    const structureItem = () =>
+      component.exportOptions.find((item) => item.label === 'Protein Structure')!;
+
+    it('is disabled while there is no structure to export', () => {
+      component.simplefoldPdbData = '';
+
+      expect(structureItem().disabled).toBeTrue();
+    });
+
+    it('is enabled once the structure has loaded', () => {
+      component.simplefoldPdbData = 'ATOM      1  N   MET A   1';
+
+      expect(structureItem().disabled).toBeFalse();
+    });
+
+    it('is disabled for a job whose fold was skipped for length', () => {
+      // The steady state this closes: no structure is ever coming, so the item would
+      // have stayed clickable and silently done nothing for the life of the page.
+      component.sequence = 'A'.repeat(component.maxStructureResidues + 1);
+      component.jobInfo = {};
+
+      expect(component.structureOmittedForLength).toBeTrue();
+      expect(structureItem().disabled).toBeTrue();
+    });
+
+    it('renders as disabled in the open menu, and enables when data arrives', async () => {
+      // Proves PrimeNG actually reads the getter: a flag it never looked at would pass
+      // every assertion above and still leave a clickable item on the page.
+      await firstValueFrom(component.statusResponse$);
+      component.showResults = true;
+      component.simplefoldPdbData = '';
+      fixture.detectChanges();
+
+      // The Request Options split button owns a TieredMenu of its own and comes first
+      // in the template, so pick the one actually bound to the export model.
+      const menu = fixture.debugElement.queryAll(By.directive(TieredMenu))
+        .map((el) => el.componentInstance as TieredMenu)
+        .find((candidate) => candidate.model === component.exportOptions)!;
+      expect(menu).withContext('the export menu').toBeTruthy();
+      menu.show({ currentTarget: document.body, relatedTarget: null });
+      fixture.detectChanges();
+
+      const structureItem = () =>
+        Array.from(document.body.querySelectorAll('li.p-menuitem'))
+          .find((li) => li.textContent?.includes('Protein Structure'));
+
+      expect(structureItem())
+        .withContext('the structure export item is rendered')
+        .toBeTruthy();
+      expect(Array.from(structureItem()!.classList)).toContain('p-disabled');
+
+      // Both menu components are OnPush, so the rendered state is settled when the menu
+      // is opened rather than live while it sits open. Reopening is the flow that
+      // matters: a structure that arrives mid-popup shows up on the next open.
+      menu.visible = false;
+      fixture.detectChanges();
+
+      component.simplefoldPdbData = 'ATOM      1  N   MET A   1';
+      menu.show({ currentTarget: document.body, relatedTarget: null });
+      fixture.detectChanges();
+
+      expect(Array.from(structureItem()!.classList)).not.toContain('p-disabled');
+
+      menu.visible = false;
+      fixture.detectChanges();
+    });
+
+    it('tracks the data without replacing the array or the item', () => {
+      // PrimeNG rebuilds its internal item list whenever the model reference changes,
+      // which would disturb an open popup, so both identities have to hold.
+      const options = component.exportOptions;
+      const item = structureItem();
+
+      component.simplefoldPdbData = 'ATOM      1  N   MET A   1';
+
+      expect(component.exportOptions).toBe(options);
+      expect(structureItem()).toBe(item);
+      expect(item.disabled).toBeFalse();
     });
   });
 
