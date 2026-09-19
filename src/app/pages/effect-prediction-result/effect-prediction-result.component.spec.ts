@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideEnvironmentServiceStub } from '~/app/testing/environment-service.stub';
 import { provideRouter } from '@angular/router';
@@ -231,5 +231,57 @@ describe('EffectPredictionResultComponent', () => {
 
       expect(component.structureOmittedForLength).toBeFalse();
     });
+  });
+
+  describe('slow structure note', () => {
+    const NOTE = 'Structure prediction can take several minutes';
+    const pageText = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
+    const startLoading = () => component['startStructureLoading']();
+
+    it('waits out the delay before flagging the wait as slow', fakeAsync(() => {
+      startLoading();
+
+      expect(component.simplefoldLoading).toBeTrue();
+      tick(component.slowStructureDelayMs - 1);
+      expect(component.structureSlow).toBeFalse();
+      tick(1);
+      expect(component.structureSlow).toBeTrue();
+    }));
+
+    it('renders the note only while still loading', () => {
+      component.simplefoldLoading = true;
+      component.structureSlow = false;
+      fixture.detectChanges();
+      expect(pageText()).not.toContain(NOTE);
+
+      component.structureSlow = true;
+      fixture.detectChanges();
+      expect(pageText()).toContain(NOTE);
+
+      // The flag is never cleared, so this is the case that makes the gate
+      // load-bearing: the structure (or an error) landed after the timer fired.
+      component.simplefoldLoading = false;
+      component.simplefoldPdbData = 'ATOM';
+      fixture.detectChanges();
+      expect(pageText()).not.toContain(NOTE);
+    });
+
+    it('keeps the note off the error state', () => {
+      component.simplefoldLoading = false;
+      component.simplefoldError = true;
+      component.structureSlow = true;
+      fixture.detectChanges();
+
+      expect(pageText()).toContain('Failed to load structure');
+      expect(pageText()).not.toContain(NOTE);
+    });
+
+    it('drops the timer with the component', fakeAsync(() => {
+      startLoading();
+      fixture.destroy();
+
+      tick(component.slowStructureDelayMs);
+      expect(component.structureSlow).toBeFalse();
+    }));
   });
 });

@@ -109,6 +109,11 @@ export class EffectPredictionResultComponent implements OnDestroy {
   simplefoldDataFormat                      = 'pdb';
   simplefoldLoading                         = false;
   simplefoldError                           = false;
+  // Set once the spinner has been up long enough that the wait is worth
+  // explaining. Never cleared: the template reads it only under
+  // simplefoldLoading, so it goes dark with the spinner.
+  structureSlow                             = false;
+  readonly slowStructureDelayMs             = 5000;
   structureColorMode: StructureColorMode    = 'average';
   structureResidueColors: ProteinResidueColors | null = null;
   // Set when a per-residue mode is selected but the structure cannot carry it,
@@ -368,6 +373,21 @@ export class EffectPredictionResultComponent implements OnDestroy {
       && this.sequenceResidueCount > this.maxStructureResidues;
   }
 
+  /**
+   * Shows the spinner, and after slowStructureDelayMs the note explaining the
+   * wait. The delay keeps the note off fast loads (the precomputed example comes
+   * from AlphaFold in a second or two). The timer is not cancelled when the
+   * structure lands first: the note is gated on simplefoldLoading in the
+   * template, so a late flag is invisible. The subscription is cleaned up with
+   * the rest on destroy.
+   */
+  private startStructureLoading(): void {
+    this.simplefoldLoading = true;
+    this.subscriptions.push(
+      timer(this.slowStructureDelayMs).subscribe(() => { this.structureSlow = true; })
+    );
+  }
+
   private startSimplefoldPolling(simplefoldJobId?: string): void {
     // statusResponse$ is cold: the template's `| async` subscribes once and
     // <app-loading> re-subscribes on every poll tick, so this is called
@@ -377,7 +397,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
     if (this.service.shouldUsePrecomputedResult(this.jobId)) {
       // For precomputed jobs, load from AlphaFold using the known UniProt ID
       this.isPollingSimplefold = true;
-      this.simplefoldLoading = true;
+      this.startStructureLoading();
       this.subscriptions.push(
         this.alphafoldService.get3DProtein(this.precomputedUniprotId).subscribe({
           next: (pdbData) => {
@@ -399,7 +419,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
 
     this.isPollingSimplefold = true;
     this.simplefoldJobId = simplefoldJobId;
-    this.simplefoldLoading = true;
+    this.startStructureLoading();
 
     this.subscriptions.push(
       timer(0, 10000).pipe(
