@@ -14,6 +14,9 @@ import { AbstractControl, NG_VALIDATORS, ValidationErrors, Validator } from '@an
 })
 export class SequenceValidatorDirective implements Validator {
   @Input() maxSeqNum: number = 20;
+  // Longest sequence accepted. The default is ESM-2's own ceiling (1024 context
+  // minus BOS/EOS). An Input rather than a constant so a consumer can tighten it.
+  @Input() maxResidues: number = 1022;
   @Input() allowEmptyHeader: boolean = false; // for now, this has only been tested with maxSeqNum = 1
   private validAminoAcid = new RegExp("[^GPAVLIMCFYWHKRQNEDST]", "i");
   private validDNA = new RegExp("[^ACTG]", "i");
@@ -68,9 +71,10 @@ export class SequenceValidatorDirective implements Validator {
         errors['invalidSequence'] = aminoHeader;
       }
 
-      // Check sequence length
-      if (aminoSeq.length > 1022) {
-        errors['sequenceLengthGreaterThan1022'] = aminoHeader;
+      // Check sequence length. The error key carries no number: one that did went
+      // stale the moment the bound moved, and nothing would have failed.
+      if (aminoSeq.length > this.maxResidues) {
+        errors['sequenceLengthExceedsMax'] = aminoHeader;
       }
 
       if (aminoSeq.length === 0) {

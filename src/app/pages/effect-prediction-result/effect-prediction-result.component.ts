@@ -7,7 +7,8 @@ import { LoadingComponent } from '~/app/components/loading/loading.component';
 import { JobTabComponent } from "~/app/components/job-tab/job-tab.component";
 
 import { CleanDbService, EffectPredictionResult } from '~/app/services/clean-db.service';
-import { EffectPredictionComponent } from '~/app/pages/effect-prediction/effect-prediction.component';
+import { EffectPredictionComponent, MAX_STRUCTURE_RESIDUES } from '~/app/pages/effect-prediction/effect-prediction.component';
+import { residueCount } from '~/app/utils/fasta';
 import { timer, Subscription, switchMap, takeWhile, tap } from 'rxjs';
 import { PanelModule } from 'primeng/panel';
 import { Table, TableModule } from 'primeng/table';
@@ -78,7 +79,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
         { label: 'JPEG', command: () => this.heatmap.exportAs('jpeg') },
       ]
     },
-    { label: 'Protein Structure', command: () => this.exportProteinStructure() },
+    this.proteinStructureExportItem(),
   ];
   jobId: string                             = this.route.snapshot.paramMap.get("id") || "precomputed";
   jobInfo: any                              = {};
@@ -140,6 +141,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
   subscriptions: Subscription[]             = [];
   tableValues: any[]                        = [];
   sequence                                  = '';
+  readonly maxStructureResidues             = MAX_STRUCTURE_RESIDUES;
 
   statusResponse$
     = this.service.getResultStatus(this.jobType, this.jobId).pipe(
@@ -348,6 +350,24 @@ export class EffectPredictionResultComponent implements OnDestroy {
     return !!this.simplefoldPdbData || this.simplefoldLoading || this.simplefoldError;
   }
 
+  /** Residues in the submitted sequence, counted the way the submit path counted them. */
+  get sequenceResidueCount(): number {
+    return residueCount(this.sequence || '');
+  }
+
+  /**
+   * True when this job never asked for a structure because the sequence was too long
+   * to fold. The submit path omits simplefold_job_id above MAX_STRUCTURE_RESIDUES, so
+   * the panel is absent for a reason only the submitter was told. The length test is
+   * what keeps this off a short job whose id has not arrived in this status response
+   * yet, and off the precomputed example, which is 360 residues and loads from
+   * AlphaFold rather than simplefold.
+   */
+  get structureOmittedForLength(): boolean {
+    return !this.jobInfo.simplefold_job_id
+      && this.sequenceResidueCount > this.maxStructureResidues;
+  }
+
   private startSimplefoldPolling(simplefoldJobId?: string): void {
     // statusResponse$ is cold: the template's `| async` subscribes once and
     // <app-loading> re-subscribes on every poll tick, so this is called
@@ -412,6 +432,36 @@ export class EffectPredictionResultComponent implements OnDestroy {
         },
       })
     );
+  }
+
+  /**
+   * The structure export entry. It no-ops whenever there is no pdb data, which is a
+   * steady state for a sequence too long to fold, not just a moment during loading or
+   * after an error, so the item is disabled rather than silently doing nothing.
+   *
+   * `disabled` is a live getter, not a stored flag. PrimeNG re-reads the property off
+   * this same object on every change detection pass, so the item tracks the data
+   * without anything having to push updates into it: no write site of
+   * `simplefoldPdbData` has to remember a flag, and the array keeps its identity, which
+   * a recomputed `exportOptions` would not. A new array on each pass re-enters the
+   * `model` setter and rebuilds the menu's internal items, disturbing the open popup
+   * and the Heatmap submenu.
+   *
+   * Both menu components are OnPush, so the rendered state settles when the popup
+   * opens rather than while it is open: a structure that finishes loading under an
+   * already-open menu shows as enabled on the next open. That is the only stale case,
+   * and it costs one reopen. Pushing the update in would mean every writer of
+   * `simplefoldPdbData` marking the menu for check, which is the coupling this avoids.
+   */
+  private proteinStructureExportItem(): MenuItem {
+    const component = this;
+    return {
+      label: 'Protein Structure',
+      get disabled(): boolean {
+        return !component.simplefoldPdbData;
+      },
+      command: () => component.exportProteinStructure(),
+    };
   }
 
   exportProteinStructure(): void {
