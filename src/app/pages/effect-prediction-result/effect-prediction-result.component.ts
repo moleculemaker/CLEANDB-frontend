@@ -481,7 +481,9 @@ export class EffectPredictionResultComponent implements OnDestroy {
     // resynchronises the window with where it actually scrolled to.
     const scroller = (this.resultTable.el.nativeElement as HTMLElement)
       .querySelector('.p-scroller');
-    scroller?.dispatchEvent(new Event('scroll', { bubbles: true }));
+    // Not bubbling: the listener is bound on .p-scroller itself, and a synthetic
+    // scroll reaching shared ancestors would hide any open PrimeNG overlay.
+    scroller?.dispatchEvent(new Event('scroll'));
   }
 
   generateCellsFromPositions(positions: number[]): HeatmapCellLocations {
