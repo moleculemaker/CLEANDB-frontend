@@ -8,18 +8,18 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 1. Clone repo to local machine
 2. If you do not have nvm installed, install it from https://github.com/nvm-sh/nvm
 3. Run `nvm use` to set the correct node version for this project
-4. Configure access to the private `@moleculemaker` registry, which hosts the
+4. Authenticate against the private `@moleculemaker` registry, which hosts the
    `@moleculemaker/dev-tool` dev dependency. Add the following to `~/.npmrc`,
    using a GitHub personal access token with the `read:packages` scope:
 
    ```
-   @moleculemaker:registry=https://npm.pkg.github.com
    //npm.pkg.github.com/:_authToken=<your token>
    ```
 
-   Without this, `npm install` and `npm ci` fail with `401 Unauthorized` when
-   fetching `@moleculemaker/dev-tool`. CI does the equivalent before installing;
-   see `.github/workflows/`.
+   The scope-to-registry mapping is already in this repo's checked-in `.npmrc`,
+   so only the token line is needed. Without it, `npm install` and `npm ci` fail
+   with `401 Unauthorized` when fetching `@moleculemaker/dev-tool`. CI does the
+   equivalent before installing; see `.github/workflows/`.
 5. Run `npm install` to install the dependencies
 6. Run `npm run init` to generate deployment configuration for the app. You will be prompted to enter the app name.
 
