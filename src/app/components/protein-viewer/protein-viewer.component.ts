@@ -53,6 +53,7 @@ export class ProteinViewerComponent implements AfterViewInit, OnChanges, OnDestr
   containerRef!: ElementRef<HTMLDivElement>;
 
   private viewer: any = null;
+  private resizeObserver: ResizeObserver | null = null;
   private modelLoaded = false;
   private destroyed = false;
   private uniprotId$ = new BehaviorSubject<string>('');
@@ -76,6 +77,7 @@ export class ProteinViewerComponent implements AfterViewInit, OnChanges, OnDestr
         }),
       ).subscribe(viewer => {
         this.viewer = viewer;
+        this.observeContainerSize();
         this.loadProtein();
       }),
     );
@@ -119,6 +121,8 @@ export class ProteinViewerComponent implements AfterViewInit, OnChanges, OnDestr
 
   ngOnDestroy(): void {
     this.destroyed = true;
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
     this.subscriptions.forEach(sub => sub.unsubscribe());
     this.proteinSelectionService.clearSelections(this.viewerId);
     if (this.viewer) {
@@ -126,6 +130,18 @@ export class ProteinViewerComponent implements AfterViewInit, OnChanges, OnDestr
       this.viewer.clear();
       this.viewer = null;
     }
+  }
+
+  /**
+   * 3Dmol sizes its canvas once, when the viewer is created. On the results
+   * page the viewer's box stretches to the heatmap column's height, which is
+   * settled by layout after this component exists, so follow the container
+   * instead of trusting the size it had at creation.
+   */
+  private observeContainerSize(): void {
+    if (typeof ResizeObserver === 'undefined') return;
+    this.resizeObserver = new ResizeObserver(() => this.viewer?.resize());
+    this.resizeObserver.observe(this.containerRef.nativeElement);
   }
 
   private loadProtein(): void {

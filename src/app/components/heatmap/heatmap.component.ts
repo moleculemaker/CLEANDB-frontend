@@ -101,8 +101,15 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
   @Input() selectedCells: HeatmapCellLocations;
   @Output() selectedCellsChange: EventEmitter<HeatmapCellLocations> = new EventEmitter();
   @ViewChild('heatmapTable') heatmapTable: ElementRef<HTMLTableElement>;
+  @ViewChild('scrollContainer') scrollContainer: ElementRef<HTMLDivElement>;
 
   columnKeys: Interactable[];
+  /**
+   * Header row above the residue letters: the position number at every tenth
+   * column, blank elsewhere. Plain strings, with a leading corner entry, since
+   * nothing in this row is hoverable or selectable.
+   */
+  positionLabels: string[];
   rowKeys: Interactable[];
   subscriptions: Subscription[] = [];
   values: Interactable[][];
@@ -131,21 +138,24 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
   private static readonly TOOLTIP_GAP = 4;
 
   public scrollToCol(col: number) {
-    const cell = this.heatmapTable.nativeElement.querySelector(`td[data-col-index="${col}"][data-row-index="1"]`);
-    if (cell) {
-      // Find the scrollable parent container
-      const scrollContainer = cell.closest('.overflow-x-scroll')!;
-
-      // Calculate scroll position to align element to left edge
-      const containerRect = scrollContainer.getBoundingClientRect();
-      const elementRect = cell.getBoundingClientRect();
-      const scrollLeft = elementRect.left - containerRect.left + scrollContainer.scrollLeft - 32;
-
-      scrollContainer.scrollTo({
-        left: scrollLeft,
-        behavior: 'smooth'
-      });
+    const table = this.heatmapTable?.nativeElement;
+    const container = this.scrollContainer?.nativeElement;
+    const cell = table?.querySelector<HTMLElement>(`td[data-col-index="${col}"][data-row-index="1"]`);
+    const keyCell = table?.querySelector<HTMLElement>('td[data-col-index="-1"][data-row-index="1"]');
+    if (!table || !container || !cell || !keyCell) {
+      return;
     }
+
+    // Land the column one cell in from the pinned key column, so the position
+    // before it stays visible for context. Measured from the grid rather than
+    // hard-coded: the previous constant, 32, was a 16px key plus a 16px cell,
+    // and went stale the moment the cell metrics changed.
+    const gutter = parseFloat(getComputedStyle(table).borderSpacing) || 0;
+    const offset = keyCell.getBoundingClientRect().width + cell.getBoundingClientRect().width + 2 * gutter;
+    const scrollLeft = cell.getBoundingClientRect().left - container.getBoundingClientRect().left
+      + container.scrollLeft - offset;
+
+    container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
   }
 
   constructor(
@@ -169,9 +179,10 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
       this.data$.pipe(
         filter(d => !!d),
         tap((data) => {
-          const { rowKeys, columnKeys, values } = this.parseInput(data!);
+          const { rowKeys, columnKeys, positionLabels, values } = this.parseInput(data!);
           this.rowKeys = rowKeys;
           this.columnKeys = columnKeys;
+          this.positionLabels = positionLabels;
           this.values = values;
           this.cancelHideTooltip();
           this.hoveredCell = null;
@@ -292,6 +303,11 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
         below: null,
       }));
 
+    // Same shape as columnKeys, leading corner entry included, so the two
+    // header rows line up column for column.
+    const positionLabels
+      = ['', ...data.colKeys.map((_, i) => ((i + 1) % 10 === 0 ? String(i + 1) : ''))];
+
     let prevRow: Interactable[] | null = null;
     const values
       = data.values.map((row, rowIdx) => {
@@ -331,8 +347,36 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
     return {
       rowKeys,
       columnKeys,
+      positionLabels,
       values
     }
+  }
+
+  /**
+   * The selection outline is a 3px #38001B line around each run of selected
+   * cells, drawn on the edges whose neighbour is not selected. Hover is a 3px
+   * brown ring with 2px of white just inside it, so the cursor stays legible on
+   * a cell already inside the outline. Both are inset shadows: the grid uses
+   * separated 18px cells with 1px gutters, and a border would change a cell's
+   * size where a shadow does not. Hover layers come first so they paint on top.
+   */
+  cellBoxShadow(cell: Interactable, hovered: boolean): string | null {
+    const layers: string[] = [];
+
+    if (hovered) {
+      layers.push('inset 0 0 0 3px #38001B', 'inset 0 0 0 5px #ffffff');
+    }
+
+    if (cell.state === InteractableState.SELECTED) {
+      const isEdge = (neighbour: Interactable | null) =>
+        !neighbour || neighbour.state !== InteractableState.SELECTED;
+      if (isEdge(cell.above)) layers.push('inset 0 3px 0 0 #38001B');
+      if (isEdge(cell.below)) layers.push('inset 0 -3px 0 0 #38001B');
+      if (isEdge(cell.prev)) layers.push('inset 3px 0 0 0 #38001B');
+      if (isEdge(cell.next)) layers.push('inset -3px 0 0 0 #38001B');
+    }
+
+    return layers.length ? layers.join(', ') : null;
   }
 
   resetCellStates(): void {

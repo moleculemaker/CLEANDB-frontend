@@ -1,1 +1,37 @@
+:host {
+  display: block;
+}
 
+// The design keeps the horizontal scrollbar visible directly under the grid: a
+// 20px white band holding an 8px #eee track and a 5px #818ea1 thumb. Styling
+// the WebKit scrollbar also turns it from a macOS overlay, invisible until you
+// scroll, into a permanent one.
+//
+// Firefox has no ::-webkit-scrollbar and takes only the two colours and a thin
+// width from the standard properties. Those are gated behind @supports because
+// Chrome (121+) implements them too, and setting either one makes it ignore
+// every ::-webkit-scrollbar rule below.
+.heatmap-scroll {
+  @supports not selector(::-webkit-scrollbar) {
+    scrollbar-width: thin;
+    scrollbar-color: #818ea1 #eee;
+  }
+
+  &::-webkit-scrollbar {
+    height: 20px;
+    background: #fff;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #eee;
+    border: 6px solid #fff;
+    border-radius: 100px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #818ea1;
+    background-clip: padding-box;
+    border: 7.5px solid transparent;
+    border-radius: 100px;
+  }
+}

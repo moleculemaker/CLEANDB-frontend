@@ -72,6 +72,117 @@ describe('HeatmapComponent cell tooltip', () => {
     fixture.detectChanges();
   });
 
+  describe('grid layout', () => {
+    const headerRow = (n: number): HTMLElement[] =>
+      Array.from(fixture.nativeElement.querySelectorAll('tr')[n].children);
+
+    it('labels every tenth position above the residue letters', () => {
+      component.data = {
+        rowKeys: ['A'],
+        colKeys: Array.from({ length: 21 }, () => 'G'),
+        values: [Array.from({ length: 21 }, () => -1)],
+      };
+      component.ngOnChanges({ data: { currentValue: component.data } } as any);
+      fixture.detectChanges();
+
+      const numbers = headerRow(0).map(td => td.textContent!.trim());
+      // Leading corner cell, then positions 1..21: only 10 and 20 are labelled.
+      expect(numbers.length).toBe(22);
+      expect(numbers.filter(Boolean)).toEqual(['10', '20']);
+      expect(numbers[10]).toBe('10');
+      expect(numbers[20]).toBe('20');
+      expect(headerRow(1).map(td => td.textContent!.trim()).slice(1)).toEqual(component.data.colKeys);
+    });
+
+    it('scrolls a column to one cell in from the pinned keys, measured from the grid', () => {
+      const container: HTMLElement = fixture.nativeElement.querySelector('.heatmap-scroll');
+      // scrollTo is overloaded, so the spy is widened for the options-object call.
+      const scrollTo = spyOn(container, 'scrollTo') as jasmine.Spy;
+
+      component.scrollToCol(5);
+
+      const cell = cellAt(1, 5);
+      const key: HTMLElement = fixture.nativeElement.querySelector('td[data-col-index="-1"][data-row-index="1"]');
+      const oneCellIn = key.getBoundingClientRect().width + cell.getBoundingClientRect().width + 2; // two 1px gutters
+      const expectedLeft = cell.getBoundingClientRect().left - container.getBoundingClientRect().left - oneCellIn;
+      expect(scrollTo).toHaveBeenCalledTimes(1);
+      expect(scrollTo.calls.mostRecent().args[0].left).toBe(expectedLeft);
+    });
+
+    it('keeps every column 18px wide once position labels reach three digits', () => {
+      // Karma's fallback font draws "100" at about 16px, which fits the 18px
+      // cell, so the case this guards (Inter digits, roughly 19px) has to be
+      // forced. Without this the spec passes with the label's inner block gone.
+      const wideLabels = document.createElement('style');
+      wideLabels.textContent = 'app-heatmap tr:first-child td { font-size: 30px !important; }';
+      document.head.appendChild(wideLabels);
+
+      try {
+        const n = 110;
+        component.data = {
+          rowKeys: ['A'],
+          colKeys: Array.from({ length: n }, () => 'G'),
+          values: [Array.from({ length: n }, () => -1)],
+        };
+        component.ngOnChanges({ data: { currentValue: component.data } } as any);
+        fixture.detectChanges();
+
+        const labels = headerRow(0);
+        expect(labels[100].textContent!.trim()).toBe('100');
+        // The inner block is a fixed 18px, so measure the text it holds instead.
+        expect(labels[100].firstElementChild!.scrollWidth)
+          .withContext('the label text really is wider than its cell in this test').toBeGreaterThan(18);
+        const widths = new Set([...labels.slice(1), ...headerRow(2).slice(1)].map(td => td.getBoundingClientRect().width));
+        expect([...widths]).withContext('a three-digit label must not size its column').toEqual([18]);
+      } finally {
+        wideLabels.remove();
+      }
+    });
+
+    it('pins only the row keys and the header corner, so header letters scroll with their columns', () => {
+      const pinned = (td: HTMLElement) => getComputedStyle(td).position === 'sticky';
+      const [corner, ...letters] = headerRow(1);
+      expect(pinned(corner)).toBeTrue();
+      expect(letters.some(pinned)).withContext('header letters must not be sticky').toBeFalse();
+
+      const [rowKey, ...cells] = headerRow(2);
+      expect(pinned(rowKey)).toBeTrue();
+      expect(cells.some(pinned)).toBeFalse();
+    });
+
+    it('outlines a selected column on its outer edges only', () => {
+      component.selectedCells = [[0, 2], [1, 2]];
+      component.ngOnChanges({ selectedCells: { currentValue: component.selectedCells } } as any);
+      fixture.detectChanges();
+
+      const brown = 'rgb(56, 0, 27)';
+      const top = getComputedStyle(cellAt(0, 2)).boxShadow;
+      const bottom = getComputedStyle(cellAt(1, 2)).boxShadow;
+      expect(top).toContain(`${brown} 0px 3px 0px 0px inset`);
+      expect(top).not.toContain('0px -3px');
+      expect(bottom).toContain(`${brown} 0px -3px 0px 0px inset`);
+      expect(bottom).not.toContain('0px 3px 0px 0px inset');
+      for (const shadow of [top, bottom]) {
+        expect(shadow).toContain(`${brown} 3px 0px 0px 0px inset`);
+        expect(shadow).toContain(`${brown} -3px 0px 0px 0px inset`);
+      }
+      expect(getComputedStyle(cellAt(0, 1)).boxShadow).toBe('none');
+    });
+
+    it('draws the hover ring inside the selection outline', () => {
+      component.selectedCells = [[0, 2], [1, 2]];
+      component.ngOnChanges({ selectedCells: { currentValue: component.selectedCells } } as any);
+      fixture.detectChanges();
+
+      const shadow = getComputedStyle(hover(0, 2)).boxShadow;
+      const whiteRing = shadow.indexOf('rgb(255, 255, 255) 0px 0px 0px 5px inset');
+      const selectionEdge = shadow.indexOf('0px 3px 0px 0px inset');
+      expect(whiteRing).withContext('white ring present').toBeGreaterThanOrEqual(0);
+      expect(selectionEdge).withContext('selection edge present').toBeGreaterThanOrEqual(0);
+      expect(whiteRing).withContext('white ring is painted before (above) the selection edges').toBeLessThan(selectionEdge);
+    });
+  });
+
   it('shows the hovered cell mutation and score', () => {
     hover(0, 0);
 
