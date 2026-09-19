@@ -89,14 +89,17 @@
   </td>
 </ng-template>
 
-<p-overlayPanel
-  #cellTooltip
-  [dismissable]="true"
-  [showCloseIcon]="false"
-  styleClass="rounded-md max-w-xs px-[10.5px] py-[5px] bg-[#495057] text-white border-none shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
-  (onHide)="onTooltipHidden()"
->
-  <ng-container *ngIf="tooltipContext as tooltip">
+<!--
+  A plain positioned element rather than a p-overlayPanel: the overlay only
+  positions itself while opening from scratch, so retargeting it cell-to-cell
+  left the box parked on the previously hovered cell.
+-->
+@if (tooltipContext; as tooltip) {
+  <div
+    role="tooltip"
+    class="fixed z-[1000] pointer-events-none rounded-md max-w-xs px-[10.5px] py-[5px] bg-[#495057] text-white shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
+    [ngStyle]="tooltipStyle"
+  >
     <span class="text-sm font-semibold">{{ tooltip.displayLabel }}</span>
     <div class="h-px bg-[#dee2e6] my-1"></div>
 
@@ -115,5 +118,5 @@
         <span>{{ tooltip.predictedEffectLabel }}</span>
       </div>
     </div>
-  </ng-container>
-</p-overlayPanel>
+  </div>
+}
