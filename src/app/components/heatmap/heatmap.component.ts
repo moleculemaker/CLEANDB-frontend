@@ -153,11 +153,16 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
     private cdr: ChangeDetectorRef,
     private zone: NgZone,
   ) {
-    // Scrolling moves the cell out from under a tooltip that is pinned to the
-    // viewport, so dismiss it — the overlay this replaced did the same. Capture
-    // phase, because scroll does not bubble from the heatmap's own container.
+    // The tooltip is pinned to the viewport, so anything that moves the cell
+    // under it — scrolling, resizing — has to dismiss it, as the overlay this
+    // replaced did. Escape likewise. Bound outside the zone and guarded by
+    // dismissTooltip's early return, so these only cost a change detection pass
+    // when a tooltip is actually open. Scroll is capture phase because scroll
+    // does not bubble out of the heatmap's own container.
     this.zone.runOutsideAngular(() => {
       document.addEventListener('scroll', this.onDocumentScrollCapture, true);
+      window.addEventListener('resize', this.onViewportResize);
+      document.addEventListener('keydown', this.onDocumentKeydown);
     });
 
     this.subscriptions.push(
@@ -213,6 +218,8 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
   ngOnDestroy(): void {
     this.cancelHideTooltip();
     document.removeEventListener('scroll', this.onDocumentScrollCapture, true);
+    window.removeEventListener('resize', this.onViewportResize);
+    document.removeEventListener('keydown', this.onDocumentKeydown);
     this.subscriptions.forEach((subscription) => subscription.unsubscribe());
   }
 
@@ -406,26 +413,57 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
     }
   }
 
-  private readonly onDocumentScrollCapture = (): void => {
+  /** Clears the tooltip and the hover outline together. */
+  private dismissTooltip(): void {
     if (!this.tooltipContext) {
       return;
     }
 
-    // Runs outside the zone: only re-enter when there is a tooltip to dismiss,
-    // so ordinary scrolling does not trigger change detection on a large grid.
+    // Listeners run outside the zone, so only re-enter when there is something
+    // to dismiss: idle scrolling must not drive change detection on this grid.
     this.zone.run(() => {
       this.cancelHideTooltip();
       this.hoveredCell = null;
       this.tooltipContext = null;
       this.cdr.markForCheck();
     });
+  }
+
+  private readonly onDocumentScrollCapture = (event: Event): void => {
+    const table = this.heatmapTable?.nativeElement;
+    const target = event.target as Node | null;
+
+    // Only a scroll that can actually move the cell counts — the page, or a
+    // container the grid sits inside. An unrelated scroller (the results
+    // table's virtual scroller, which the page also scrolls programmatically)
+    // must not clear a tooltip the pointer is still resting on.
+    if (table && target && !target.contains(table)) {
+      return;
+    }
+
+    this.dismissTooltip();
+  };
+
+  private readonly onViewportResize = (): void => {
+    // A resize reflows the grid, so the pinned position is stale immediately.
+    this.dismissTooltip();
+  };
+
+  private readonly onDocumentKeydown = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape') {
+      this.dismissTooltip();
+    }
   };
 
   private computeTooltipStyle(cell: HTMLElement): HeatmapTooltipStyle {
     const rect = cell.getBoundingClientRect();
     const gap = HeatmapComponent.TOOLTIP_GAP;
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
+    // clientWidth/Height, not innerWidth/Height: a fixed element is placed
+    // against the layout viewport, which excludes a classic scrollbar. Using
+    // innerWidth put right-anchored tooltips a scrollbar's width off on
+    // platforms that do not use overlay scrollbars.
+    const viewportWidth = document.documentElement.clientWidth;
+    const viewportHeight = document.documentElement.clientHeight;
     const style: HeatmapTooltipStyle = {};
 
     // Anchor each axis to the near viewport edge so the box opens towards the
