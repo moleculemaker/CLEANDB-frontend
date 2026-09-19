@@ -166,6 +166,10 @@
 
         <!-- Table -->
         <hr> <!-- hr for border styling -->
+        <!-- virtualScrollItemSize: rows are laid out against tableRowHeight rather than
+             measured, so the body row below has to render at exactly that height.
+             app-score-chip is the part most likely to break it: it renders nothing when
+             the score is falsy, and its label can wrap at narrow widths. -->
         <p-table 
           #resultTable
           [columns]="columns" 
@@ -202,7 +206,7 @@
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-row let-expanded="expanded">
-            <tr [attr.data-position]="row.position">
+            <tr>
               <td class="align-middle border-b border-solid border-[#dee2e6] !p-2 !px-4">
                 {{ row.position }}
               </td>
