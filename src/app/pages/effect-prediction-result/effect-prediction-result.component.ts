@@ -15,14 +15,19 @@ import { SequencePositionSelectorComponent } from '~/app/components/sequence-pos
 import { HeatmapCellLocations, HeatmapComponent } from '~/app/components/heatmap/heatmap.component';
 import { ScoreChipComponent } from "../../components/score-chip/score-chip.component";
 import { ProteinViewerComponent } from '~/app/components/protein-viewer/protein-viewer.component';
-import { ProteinViewerStyle, ProteinColorScheme, ResidueSelection } from '~/app/models/protein-viewer';
+import { ProteinViewerStyle, ProteinColorScheme, ProteinResidueColors, ResidueNumbering, ResidueSelection } from '~/app/models/protein-viewer';
 import { ProteinSelectionService } from '~/app/services/protein-selection.service';
 import { AlphafoldService } from '~/app/services/alphafold.service';
 import { TooltipModule } from 'primeng/tooltip';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { TieredMenuModule } from 'primeng/tieredmenu';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { DropdownModule } from 'primeng/dropdown';
+import { FormsModule } from '@angular/forms';
 import { MenuItem } from 'primeng/api';
+
+/** How the structure's per-residue colours are derived from the LLR matrix. */
+export type StructureColorMode = 'average' | 'max' | 'single';
 
 @Component({
   selector: 'app-effect-prediction-result',
@@ -45,7 +50,9 @@ import { MenuItem } from 'primeng/api';
     ProteinViewerComponent,
     SequencePositionSelectorComponent,
     ScoreChipComponent,
-    ProgressSpinnerModule
+    ProgressSpinnerModule,
+    DropdownModule,
+    FormsModule
 ],
   host: {
     class: 'flex flex-col h-full',
@@ -101,6 +108,31 @@ export class EffectPredictionResultComponent implements OnDestroy {
   simplefoldDataFormat                      = 'pdb';
   simplefoldLoading                         = false;
   simplefoldError                           = false;
+  structureColorMode: StructureColorMode    = 'average';
+  structureResidueColors: ProteinResidueColors | null = null;
+  // Set when a per-residue mode is selected but the structure cannot carry it,
+  // so the panel can say why it is showing a flat colour instead.
+  structureColoringUnavailable              = false;
+  structureColorOptions = [
+    {
+      value: 'average',
+      label: 'Average LLR',
+      menuLabel: 'Average LLR (Default)',
+      description: 'Uses Average LLR colormap value for this position across all possible mutations. Useful for viewing enzyme regions with significant impact (e.g. conserved residues, binding sites) where any/several mutations can cause significant changes.',
+    },
+    {
+      value: 'max',
+      label: 'Max LLR',
+      menuLabel: 'Max LLR',
+      description: 'Uses the Maximum LLR colormap value for the mutation with highest LLR for this position. Useful for viewing enzyme positions that might be engineering target sites, where 1 specific mutation causes a significant change',
+    },
+    {
+      value: 'single',
+      label: 'Single Color',
+      menuLabel: 'Single Color',
+      description: 'Uses a single color (fixed) colormap across all positions. Useful for viewing the structure as a whole.',
+    },
+  ];
   viewerStyle: ProteinViewerStyle           = 'cartoon';
   viewerColorScheme: ProteinColorScheme     = 'default';
   highlightColor                            = '#E16ACF';
@@ -123,6 +155,17 @@ export class EffectPredictionResultComponent implements OnDestroy {
     );
 
   private isPollingSimplefold = false;
+  private structureResidueNumbering: ResidueNumbering | null = null;
+  // Distinguishes "the viewer has not reported yet" from "the viewer reported
+  // that it could not tell", which are both a null numbering.
+  private structureNumberingReported = false;
+
+  /**
+   * Fixed row height the table's virtual scroller lays rows out against. Must
+   * match the rendered row or rows overlap or leave gaps; measured from the
+   * rendered table rather than assumed.
+   */
+  readonly tableRowHeight = 42;
 
   readonly viewerId = 'effect-prediction-viewer';
 
@@ -175,6 +218,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
           tableValues.sort((a, b) => a.position - b.position);
           this.tableValues = tableValues;
           this.showResults = true;
+          this.updateStructureResidueColors();
         })
       );
     }
@@ -206,6 +250,102 @@ export class EffectPredictionResultComponent implements OnDestroy {
     this.togglePosition(position);
     this.heatmap.scrollToCol(position);
     this.scrollTableToPosition(position + 1); // table uses 1-based positions
+  }
+
+  onStructureColorModeChange(): void {
+    this.updateStructureResidueColors();
+  }
+
+  onStructureResidueNumbering(numbering: ResidueNumbering | null): void {
+    this.structureResidueNumbering = numbering;
+    this.structureNumberingReported = true;
+    this.updateStructureResidueColors();
+  }
+
+  /**
+   * Reduce each position's column of substitutions to a single LLR. Columns are
+   * sequence positions and rows are the 20 amino acids, so a position's column
+   * is its 19 real substitutions plus the synonymous cell, which is a hard 0 and
+   * is excluded here exactly as the results table excludes it.
+   */
+  private aggregateByPosition(mode: 'average' | 'max'): (number | null)[] {
+    const { rowKeys, colKeys, values } = this.result;
+    return colKeys.map((wildType, colIdx) => {
+      const llrs: number[] = [];
+      values.forEach((row, rowIdx) => {
+        if (rowKeys[rowIdx] === wildType) return;
+        llrs.push(row[colIdx]);
+      });
+      if (!llrs.length) return null;
+      return mode === 'max'
+        ? Math.max(...llrs)
+        : llrs.reduce((sum, value) => sum + value, 0) / llrs.length;
+    });
+  }
+
+  private updateStructureResidueColors(): void {
+    this.structureResidueColors = null;
+    this.structureColoringUnavailable = false;
+
+    if (this.structureColorMode === 'single') return;
+    if (!this.result?.values?.length || !this.result.colKeys?.length) return;
+    // Nothing to say yet while the model is still loading.
+    if (!this.structureNumberingReported) return;
+
+    // Refuse to colour rather than risk a plausible-looking misalignment. The
+    // precomputed route renders an AlphaFold entry that was not folded from this
+    // sequence, and nobody can eyeball that residue 200 got position 200's LLR.
+    // The map below is keyed 1..positions, so a matching residue count is not
+    // enough: the model has to be numbered that way too, or a chain starting at
+    // 20 (or one carrying a ligand) gets coloured with a constant offset.
+    const positions = this.result.colKeys.length;
+    const numbering = this.structureResidueNumbering;
+    if (numbering === null
+        || numbering.count !== positions
+        || numbering.min !== 1
+        || numbering.max !== positions) {
+      this.structureColoringUnavailable = true;
+      console.warn(
+        '[effect-prediction] structure residues ' +
+        (numbering === null
+          ? 'could not be read'
+          : `are ${numbering.min}-${numbering.max} (${numbering.count} distinct)`) +
+        ` but the prediction covers positions 1-${positions}; skipping LLR colouring.`,
+      );
+      return;
+    }
+
+    // Same domain the heatmap uses, so a colour means the same LLR in both.
+    const flat = this.result.values.flat();
+    const dataMin = Math.min(...flat);
+    const dataMax = Math.max(...flat);
+
+    const colors: ProteinResidueColors = {};
+    this.aggregateByPosition(this.structureColorMode).forEach((value, colIdx) => {
+      if (value === null) return;
+      colors[colIdx + 1] = this.structureColorFor(value, dataMin, dataMax); // resi is 1-based
+    });
+    this.structureResidueColors = colors;
+  }
+
+  /**
+   * The one place the LLR -> colour ramp is chosen. Currently the heatmap's own
+   * scale, so a colour means the same LLR in both views. Note the ramp's stops
+   * are absolute while ESM LLRs are overwhelmingly negative: on the example
+   * protein 320 of 360 positions land in its single [min, -2) segment under
+   * Average LLR, leaving almost all the structure's visible variation to the
+   * other 40 residues. Max LLR spreads evenly across the stops. If that needs
+   * rescaling, this function is the only thing to change.
+   */
+  private structureColorFor(value: number, dataMin: number, dataMax: number): string {
+    return this.service.getColorFor(value, dataMin, dataMax);
+  }
+
+  // Single definition of the structure panel's visibility: every error path
+  // clears simplefoldLoading without setting pdbData, so omitting simplefoldError
+  // here unmounts the panel instead of showing its error state.
+  get showStructurePanel(): boolean {
+    return !!this.simplefoldPdbData || this.simplefoldLoading || this.simplefoldError;
   }
 
   private startSimplefoldPolling(simplefoldJobId?: string): void {
@@ -324,31 +464,35 @@ export class EffectPredictionResultComponent implements OnDestroy {
   }
 
   scrollTableToPosition(position: number): void {
-    const tableEl = this.resultTable.el.nativeElement as HTMLElement;
-    // Find the first row matching the given (1-based) position.
-    const targetRow = tableEl.querySelector(
-      `tbody tr[data-position="${position}"]`,
-    ) as HTMLElement | null;
-    if (!targetRow) return;
+    // Under virtual scrolling only the visible window of rows exists in the DOM,
+    // so the row for a position further down the list cannot be looked up by
+    // selector. Scroll by index instead -- but read the index out of the table's
+    // own processed array, never out of tableValues.
+    //
+    // sortSingle() sorts in place and then does `this._value = [...this.value]`,
+    // and `value` is a getter over `_value`. So the first sort reorders the array
+    // we passed in and then repoints the table at a copy of it; every sort after
+    // that reorders only the copy, while tableValues stays frozen at the first
+    // sort's order. Since `[value]="tableValues"` keeps the same reference, the
+    // setter never runs again to resync it. Two clicks on one header is enough to
+    // make an index taken from tableValues point at an unrelated row.
+    const rows = (this.resultTable.filteredValue ?? this.resultTable.value ?? []) as any[];
+    const index = rows.findIndex((row) => row.position === position);
+    if (index < 0) return;
 
-    // PrimeNG p-table renders its scroll container as `.p-datatable-wrapper`
-    // when [scrollable]="true". Fall back to the nearest scrolling ancestor
-    // if the class changes in future PrimeNG versions.
-    const scrollContainer =
-      (tableEl.querySelector('.p-datatable-wrapper') as HTMLElement | null) ??
-      (tableEl.querySelector('.p-datatable-scrollable-body') as HTMLElement | null);
-    if (!scrollContainer) return;
+    this.resultTable.scrollToVirtualIndex(index);
 
-    const stickyHeader = scrollContainer.querySelector('thead') as HTMLElement | null;
-    const headerHeight = stickyHeader?.getBoundingClientRect().height ?? 0;
-    const containerTop = scrollContainer.getBoundingClientRect().top;
-    const rowTop = targetRow.getBoundingClientRect().top;
-    const delta = rowTop - containerTop - headerHeight;
-
-    scrollContainer.scrollTo({
-      top: scrollContainer.scrollTop + delta,
-      behavior: 'smooth',
-    });
+    // Scroller.scrollToIndex only assigns its rendered window (`first`) when it
+    // believes the scroll position changed, and it decides that by comparing
+    // against the position read *before* it scrolls. At rest that comparison is
+    // false, so it moves the DOM scroll position and leaves the rendered rows
+    // stale. Re-firing the scroll event it would have seen from a user drag
+    // resynchronises the window with where it actually scrolled to.
+    const scroller = (this.resultTable.el.nativeElement as HTMLElement)
+      .querySelector('.p-scroller');
+    // Not bubbling: the listener is bound on .p-scroller itself, and a synthetic
+    // scroll reaching shared ancestors would hide any open PrimeNG overlay.
+    scroller?.dispatchEvent(new Event('scroll'));
   }
 
   generateCellsFromPositions(positions: number[]): HeatmapCellLocations {

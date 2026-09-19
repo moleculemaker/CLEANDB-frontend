@@ -20,8 +20,11 @@
       : (isBeneficial ? 'Beneficial'
       : 'Strongly Beneficial')));
 
+  <!-- whitespace-nowrap below is load-bearing, not cosmetic: the mutation results
+       table virtualises on a fixed row height, and a wrapped label made rows 59px
+       where the scroller assumed 42, drifting it by ~323px per 20 rows. -->
   @let classNames = [
-    'px-2 py-1 rounded-sm text-[#495057] inline-flex items-center justify-center gap-2',
+    'px-2 py-1 rounded-sm text-[#495057] inline-flex items-center justify-center gap-2 whitespace-nowrap',
     isStronglyDeleterious ? 'bg-[#CF81843A]' : '',
     isDeleterious ? 'bg-[#EAD0CF3A]' : '',
     isNeutral ? 'bg-[#E3E3E33A]' : '',
