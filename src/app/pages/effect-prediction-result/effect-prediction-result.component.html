@@ -168,8 +168,11 @@
         <hr> <!-- hr for border styling -->
         <!-- virtualScrollItemSize: rows are laid out against tableRowHeight rather than
              measured, so the body row below has to render at exactly that height.
-             app-score-chip is the part most likely to break it: it renders nothing when
-             the score is falsy, and its label can wrap at narrow widths. -->
+             app-score-chip is the part most likely to break it, and it carries a
+             whitespace-nowrap for this reason: its label used to wrap below roughly a
+             940px window, making rows 59px and drifting the scroller by ~323px per 20
+             rows. It also renders nothing when the score is falsy, which would shorten
+             a row -- no row in the current data has a score of exactly 0. -->
         <p-table 
           #resultTable
           [columns]="columns" 
