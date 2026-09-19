@@ -14,12 +14,9 @@ import { AbstractControl, NG_VALIDATORS, ValidationErrors, Validator } from '@an
 })
 export class SequenceValidatorDirective implements Validator {
   @Input() maxSeqNum: number = 20;
-  // Longest sequence accepted. Not an ESM-2 limit: ESM-2 takes 1022 (1024 context
-  // minus BOS/EOS), which is where this cap used to sit. It is lowered because the
-  // SAME submission also starts an ml-simplefold job for the structure panel, and
-  // simplefold's VRAM grows with length until it exhausts the shared GPU. An Input
-  // rather than a constant so the bound can move when that constraint does.
-  @Input() maxResidues: number = 700;
+  // Longest sequence accepted. The default is ESM-2's own ceiling (1024 context
+  // minus BOS/EOS). An Input rather than a constant so a consumer can tighten it.
+  @Input() maxResidues: number = 1022;
   @Input() allowEmptyHeader: boolean = false; // for now, this has only been tested with maxSeqNum = 1
   private validAminoAcid = new RegExp("[^GPAVLIMCFYWHKRQNEDST]", "i");
   private validDNA = new RegExp("[^ACTG]", "i");

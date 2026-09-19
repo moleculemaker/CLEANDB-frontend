@@ -161,9 +161,12 @@ export class EffectPredictionComponent implements OnChanges, OnDestroy {
     );
   }
 
-  /** Length of the entered sequence, or 0 when nothing parseable is entered. */
+  /**
+   * Length of the entered sequence, or 0 when nothing parseable is entered. Strips a
+   * trailing `*` so this agrees with the validator's count.
+   */
   get sequenceLength(): number {
-    return getSingleSeq(this.form.value.sequence || '').sequence.length;
+    return getSingleSeq(this.form.value.sequence || '').sequence.replace(/\*$/, '').length;
   }
 
   /** Single source of truth for the notice and the submit path alike. */
