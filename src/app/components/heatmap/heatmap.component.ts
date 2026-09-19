@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, NgZone, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { BehaviorSubject, combineLatestWith, filter, Subscription, tap } from 'rxjs';
-import { OverlayPanel, OverlayPanelModule } from 'primeng/overlaypanel';
 import { CleanDbService, EffectPredictionResult } from '~/app/services/clean-db.service';
 
 import { toPng, toJpeg, toSvg } from 'html-to-image';
@@ -74,12 +73,23 @@ type HeatmapCellTooltipContext = {
   toResidue: string;
 }
 
+/**
+ * Where the tooltip is pinned, as the CSS it will be given. Each axis names the
+ * viewport edge it is measured from, so the box grows inward and cannot run off
+ * screen — which is what lets us place it without measuring its size.
+ */
+type HeatmapTooltipStyle = {
+  left?: string;
+  right?: string;
+  top?: string;
+  bottom?: string;
+};
+
 @Component({
   selector: 'app-heatmap',
   standalone: true,
   imports: [
     CommonModule,
-    OverlayPanelModule,
   ],
   templateUrl: './heatmap.component.html',
   styleUrl: './heatmap.component.scss',
@@ -91,7 +101,6 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
   @Input() selectedCells: HeatmapCellLocations;
   @Output() selectedCellsChange: EventEmitter<HeatmapCellLocations> = new EventEmitter();
   @ViewChild('heatmapTable') heatmapTable: ElementRef<HTMLTableElement>;
-  @ViewChild('cellTooltip') cellTooltip: OverlayPanel;
 
   columnKeys: Interactable[];
   rowKeys: Interactable[];
@@ -113,10 +122,13 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
-  private tooltipTarget: HTMLElement | null = null;
   private hideTooltipTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   tooltipContext: HeatmapCellTooltipContext | null = null;
+  tooltipStyle: HeatmapTooltipStyle = {};
+
+  /** Gap between the hovered cell and the tooltip, in px. */
+  private static readonly TOOLTIP_GAP = 4;
 
   public scrollToCol(col: number) {
     const cell = this.heatmapTable.nativeElement.querySelector(`td[data-col-index="${col}"][data-row-index="1"]`);
@@ -139,7 +151,15 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
   constructor(
     private service: CleanDbService,
     private cdr: ChangeDetectorRef,
+    private zone: NgZone,
   ) {
+    // Scrolling moves the cell out from under a tooltip that is pinned to the
+    // viewport, so dismiss it — the overlay this replaced did the same. Capture
+    // phase, because scroll does not bubble from the heatmap's own container.
+    this.zone.runOutsideAngular(() => {
+      document.addEventListener('scroll', this.onDocumentScrollCapture, true);
+    });
+
     this.subscriptions.push(
       this.data$.pipe(
         filter(d => !!d),
@@ -148,12 +168,9 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
           this.rowKeys = rowKeys;
           this.columnKeys = columnKeys;
           this.values = values;
-          if (this.cellTooltip?.overlayVisible) {
-            this.cellTooltip.hide();
-          }
+          this.cancelHideTooltip();
           this.hoveredCell = null;
           this.tooltipContext = null;
-          this.tooltipTarget = null;
         }),
         combineLatestWith(
           this.mutedCells$,
@@ -195,6 +212,7 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.cancelHideTooltip();
+    document.removeEventListener('scroll', this.onDocumentScrollCapture, true);
     this.subscriptions.forEach((subscription) => subscription.unsubscribe());
   }
 
@@ -361,11 +379,12 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
 
     const context = this.buildTooltipContext(interactable);
     this.tooltipContext = context;
-    this.tooltipTarget = targetElement;
     this.hoveredCell = interactable;
 
-    if (this.cellTooltip && context) {
-      this.openTooltip(event, targetElement);
+    if (context) {
+      // Recomputed on every cell, so the box follows the cursor rather than
+      // staying where it first appeared.
+      this.tooltipStyle = this.computeTooltipStyle(targetElement);
     }
   }
 
@@ -376,10 +395,6 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
       this.hideTooltipTimeoutId = null;
       this.hoveredCell = null;
       this.tooltipContext = null;
-      this.tooltipTarget = null;
-      if (this.cellTooltip?.overlayVisible) {
-        this.cellTooltip.hide();
-      }
       this.cdr.markForCheck();
     }, 80);
   }
@@ -391,12 +406,43 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
     }
   }
 
-  onTooltipHidden(): void {
-    // Reset transient hover state when the tooltip is dismissed (e.g. outside click)
-    this.hoveredCell = null;
-    this.tooltipContext = null;
-    this.tooltipTarget = null;
-    this.cdr.markForCheck();
+  private readonly onDocumentScrollCapture = (): void => {
+    if (!this.tooltipContext) {
+      return;
+    }
+
+    // Runs outside the zone: only re-enter when there is a tooltip to dismiss,
+    // so ordinary scrolling does not trigger change detection on a large grid.
+    this.zone.run(() => {
+      this.cancelHideTooltip();
+      this.hoveredCell = null;
+      this.tooltipContext = null;
+      this.cdr.markForCheck();
+    });
+  };
+
+  private computeTooltipStyle(cell: HTMLElement): HeatmapTooltipStyle {
+    const rect = cell.getBoundingClientRect();
+    const gap = HeatmapComponent.TOOLTIP_GAP;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const style: HeatmapTooltipStyle = {};
+
+    // Anchor each axis to the near viewport edge so the box opens towards the
+    // middle. Cells on the right open leftwards, cells low down open upwards.
+    if (rect.left + rect.width / 2 > viewportWidth / 2) {
+      style.right = `${Math.round(viewportWidth - rect.right)}px`;
+    } else {
+      style.left = `${Math.round(rect.left)}px`;
+    }
+
+    if (rect.top + rect.height / 2 > viewportHeight / 2) {
+      style.bottom = `${Math.round(viewportHeight - rect.top + gap)}px`;
+    } else {
+      style.top = `${Math.round(rect.bottom + gap)}px`;
+    }
+
+    return style;
   }
 
   /* ---------------------------------- Utils --------------------------------- */
@@ -538,32 +584,5 @@ export class HeatmapComponent implements OnChanges, OnDestroy {
     if (operations.length) {
       this.applyCellOperations(operations);
     }
-  }
-
-  private openTooltip(event: Event | null, targetElement: HTMLElement): void {
-    if (!this.cellTooltip) {
-      return;
-    }
-
-    const overlayEvent = this.resolveOverlayEvent(event, targetElement);
-    // PrimeNG's show() handles the already-visible case by retargeting and re-aligning,
-    // so there is no need to hide() first — doing so causes a flicker where the close
-    // icon briefly renders during the hide animation.
-    this.cellTooltip.show(overlayEvent, targetElement);
-  }
-
-  private resolveOverlayEvent(event: Event | null, targetElement: HTMLElement): Event {
-    if (event instanceof MouseEvent) {
-      return event;
-    }
-
-    const rect = targetElement.getBoundingClientRect();
-    return new MouseEvent('click', {
-      view: window,
-      bubbles: false,
-      cancelable: false,
-      clientX: rect.left + rect.width / 2,
-      clientY: rect.top + rect.height / 2,
-    });
   }
 }
