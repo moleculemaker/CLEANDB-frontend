@@ -1,16 +1,19 @@
 <!--
   The scroll container lives here rather than on the page so the grid owns its
-  scrollbar styling (see the component styles). scrollToCol finds it by class.
+  scrollbar styling (see the component styles) and scrollToCol can reach it.
 -->
-<div class="heatmap-scroll overflow-x-scroll">
-<table class="table-fixed border-separate border-spacing-px" #heatmapTable>
-  <!-- Position numbers, every tenth position, above the residue letters. -->
+<div class="heatmap-scroll overflow-x-scroll" #scrollContainer>
+<table class="border-separate border-spacing-px" #heatmapTable>
+  <!-- Position numbers, every tenth position, above the residue letters. The
+       inner block is what keeps a three-digit label from widening its column:
+       the table is auto-laid-out, so a cell's text would otherwise set the
+       column's minimum width. -->
   <tr>
-    @for (interactable of positionKeys; track interactable.id) {
-    <ng-container *ngTemplateOutlet="interactableTemplate; context : {
-                $implicit: interactable,
-                type: 'posKey'
-            }"></ng-container>
+    @for (label of positionLabels; track $index) {
+    <td
+      class="p-0 align-middle h-[18px] w-[18px] min-w-[18px] text-[10.5px] leading-none text-[#9e9e9e] bg-white"
+      [class]="$index === 0 ? 'sticky left-0 z-[10]' : ''"
+    ><span class="block w-[18px] text-center">{{ label }}</span></td>
     }
   </tr>
   <tr>
@@ -42,10 +45,9 @@
 </div>
 
 <ng-template #interactableTemplate let-interactable let-type="type">
-  @let isPosKey = type === 'posKey';
   @let isColKey = type === 'colKey';
   @let isRowKey = type === 'rowKey';
-  @let isKey = isPosKey || isColKey || isRowKey;
+  @let isKey = isColKey || isRowKey;
   @let isCell = type === 'cell';
   @let isMuted = interactable.state === InteractableState.MUTED;
   @let isNA = interactable.value === 0;
@@ -57,7 +59,7 @@
   @let isPinned = isRowKey || (isKey && interactable.column === 0);
 
   @let baseCellClassName = 'p-0 align-middle text-center w-[18px] min-w-[18px] h-[18px] text-[10.5px] leading-none';
-  @let keyClassName = 'bg-white ' + (isPosKey ? 'text-[#9e9e9e]' : 'text-[rgba(0,0,0,0.87)]');
+  @let keyClassName = 'bg-white text-[rgba(0,0,0,0.87)]';
   @let pinnedClassName = 'sticky left-0 z-[10]';
   @let mutedClassName = 'cell-muted';
   @let naClassName = 'cell-na';
@@ -72,7 +74,7 @@
 
   <td
     [class]="classNames"
-    [style.background-color]="interactable.color"
+    [style.background-color]="isCell ? interactable.color : null"
     [style.box-shadow]="isCell ? cellBoxShadow(interactable, isHovered) : null"
     (mouseenter)="isCell ? onCellMouseEnter(interactable, $event) : null"
     (mouseleave)="isCell ? onCellMouseLeave() : null"

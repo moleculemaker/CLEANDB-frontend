@@ -94,6 +94,37 @@ describe('HeatmapComponent cell tooltip', () => {
       expect(headerRow(1).map(td => td.textContent!.trim()).slice(1)).toEqual(component.data.colKeys);
     });
 
+    it('scrolls a column to one cell in from the pinned keys, measured from the grid', () => {
+      const container: HTMLElement = fixture.nativeElement.querySelector('.heatmap-scroll');
+      // scrollTo is overloaded, so the spy is widened for the options-object call.
+      const scrollTo = spyOn(container, 'scrollTo') as jasmine.Spy;
+
+      component.scrollToCol(5);
+
+      const cell = cellAt(1, 5);
+      const key: HTMLElement = fixture.nativeElement.querySelector('td[data-col-index="-1"][data-row-index="1"]');
+      const oneCellIn = key.getBoundingClientRect().width + cell.getBoundingClientRect().width + 2; // two 1px gutters
+      const expectedLeft = cell.getBoundingClientRect().left - container.getBoundingClientRect().left - oneCellIn;
+      expect(scrollTo).toHaveBeenCalledTimes(1);
+      expect(scrollTo.calls.mostRecent().args[0].left).toBe(expectedLeft);
+    });
+
+    it('keeps every column 18px wide once position labels reach three digits', () => {
+      const n = 110;
+      component.data = {
+        rowKeys: ['A'],
+        colKeys: Array.from({ length: n }, () => 'G'),
+        values: [Array.from({ length: n }, () => -1)],
+      };
+      component.ngOnChanges({ data: { currentValue: component.data } } as any);
+      fixture.detectChanges();
+
+      const labels = headerRow(0);
+      expect(labels[100].textContent!.trim()).toBe('100');
+      const widths = new Set([...labels.slice(1), ...headerRow(2).slice(1)].map(td => td.getBoundingClientRect().width));
+      expect([...widths]).withContext('a three-digit label must not size its column').toEqual([18]);
+    });
+
     it('pins only the row keys and the header corner, so header letters scroll with their columns', () => {
       const pinned = (td: HTMLElement) => getComputedStyle(td).position === 'sticky';
       const [corner, ...letters] = headerRow(1);
@@ -130,9 +161,11 @@ describe('HeatmapComponent cell tooltip', () => {
       fixture.detectChanges();
 
       const shadow = getComputedStyle(hover(0, 2)).boxShadow;
-      expect(shadow.indexOf('rgb(255, 255, 255) 0px 0px 0px 5px inset'))
-        .withContext('white ring is painted before (above) the selection edges')
-        .toBeLessThan(shadow.indexOf('0px 3px 0px 0px inset'));
+      const whiteRing = shadow.indexOf('rgb(255, 255, 255) 0px 0px 0px 5px inset');
+      const selectionEdge = shadow.indexOf('0px 3px 0px 0px inset');
+      expect(whiteRing).withContext('white ring present').toBeGreaterThanOrEqual(0);
+      expect(selectionEdge).withContext('selection edge present').toBeGreaterThanOrEqual(0);
+      expect(whiteRing).withContext('white ring is painted before (above) the selection edges').toBeLessThan(selectionEdge);
     });
   });
 
