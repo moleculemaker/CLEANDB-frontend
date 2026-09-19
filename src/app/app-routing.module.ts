@@ -1,5 +1,5 @@
 import { NgModule } from "@angular/core";
-import { RouterModule, Routes } from "@angular/router";
+import { RouteReuseStrategy, RouterModule, Routes } from "@angular/router";
 
 import { FontMatchComponent } from "./components/font-match/font-match.component";
 import { MainLayoutComponent } from "./components/main-layout/main-layout.component";
@@ -11,6 +11,7 @@ import { CenterLayoutComponent } from "./components/center-layout/center-layout.
 import { LandingPageComponent } from "./pages/landing-page/landing-page.component";
 import { TutorialPageComponent } from "./pages/tutorial-page/tutorial-page.component";
 import { ProteinViewerDemoComponent } from "./pages/protein-viewer-demo/protein-viewer-demo.component";
+import { ParamChangeRouteReuseStrategy } from "./param-change-route-reuse.strategy";
 
 
 const routes: Routes = [
@@ -43,5 +44,6 @@ const routes: Routes = [
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule],
+  providers: [{ provide: RouteReuseStrategy, useClass: ParamChangeRouteReuseStrategy }],
 })
 export class AppRoutingModule {}
