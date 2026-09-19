@@ -14,6 +14,7 @@ describe('ReactionSchemaComponent', () => {
 
     fixture = TestBed.createComponent(ReactionSchemaComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('reactionSchema', { reactionPartners: '', reactants: [], products: [] });
     fixture.detectChanges();
   });
 

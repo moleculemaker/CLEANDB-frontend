@@ -8,7 +8,7 @@ describe('CenterLayoutComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ CenterLayoutComponent ]
+      imports: [CenterLayoutComponent]
     })
     .compileComponents();
 

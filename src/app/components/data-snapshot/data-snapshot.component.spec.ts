@@ -1,4 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideEnvironmentServiceStub } from '~/app/testing/environment-service.stub';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
 
 import { DataSnapshotComponent } from './data-snapshot.component';
 
@@ -8,7 +12,8 @@ describe('DataSnapshotComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DataSnapshotComponent]
+      imports: [DataSnapshotComponent],
+      providers: [provideEnvironmentServiceStub(), provideHttpClient(), provideHttpClientTesting(), provideNoopAnimations()]
     })
     .compileComponents();
 

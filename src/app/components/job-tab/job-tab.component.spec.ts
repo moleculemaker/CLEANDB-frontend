@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
-import { JobTabComponent } from './job-tab.component.ts.template';
+import { JobTabComponent } from './job-tab.component';
 
 describe('JobTabComponent', () => {
   let component: JobTabComponent;
@@ -8,8 +9,9 @@ describe('JobTabComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [JobTabComponent]
-})
+      imports: [JobTabComponent],
+      providers: [provideRouter([])],
+    })
     .compileComponents();
 
     fixture = TestBed.createComponent(JobTabComponent);

@@ -1,4 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideEnvironmentServiceStub } from '~/app/testing/environment-service.stub';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
 
 import { HeatmapComponent } from './heatmap.component';
 
@@ -8,7 +11,8 @@ describe('HeatmapComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [HeatmapComponent]
+      imports: [HeatmapComponent],
+      providers: [provideEnvironmentServiceStub(), provideHttpClient(), provideHttpClientTesting()]
     })
     .compileComponents();
 

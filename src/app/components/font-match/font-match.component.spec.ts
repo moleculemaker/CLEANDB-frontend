@@ -8,7 +8,7 @@ describe('FontMatchComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [FontMatchComponent]
+    imports: [FontMatchComponent]
 })
     .compileComponents();
 
