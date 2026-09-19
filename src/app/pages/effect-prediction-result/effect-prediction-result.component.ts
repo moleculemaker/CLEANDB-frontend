@@ -196,6 +196,18 @@ export class EffectPredictionResultComponent implements OnDestroy {
     document.body.removeChild(selBox);
   }
 
+  /**
+   * A resubmit that resolves to another job navigates there, and the route reuse
+   * strategy rebuilds this page for it. One that resolves to this same job (the
+   * unchanged precomputed example) is a same-URL navigation the router ignores, so
+   * nothing else would bring the results tab back.
+   */
+  onResubmitted(jobId: string): void {
+    if (jobId === this.jobId) {
+      this.currentPage = 'result';
+    }
+  }
+
   onProgressChange(value: number): void {
     if (value === 100) {
       this.subscriptions.push(

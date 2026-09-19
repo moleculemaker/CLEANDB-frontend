@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from "@angular/core";
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from "@angular/core";
 import { FormGroup, FormControl, Validators, ReactiveFormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { CheckboxModule } from "primeng/checkbox";
@@ -52,6 +52,13 @@ export const MAX_STRUCTURE_RESIDUES = 700;
 export class EffectPredictionComponent implements OnChanges, OnDestroy {
   @Input() formValue!: any;    // TODO: update type to support positions
   @Input() showJobTab = true;
+  /**
+   * The job id a submission resolved to, emitted just before navigating to it. The
+   * result page that embeds this form needs it for the one case navigation cannot
+   * cover: a resubmit that resolves to the job already on screen (the unchanged
+   * precomputed example) is a same-URL navigation the router ignores.
+   */
+  @Output() submitted = new EventEmitter<string>();
   
   currentPage = 'input';
   example: any = null;
@@ -134,6 +141,7 @@ export class EffectPredictionComponent implements OnChanges, OnDestroy {
     }
 
     if (this.exampleUsed) {
+      this.submitted.emit('precomputed');
       this.router.navigate(['effect-prediction', 'result', 'precomputed']);
       return;
     } 
@@ -161,9 +169,10 @@ export class EffectPredictionComponent implements OnChanges, OnDestroy {
       : mepJob$();
 
     this.subscriptions.push(
-      submission$.subscribe((response) =>
-        this.router.navigate(['effect-prediction', 'result', response.job_id])
-      )
+      submission$.subscribe((response) => {
+        this.submitted.emit(response.job_id);
+        this.router.navigate(['effect-prediction', 'result', response.job_id]);
+      })
     );
   }
 

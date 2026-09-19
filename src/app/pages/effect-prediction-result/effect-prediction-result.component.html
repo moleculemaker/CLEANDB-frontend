@@ -1,7 +1,7 @@
 <app-job-tab [tab]="currentPage" (onTabChange)="currentPage = $event"></app-job-tab>
 
 @if (currentPage === 'input') {
-<app-effect-prediction [formValue]="jobInfo" [showJobTab]="false"></app-effect-prediction>
+<app-effect-prediction [formValue]="jobInfo" [showJobTab]="false" (submitted)="onResubmitted($event)"></app-effect-prediction>
 
 } @else {
 <!-- Model Results -->

@@ -1,11 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideEnvironmentServiceStub } from '~/app/testing/environment-service.stub';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 
+import { of } from 'rxjs';
+
 import { EffectPredictionComponent } from './effect-prediction.component';
+import { CleanDbService } from '~/app/services/clean-db.service';
+import { Job } from '~/app/api/mmli-backend/v1';
 
 describe('EffectPredictionComponent', () => {
   let component: EffectPredictionComponent;
@@ -67,6 +71,39 @@ describe('EffectPredictionComponent', () => {
 
       expect(component.form.controls['sequence'].valid).toBeTrue();
       expect(component.structurePredictionAvailable).toBeFalse();
+    });
+  });
+  describe('submitted output', () => {
+    let navigate: jasmine.Spy;
+    let emitted: string[];
+
+    beforeEach(() => {
+      navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+      emitted = [];
+      component.submitted.subscribe((jobId) => emitted.push(jobId));
+    });
+
+    it('emits the precomputed id before navigating when the example is submitted', () => {
+      component.form.patchValue({ sequence: '>example\nACDEFGHIKL' });
+      component.exampleUsed = true;
+
+      component.onSubmit();
+
+      expect(emitted).toEqual(['precomputed']);
+      expect(navigate).toHaveBeenCalledWith(['effect-prediction', 'result', 'precomputed']);
+    });
+
+    it('emits the created job id once the submission resolves', () => {
+      const service = TestBed.inject(CleanDbService);
+      spyOn(service, 'createSimplefoldJob').and.returnValue(of({ job_id: 'simplefold-1' } as Job));
+      spyOn(service, 'createAndRunJob').and.returnValue(of({ job_id: 'job-b' } as Job));
+      component.form.patchValue({ sequence: '>test\nACDEFGHIKL' });
+      component.exampleUsed = false;
+
+      component.onSubmit();
+
+      expect(emitted).toEqual(['job-b']);
+      expect(navigate).toHaveBeenCalledWith(['effect-prediction', 'result', 'job-b']);
     });
   });
 });
