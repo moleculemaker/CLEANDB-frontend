@@ -466,9 +466,18 @@ export class EffectPredictionResultComponent implements OnDestroy {
   scrollTableToPosition(position: number): void {
     // Under virtual scrolling only the visible window of rows exists in the DOM,
     // so the row for a position further down the list cannot be looked up by
-    // selector. Scroll by index instead: PrimeNG's sortSingle() sorts the bound
-    // array in place, so tableValues is always in the table's current order.
-    const index = this.tableValues.findIndex((row) => row.position === position);
+    // selector. Scroll by index instead -- but read the index out of the table's
+    // own processed array, never out of tableValues.
+    //
+    // sortSingle() sorts in place and then does `this._value = [...this.value]`,
+    // and `value` is a getter over `_value`. So the first sort reorders the array
+    // we passed in and then repoints the table at a copy of it; every sort after
+    // that reorders only the copy, while tableValues stays frozen at the first
+    // sort's order. Since `[value]="tableValues"` keeps the same reference, the
+    // setter never runs again to resync it. Two clicks on one header is enough to
+    // make an index taken from tableValues point at an unrelated row.
+    const rows = (this.resultTable.filteredValue ?? this.resultTable.value ?? []) as any[];
+    const index = rows.findIndex((row) => row.position === position);
     if (index < 0) return;
 
     this.resultTable.scrollToVirtualIndex(index);
