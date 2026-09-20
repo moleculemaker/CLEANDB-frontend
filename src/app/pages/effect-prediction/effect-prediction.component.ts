@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from "@angular/core";
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from "@angular/core";
 import { FormGroup, FormControl, Validators, ReactiveFormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { CheckboxModule } from "primeng/checkbox";
@@ -52,6 +52,13 @@ export const MAX_STRUCTURE_RESIDUES = 700;
 export class EffectPredictionComponent implements OnChanges, OnDestroy {
   @Input() formValue!: any;    // TODO: update type to support positions
   @Input() showJobTab = true;
+  /**
+   * The job id a submission resolved to, emitted just before navigating to it. The
+   * result page that embeds this form needs it for the one case navigation cannot
+   * cover: a resubmit that resolves to the job already on screen (the unchanged
+   * precomputed example) is a same-URL navigation the router ignores.
+   */
+  @Output() submitted = new EventEmitter<string>();
   
   currentPage = 'input';
   example: any = null;
@@ -134,9 +141,18 @@ export class EffectPredictionComponent implements OnChanges, OnDestroy {
     }
 
     if (this.exampleUsed) {
+      this.submitted.emit('precomputed');
       this.router.navigate(['effect-prediction', 'result', 'precomputed']);
       return;
     } 
+
+    // Resubmitting the loaded job's own request would only queue a duplicate of a
+    // result that already exists, so return to that result instead.
+    if (this.requestUnchanged) {
+      this.submitted.emit(this.formValue.job_id);
+      this.router.navigate(['effect-prediction', 'result', this.formValue.job_id]);
+      return;
+    }
 
     const { sequenceName, sequence } = getSingleSeq(this.form.value.sequence || '');
     const email = this.form.value.email || '';
@@ -161,15 +177,38 @@ export class EffectPredictionComponent implements OnChanges, OnDestroy {
       : mepJob$();
 
     this.subscriptions.push(
-      submission$.subscribe((response) =>
-        this.router.navigate(['effect-prediction', 'result', response.job_id])
-      )
+      submission$.subscribe((response) => {
+        this.submitted.emit(response.job_id);
+        this.router.navigate(['effect-prediction', 'result', response.job_id]);
+      })
     );
   }
 
   /** Length of the entered sequence, or 0 when nothing parseable is entered. */
   get sequenceLength(): number {
     return residueCount(getSingleSeq(this.form.value.sequence || '').sequence);
+  }
+
+  /**
+   * True when the form would resubmit exactly the request the loaded job ran: same
+   * header, residues and positions. Email is not part of the request, so changing
+   * only it does not make a new job. Only a result page hands this form a job_id,
+   * so on the standalone page this is always false.
+   *
+   * Headers are compared without their leading '>'. Jobs this build creates store
+   * it (the parsed first line keeps it), but the precomputed example does not, and
+   * getFasta prepends one on load either way, so a raw compare would call a
+   * '>'-less job changed when nothing was typed.
+   */
+  get requestUnchanged(): boolean {
+    const job = this.formValue;
+    if (!job?.job_id) return false;
+    const { sequenceName, sequence } = getSingleSeq(this.form.value.sequence || '');
+    const positions = this.form.value.positions?.value || [];
+    const header = (name: string) => (name || '').replace(/^>/, '');
+    return header(sequenceName) === header(job.sequence_name)
+      && sequence === job.sequence
+      && JSON.stringify(positions) === JSON.stringify(job.positions || []);
   }
 
   /** Single source of truth for the notice and the submit path alike. */

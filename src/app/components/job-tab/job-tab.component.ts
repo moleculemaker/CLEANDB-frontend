@@ -1,8 +1,9 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { MenuItem, PrimeTemplate } from 'primeng/api';
 import { TabMenuModule } from 'primeng/tabmenu';
 import { NgIf } from '@angular/common';
+import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-job-tab',
@@ -11,7 +12,7 @@ import { NgIf } from '@angular/common';
     standalone: true,
     imports: [TabMenuModule, PrimeTemplate, NgIf]
 })
-export class JobTabComponent implements OnChanges {
+export class JobTabComponent implements OnChanges, OnDestroy {
   @Input() tab: string;
   @Output() onTabChange = new EventEmitter<"input" | "result">();
 
@@ -23,6 +24,7 @@ export class JobTabComponent implements OnChanges {
     { label: "Model Results" },
   ];
   activeTab: MenuItem = this.tabs[0];
+  subscriptions: Subscription[] = [];
 
   constructor(
     private router: Router,
@@ -36,7 +38,7 @@ export class JobTabComponent implements OnChanges {
     } else {
       this.tabs[1].disabled = true;
     }
-    this.router.events.subscribe((e) => {
+    this.subscriptions.push(this.router.events.subscribe((e) => {
       if (e instanceof NavigationEnd) {
         this.jobId = this.router.url.split(/\/.*\/result\//).length > 1 
           ? this.router.url.split(/\/.*\/result\//)[this.router.url.split(/\/.*\/result\//).length - 1]
@@ -48,7 +50,11 @@ export class JobTabComponent implements OnChanges {
           this.tabs[1].disabled = true;
         }
       }
-    });
+    }));
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((subscription) => subscription.unsubscribe());
   }
 
   ngOnChanges(changes: SimpleChanges): void {
