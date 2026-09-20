@@ -156,6 +156,8 @@ export class EffectPredictionResultComponent implements OnDestroy {
         this.jobInfo = {
           ...jobInfo,
           email: job.email || '',
+          // Lets the embedded form recognise a resubmit of this very job.
+          job_id: this.jobId,
         };
         this.startSimplefoldPolling(jobInfo.simplefold_job_id);
       }),
@@ -204,6 +206,18 @@ export class EffectPredictionResultComponent implements OnDestroy {
     selBox.select();
     document.execCommand('copy');
     document.body.removeChild(selBox);
+  }
+
+  /**
+   * A resubmit that resolves to another job navigates there, and the route reuse
+   * strategy rebuilds this page for it. One that resolves to this same job (the
+   * unchanged precomputed example) is a same-URL navigation the router ignores, so
+   * nothing else would bring the results tab back.
+   */
+  onResubmitted(jobId: string): void {
+    if (jobId === this.jobId) {
+      this.currentPage = 'result';
+    }
   }
 
   onProgressChange(value: number): void {

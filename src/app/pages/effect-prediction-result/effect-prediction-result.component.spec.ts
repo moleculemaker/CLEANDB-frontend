@@ -6,6 +6,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 
 import { EffectPredictionResultComponent } from './effect-prediction-result.component';
+import { EffectPredictionComponent } from '~/app/pages/effect-prediction/effect-prediction.component';
 import { CleanDbService, EffectPredictionResult } from '~/app/services/clean-db.service';
 import { Subject, firstValueFrom, of } from 'rxjs';
 import { By } from '@angular/platform-browser';
@@ -400,6 +401,35 @@ describe('EffectPredictionResultComponent', () => {
 
       component.onProgressChange(100);
       expect(fetchSpy).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('resubmitting from the embedded form', () => {
+    it('hands the form the job id it is showing, so it can recognise an unchanged resubmit', async () => {
+      await firstValueFrom(component.statusResponse$);
+
+      expect(component.jobInfo.job_id).toBe(component.jobId);
+    });
+
+    // No route param in this fixture, so the page shows the precomputed job.
+    const embeddedForm = (): EffectPredictionComponent =>
+      fixture.debugElement.query(By.directive(EffectPredictionComponent)).componentInstance;
+
+    beforeEach(() => {
+      component.currentPage = 'input';
+      fixture.detectChanges();
+    });
+
+    it('returns to the results tab when the submission resolves to the job already shown', () => {
+      embeddedForm().submitted.emit('precomputed');
+
+      expect(component.currentPage).toBe('result');
+    });
+
+    it('leaves the tab alone for another job, which navigation handles', () => {
+      embeddedForm().submitted.emit('some-other-job');
+
+      expect(component.currentPage).toBe('input');
     });
   });
 });
