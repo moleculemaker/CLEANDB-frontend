@@ -263,52 +263,99 @@ describe('EffectPredictionResultComponent', () => {
   });
 
   describe('heatmap and structure row', () => {
+    /**
+     * The real alphabet: 20 residue rows, so the grid is its production height
+     * (two header rows, twenty cells, the scrollbar band) and the assertions
+     * about heights below are about that height, not the fixture's.
+     */
+    const fullHeight: EffectPredictionResult = {
+      rowKeys: 'ACDEFGHIKLMNPQRSTVWY'.split(''),
+      colKeys: ['W', 'A', 'G'],
+      values: Array.from({ length: 20 }, (_, r) => [-3 + r * 0.1, 0, -1 - r * 0.05]),
+    };
+
     // Rendered in a fixed-width host with the real stylesheet, so these measure
     // what the browser does with the layout classes rather than list the classes.
-    // The structure panel is put in its loading state: that renders the panel and
-    // its viewer box with a spinner rather than the WebGL viewer.
-    const layOut = (hostWidth: number) => {
+    // With a structure, the panel is put in its loading state: that renders the
+    // panel and its viewer box with a spinner rather than the WebGL viewer.
+    const layOut = (hostWidth: number, structure = true) => {
       const host = fixture.nativeElement as HTMLElement;
       host.style.display = 'block';
       host.style.width = `${hostWidth}px`;
-      component.result = result;
+      component.result = fullHeight;
       component.showResults = true;
-      component.simplefoldLoading = true;
+      component.simplefoldLoading = structure;
       fixture.detectChanges();
 
       const heatmapColumn = host.querySelector('app-heatmap')!.parentElement!;
-      const structureColumn = heatmapColumn.parentElement!.children[1] as HTMLElement;
-      const viewerBox = structureColumn.querySelector<HTMLElement>('.relative')!;
+      const row = heatmapColumn.parentElement!;
+      const structureColumn = row.children[1] as HTMLElement | undefined;
+      const viewerBox = structureColumn?.querySelector<HTMLElement>('.relative');
       return {
         host: host.getBoundingClientRect(),
+        row: row.getBoundingClientRect(),
         heatmap: heatmapColumn.getBoundingClientRect(),
-        structure: structureColumn.getBoundingClientRect(),
-        viewer: viewerBox.getBoundingClientRect(),
+        structure: structureColumn?.getBoundingClientRect(),
+        viewer: viewerBox?.getBoundingClientRect(),
       };
     };
 
-    it('puts the structure beside a 604px heatmap when the row has room for both', () => {
+    it('puts the structure beside a 604px heatmap, matching its height, when the row has room for both', () => {
       const { heatmap, structure } = layOut(1100);
 
-      expect(heatmap.width).toBe(604);
-      expect(structure.top).toBe(heatmap.top);
-      expect(structure.left).toBeGreaterThanOrEqual(heatmap.right);
+      expect(heatmap.width).toBeCloseTo(604, 1);
+      expect(structure!.top).toBe(heatmap.top);
+      expect(structure!.left).toBeGreaterThanOrEqual(heatmap.right);
+      // The structure column's minimum height is a copy of the heatmap's
+      // height; this is what notices if either side of that copy drifts.
+      expect(structure!.height).toBe(heatmap.height);
     });
 
     it('stacks the structure under a full-width heatmap at 480px, keeping the viewer its usual height', () => {
       const wide = layOut(1100);
-      const { host, heatmap, structure, viewer } = layOut(480);
+      const { host, row, heatmap, structure, viewer } = layOut(480);
 
-      expect(structure.top).toBeGreaterThanOrEqual(heatmap.bottom);
-      expect(structure.width).toBe(heatmap.width);
+      expect(structure!.top).toBeGreaterThanOrEqual(heatmap.bottom);
+      expect(heatmap.width).toBe(row.width);
+      expect(structure!.width).toBe(heatmap.width);
       // Nothing inside forces the page wider than the window: the grid's
       // thousands of pixels stay inside the heatmap's own scroller.
       expect(heatmap.right).toBeLessThanOrEqual(host.right);
-      expect(structure.right).toBeLessThanOrEqual(host.right);
+      expect(structure!.right).toBeLessThanOrEqual(host.right);
       // Stacked, there is no heatmap beside it to stretch to, so the viewer
       // would otherwise collapse to nothing.
-      expect(viewer.height).toBe(wide.viewer.height);
-      expect(viewer.height).toBeGreaterThan(400);
+      expect(viewer!.height).toBe(wide.viewer!.height);
+      expect(viewer!.height).toBeGreaterThan(400);
+    });
+
+    it('gives the heatmap the whole row when there is no structure', () => {
+      // The scroller's inline-size containment removes the grid from the
+      // column's intrinsic width, so without an explicit width the column
+      // would be as wide as its title line and nothing more.
+      for (const width of [1100, 480]) {
+        const { row, heatmap } = layOut(width, false);
+        expect(heatmap.width).withContext(`${width}px host`).toBe(row.width);
+      }
+    });
+
+    it('wraps an unbreakable enzyme name instead of letting it set the page\'s minimum width', async () => {
+      await firstValueFrom(component.statusResponse$);
+      component.jobInfo = { ...component.jobInfo, sequence_name: 'NP_001234567.1_hypothetical_protein_ABCDEFGHIJ_K12_no_spaces_anywhere_in_here' };
+      const { host } = layOut(480);
+
+      const enzymeLine = (fixture.nativeElement as HTMLElement).querySelector('h6')!;
+      const titleBlock = enzymeLine.parentElement!;
+      expect(enzymeLine.getBoundingClientRect().height).toBeGreaterThan(30); // more than one line
+      expect(enzymeLine.scrollWidth).toBeLessThanOrEqual(titleBlock.clientWidth);
+      expect(titleBlock.getBoundingClientRect().right).toBeLessThanOrEqual(host.right);
+
+      // The page column in the layout shell is a flex item sized by its
+      // min-content, so a word that cannot break widens it past the window
+      // even when it wraps inside a fixed-width box like the one above. Ask
+      // for the page's min-content width directly.
+      const hostEl = fixture.nativeElement as HTMLElement;
+      hostEl.style.width = 'min-content';
+      expect(hostEl.getBoundingClientRect().width).toBeLessThanOrEqual(480);
     });
   });
 });
