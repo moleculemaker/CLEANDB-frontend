@@ -109,6 +109,11 @@ export class EffectPredictionResultComponent implements OnDestroy {
   simplefoldDataFormat                      = 'pdb';
   simplefoldLoading                         = false;
   simplefoldError                           = false;
+  // Set once the spinner has been on screen long enough that the wait is worth
+  // explaining. Reset only when the timer is re-armed; the template reads it
+  // only under simplefoldLoading, so it goes dark with the spinner.
+  structureSlow                             = false;
+  readonly slowStructureDelayMs             = 5000;
   structureColorMode: StructureColorMode    = 'average';
   structureResidueColors: ProteinResidueColors | null = null;
   // Set when a per-residue mode is selected but the structure cannot carry it,
@@ -159,6 +164,11 @@ export class EffectPredictionResultComponent implements OnDestroy {
     );
 
   private isPollingSimplefold = false;
+  // <app-loading> reports 100 on every poll tick until showResults removes it,
+  // so a result fetch slower than a tick would be issued again and its late
+  // callback would re-arm the slow-structure note. Released on error so the
+  // next tick retries, as it did before the latch.
+  private resultRequested = false;
   private structureResidueNumbering: ResidueNumbering | null = null;
   // Distinguishes "the viewer has not reported yet" from "the viewer reported
   // that it could not tell", which are both a null numbering.
@@ -211,9 +221,11 @@ export class EffectPredictionResultComponent implements OnDestroy {
   }
 
   onProgressChange(value: number): void {
-    if (value === 100) {
-      this.subscriptions.push(
-        this.service.getEffectPredictionResult(this.jobId).subscribe((result) => {
+    if (value !== 100 || this.resultRequested) return;
+    this.resultRequested = true;
+    this.subscriptions.push(
+      this.service.getEffectPredictionResult(this.jobId).subscribe({
+        next: (result) => {
           this.result = result;
 
           const tableValues: any[] = [];
@@ -235,9 +247,11 @@ export class EffectPredictionResultComponent implements OnDestroy {
           this.tableValues = tableValues;
           this.showResults = true;
           this.updateStructureResidueColors();
-        })
-      );
-    }
+          this.armSlowStructureNote();
+        },
+        error: () => { this.resultRequested = false; },
+      })
+    );
   }
 
   onSelectedPositionsChange(newPositions: number[]): void {
@@ -382,6 +396,29 @@ export class EffectPredictionResultComponent implements OnDestroy {
       && this.sequenceResidueCount > this.maxStructureResidues;
   }
 
+  /**
+   * Gives a simplefold job slowStructureDelayMs of bare spinner on screen before
+   * the note explaining the wait appears. Called from both places the
+   * precondition can become true, in either order: when the results panel
+   * mounts (showResults) and when the simplefold poller starts
+   * (simplefoldLoading). Before the panel mounts the spinner is behind
+   * display:none, and a timer started then would have expired long before
+   * anyone saw it. The precomputed example loads from AlphaFold and never sets
+   * simplefoldJobId, so it gets the spinner but never a note about a prediction
+   * that is not running.
+   *
+   * The timer is not cancelled when the structure lands first: the note is
+   * gated on simplefoldLoading in the template, so a late flag is invisible.
+   * The subscription is cleaned up with the rest on destroy.
+   */
+  private armSlowStructureNote(): void {
+    if (!this.showResults || !this.simplefoldLoading || !this.simplefoldJobId) return;
+    this.structureSlow = false;
+    this.subscriptions.push(
+      timer(this.slowStructureDelayMs).subscribe(() => { this.structureSlow = true; })
+    );
+  }
+
   private startSimplefoldPolling(simplefoldJobId?: string): void {
     // statusResponse$ is cold: the template's `| async` subscribes once and
     // <app-loading> re-subscribes on every poll tick, so this is called
@@ -414,6 +451,7 @@ export class EffectPredictionResultComponent implements OnDestroy {
     this.isPollingSimplefold = true;
     this.simplefoldJobId = simplefoldJobId;
     this.simplefoldLoading = true;
+    this.armSlowStructureNote();
 
     this.subscriptions.push(
       timer(0, 10000).pipe(

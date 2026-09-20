@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideEnvironmentServiceStub } from '~/app/testing/environment-service.stub';
 import { provideRouter } from '@angular/router';
@@ -7,8 +7,8 @@ import { provideHttpClient } from '@angular/common/http';
 
 import { EffectPredictionResultComponent } from './effect-prediction-result.component';
 import { EffectPredictionComponent } from '~/app/pages/effect-prediction/effect-prediction.component';
-import { EffectPredictionResult } from '~/app/services/clean-db.service';
-import { firstValueFrom } from 'rxjs';
+import { CleanDbService, EffectPredictionResult } from '~/app/services/clean-db.service';
+import { Subject, firstValueFrom, of } from 'rxjs';
 import { By } from '@angular/platform-browser';
 import { TieredMenu } from 'primeng/tieredmenu';
 
@@ -233,6 +233,177 @@ describe('EffectPredictionResultComponent', () => {
       expect(component.structureOmittedForLength).toBeFalse();
     });
   });
+
+  describe('slow structure note', () => {
+    const NOTE = 'Structure prediction can take several minutes';
+    const DELAY = () => component.slowStructureDelayMs;
+    const arm = () => component['armSlowStructureNote']();
+
+    /**
+     * Visibility, not presence: the results panel sits behind a `hidden` class
+     * until showResults, and textContent would read straight through it.
+     */
+    const noteVisible = (): boolean => {
+      fixture.detectChanges();
+      const note = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('p'))
+        .find((p) => (p.textContent ?? '').includes(NOTE));
+      return !!note && note.offsetParent !== null;
+    };
+
+    /** A simplefold job whose poller has started, as startSimplefoldPolling leaves it. */
+    const simplefoldLoading = () => {
+      component.simplefoldJobId = 'abc';
+      component.simplefoldLoading = true;
+    };
+
+    it('does not arm while the panel is still hidden', fakeAsync(() => {
+      simplefoldLoading();
+      component.showResults = false;
+      arm();
+
+      tick(DELAY());
+      expect(component.structureSlow).toBeFalse();
+    }));
+
+    it('arms once the panel is on screen and waits out the delay', fakeAsync(() => {
+      simplefoldLoading();
+      component.showResults = true;
+      arm();
+
+      tick(DELAY() - 1);
+      expect(component.structureSlow).toBeFalse();
+      tick(1);
+      expect(component.structureSlow).toBeTrue();
+    }));
+
+    it('arms from the handler that mounts the panel, not only when called directly', fakeAsync(() => {
+      // The panel mounts inside onProgressChange(100) after the result fetch.
+      spyOn(TestBed.inject(CleanDbService), 'getEffectPredictionResult').and.returnValue(of(result));
+      simplefoldLoading();
+
+      component.onProgressChange(100);
+      expect(component.showResults).toBeTrue();
+
+      tick(DELAY());
+      expect(component.structureSlow).toBeTrue();
+    }));
+
+    it('never arms for the precomputed example, which is an AlphaFold download, not a prediction', fakeAsync(() => {
+      component.simplefoldJobId = '';
+      component.simplefoldLoading = true;
+      component.showResults = true;
+      arm();
+
+      tick(DELAY());
+      expect(component.structureSlow).toBeFalse();
+    }));
+
+    it('does not arm when nothing is loading', fakeAsync(() => {
+      component.simplefoldJobId = 'abc';
+      component.simplefoldLoading = false;
+      component.showResults = true;
+      arm();
+
+      tick(DELAY());
+      expect(component.structureSlow).toBeFalse();
+    }));
+
+    it('resets a stale flag when re-armed, so a fresh load starts with a bare spinner', fakeAsync(() => {
+      simplefoldLoading();
+      component.showResults = true;
+      component.structureSlow = true;
+      arm();
+
+      expect(component.structureSlow).toBeFalse();
+      tick(DELAY());
+      expect(component.structureSlow).toBeTrue();
+    }));
+
+    it('shows the note only while loading, and only once the panel is visible', () => {
+      simplefoldLoading();
+      component.structureSlow = true;
+
+      component.showResults = false;
+      expect(noteVisible()).toBeFalse();
+
+      component.showResults = true;
+      expect(noteVisible()).toBeTrue();
+
+      component.structureSlow = false;
+      expect(noteVisible()).toBeFalse();
+
+      // The flag is never cleared by a load finishing, so this is the case that
+      // makes the template gate load-bearing.
+      component.structureSlow = true;
+      component.simplefoldLoading = false;
+      expect(noteVisible()).toBeFalse();
+    });
+
+    it('keeps the note off the error state', () => {
+      component.showResults = true;
+      component.simplefoldLoading = false;
+      component.simplefoldError = true;
+      component.structureSlow = true;
+      fixture.detectChanges();
+
+      expect((fixture.nativeElement as HTMLElement).textContent).toContain('Failed to load structure');
+      expect(noteVisible()).toBeFalse();
+    });
+
+    it('drops the timer with the component', fakeAsync(() => {
+      simplefoldLoading();
+      component.showResults = true;
+      arm();
+      fixture.destroy();
+
+      tick(DELAY());
+      expect(component.structureSlow).toBeFalse();
+    }));
+  });
+
+  describe('result fetch', () => {
+    let fetches: Subject<EffectPredictionResult>[];
+    let fetchSpy: jasmine.Spy;
+
+    beforeEach(() => {
+      fetches = [];
+      fetchSpy = spyOn(TestBed.inject(CleanDbService), 'getEffectPredictionResult').and.callFake(() => {
+        const fetch = new Subject<EffectPredictionResult>();
+        fetches.push(fetch);
+        return fetch;
+      });
+      // A simplefold job still running, so the slow-structure note is in play.
+      component.simplefoldJobId = 'abc';
+      component.simplefoldLoading = true;
+    });
+
+    it('keeps the note up when the loader reports 100 again while the fetch is pending', fakeAsync(() => {
+      // <app-loading> reports 100 on every 10 s poll tick until showResults
+      // removes it, so a fetch slower than a tick used to be issued twice.
+      component.onProgressChange(100);
+      component.onProgressChange(100);
+
+      fetches[0].next(result);
+      tick(component.slowStructureDelayMs);
+      expect(component.structureSlow).toBeTrue();
+
+      // Before the latch this was the second fetch landing and re-arming the
+      // note, which blinked it off. With the latch there is no second fetch.
+      fetches[1]?.next(result);
+      expect(component.structureSlow).toBeTrue();
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+    }));
+
+    it('fetches again on the next 100 after a failed fetch', () => {
+      component.onProgressChange(100);
+      fetches[0].error(new Error('503'));
+      expect(component.showResults).toBeFalse();
+
+      component.onProgressChange(100);
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe('resubmitting from the embedded form', () => {
     it('hands the form the job id it is showing, so it can recognise an unchanged resubmit', async () => {
       await firstValueFrom(component.statusResponse$);
