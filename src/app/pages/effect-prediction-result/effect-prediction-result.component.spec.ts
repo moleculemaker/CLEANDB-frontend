@@ -306,9 +306,13 @@ describe('EffectPredictionResultComponent', () => {
       expect(heatmap.width).toBeCloseTo(604, 1);
       expect(structure!.top).toBe(heatmap.top);
       expect(structure!.left).toBeGreaterThanOrEqual(heatmap.right);
-      // The structure column's minimum height is a copy of the heatmap's
-      // height; this is what notices if either side of that copy drifts.
-      expect(structure!.height).toBe(heatmap.height);
+      // The structure column's minimum height is a copy of the heatmap
+      // column's natural height. Comparing the two columns side by side would
+      // not notice a drift: the row stretches its items, so a taller minimum
+      // simply stretches the heatmap column too. The column with no structure
+      // beside it has nothing to stretch to, so its height is the natural one.
+      const natural = layOut(1100, false).heatmap.height;
+      expect(structure!.height).toBe(natural);
     });
 
     it('stacks the structure under a full-width heatmap at 480px, keeping the viewer its usual height', () => {
