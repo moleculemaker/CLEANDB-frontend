@@ -139,8 +139,11 @@
     </div>
 
     <!-- Subscription Email Input -->
-    <div class="sticky bottom-0 flex justify-between rounded-t-md bg-[#F3F5FB] px-10 pt-8">
-      <div class="flex flex-col">
+    <!-- Email block and button share a line while both fit at their natural
+         width (about 830px); below that the button drops to its own line, still
+         on the right, and the block may narrow to 320px. -->
+    <div class="sticky bottom-0 flex flex-wrap justify-between gap-x-8 rounded-t-md bg-[#F3F5FB] px-10 pt-8">
+      <div class="flex flex-col min-w-[320px]">
         <div class="flex items-end justify-center mb-2">
           <span class="pr-12 mb-1">
             <h5 class="inline m-0 mr-2 font-semibold opacity-100 leading-lg">Email</h5>
@@ -165,7 +168,7 @@
       </div>
       <!-- exampleUsed: {{ exampleUsed$ | async | json }}
       example: {{ example$ | async | json }} -->
-      <div class="flex flex-col items-end gap-2">
+      <div class="flex flex-col items-end gap-2 ml-auto pb-4">
         <p-button label="Get Mutation Effect Prediction" type="submit" styleClass="bg-[#224063]" [disabled]="form.invalid"
         iconPos="right" icon="pi pi-arrow-right"></p-button>
         @if (exampleUsed) {

@@ -12,6 +12,13 @@
 // Chrome (121+) implements them too, and setting either one makes it ignore
 // every ::-webkit-scrollbar rule below.
 .heatmap-scroll {
+  // The grid is thousands of pixels wide, and without this it is what the
+  // heatmap column reports as its minimum width: the page column above it
+  // cannot shrink below that, so it is centred off the left edge of a narrow
+  // window instead. Inline-size containment makes the scroller's intrinsic
+  // width zero, leaving it to fill whatever width its column gives it.
+  contain: inline-size;
+
   @supports not selector(::-webkit-scrollbar) {
     scrollbar-width: thin;
     scrollbar-color: #818ea1 #eee;
