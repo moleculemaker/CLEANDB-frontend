@@ -194,13 +194,19 @@ export class EffectPredictionComponent implements OnChanges, OnDestroy {
    * header, residues and positions. Email is not part of the request, so changing
    * only it does not make a new job. Only a result page hands this form a job_id,
    * so on the standalone page this is always false.
+   *
+   * Headers are compared without their leading '>'. Jobs this build creates store
+   * it (the parsed first line keeps it), but the precomputed example does not, and
+   * getFasta prepends one on load either way, so a raw compare would call a
+   * '>'-less job changed when nothing was typed.
    */
   get requestUnchanged(): boolean {
     const job = this.formValue;
     if (!job?.job_id) return false;
     const { sequenceName, sequence } = getSingleSeq(this.form.value.sequence || '');
     const positions = this.form.value.positions?.value || [];
-    return sequenceName === job.sequence_name
+    const header = (name: string) => (name || '').replace(/^>/, '');
+    return header(sequenceName) === header(job.sequence_name)
       && sequence === job.sequence
       && JSON.stringify(positions) === JSON.stringify(job.positions || []);
   }

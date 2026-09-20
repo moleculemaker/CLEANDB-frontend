@@ -146,6 +146,15 @@ describe('EffectPredictionComponent', () => {
       expect(emitted).toEqual(['job-b']);
     });
 
+    it('recognises a job whose stored header lacks the leading ">"', () => {
+      const bareHeaderJob = { ...loadedJob, sequence_name: 'test' };
+      component.formValue = bareHeaderJob;
+      component.ngOnChanges({ formValue: new SimpleChange(loadedJob, bareHeaderJob, false) });
+
+      expect(component.form.value.sequence).toBe('>test\nACDEFGHIKL');
+      expect(component.requestUnchanged).toBeTrue();
+    });
+
     it('creates a new job once the header differs', () => {
       component.form.patchValue({ sequence: '>renamed\nACDEFGHIKL' });
 
