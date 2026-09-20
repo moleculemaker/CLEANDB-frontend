@@ -261,4 +261,54 @@ describe('EffectPredictionResultComponent', () => {
       expect(component.currentPage).toBe('input');
     });
   });
+
+  describe('heatmap and structure row', () => {
+    // Rendered in a fixed-width host with the real stylesheet, so these measure
+    // what the browser does with the layout classes rather than list the classes.
+    // The structure panel is put in its loading state: that renders the panel and
+    // its viewer box with a spinner rather than the WebGL viewer.
+    const layOut = (hostWidth: number) => {
+      const host = fixture.nativeElement as HTMLElement;
+      host.style.display = 'block';
+      host.style.width = `${hostWidth}px`;
+      component.result = result;
+      component.showResults = true;
+      component.simplefoldLoading = true;
+      fixture.detectChanges();
+
+      const heatmapColumn = host.querySelector('app-heatmap')!.parentElement!;
+      const structureColumn = heatmapColumn.parentElement!.children[1] as HTMLElement;
+      const viewerBox = structureColumn.querySelector<HTMLElement>('.relative')!;
+      return {
+        host: host.getBoundingClientRect(),
+        heatmap: heatmapColumn.getBoundingClientRect(),
+        structure: structureColumn.getBoundingClientRect(),
+        viewer: viewerBox.getBoundingClientRect(),
+      };
+    };
+
+    it('puts the structure beside a 604px heatmap when the row has room for both', () => {
+      const { heatmap, structure } = layOut(1100);
+
+      expect(heatmap.width).toBe(604);
+      expect(structure.top).toBe(heatmap.top);
+      expect(structure.left).toBeGreaterThanOrEqual(heatmap.right);
+    });
+
+    it('stacks the structure under a full-width heatmap at 480px, keeping the viewer its usual height', () => {
+      const wide = layOut(1100);
+      const { host, heatmap, structure, viewer } = layOut(480);
+
+      expect(structure.top).toBeGreaterThanOrEqual(heatmap.bottom);
+      expect(structure.width).toBe(heatmap.width);
+      // Nothing inside forces the page wider than the window: the grid's
+      // thousands of pixels stay inside the heatmap's own scroller.
+      expect(heatmap.right).toBeLessThanOrEqual(host.right);
+      expect(structure.right).toBeLessThanOrEqual(host.right);
+      // Stacked, there is no heatmap beside it to stretch to, so the viewer
+      // would otherwise collapse to nothing.
+      expect(viewer.height).toBe(wide.viewer.height);
+      expect(viewer.height).toBeGreaterThan(400);
+    });
+  });
 });
