@@ -63,7 +63,7 @@ export const totalStatistics: ECClassStatistics = {
     proteins: 91208,
     accessions: 55183064,
     genes: 1037372,
-    organisms: 1098304,
+    organisms: 1098305,
     lowConfidencePredictions: 10742897,
     midConfidencePredictions: 9103690,
     highConfidencePredictions: 39712566
