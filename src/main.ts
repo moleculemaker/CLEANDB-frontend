@@ -85,7 +85,7 @@ bootstrapApplication(AppComponent, {
                 siteId: 12,
                 trackerUrl: 'https://matomo.mmli2.ncsa.illinois.edu/'
             }),
-            MatomoRouterModule,
+            MatomoRouterModule.forRoot(),
             MenuModule,
             ApiModule.forRoot(() => new Configuration()),
             CleandbApiModule.forRoot(() => new CleandbConfiguration()),
